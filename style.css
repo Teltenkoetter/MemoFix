@@ -1010,6 +1010,17 @@ textarea.input-notiz::placeholder { color: var(--muted); }
 .btn-nav:active { border-color: rgba(255,255,255,0.3); }
 .btn-nav.invisible { visibility: hidden; pointer-events: none; }
 
+.btn-weiter-wrap { position: relative; display: flex; align-items: center; }
+.btn-lern-favorit {
+  position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+  background: none; border: none; font-size: 1.25rem;
+  color: rgba(255,255,255,0.30); cursor: pointer;
+  transition: color 0.15s, transform 0.15s;
+  line-height: 1; padding: 0.2rem;
+}
+.btn-lern-favorit.aktiv { color: #f5c518; }
+.btn-lern-favorit:active { transform: translateX(-50%) scale(1.3); }
+
 .btn-aufdecken {
   flex: 1; max-width: 210px;
   background: rgba(255,255,255,0.06); color: var(--text-dim);
@@ -1262,6 +1273,23 @@ textarea.input-notiz::placeholder { color: var(--muted); }
   transition: background 0.15s, color 0.15s;
 }
 .karte-detail-share-btn:active { background: rgba(255,255,255,0.2); color: #fff; }
+
+.karte-detail-fav-btn {
+  position: absolute;
+  bottom: calc(1.4rem + env(safe-area-inset-bottom));
+  right: 1.5rem;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 50%;
+  width: 2.4rem; height: 2.4rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.45);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.karte-detail-fav-btn.aktiv { color: #f5c518; background: rgba(245,197,24,0.15); border-color: rgba(245,197,24,0.35); }
+.karte-detail-fav-btn:active { background: rgba(255,255,255,0.2); }
 
 /* ── TOAST ─────────────────────────────────────────── */
 .toast {

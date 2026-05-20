@@ -294,11 +294,11 @@ function gebeWakeLockFrei() {
 }
 
 // ── AUTO-TIMER & AUTOREPEAT ──────────────────────────────────
-let timerSekunden  = parseInt(localStorage.getItem('lernTimer') || '0');
+let timerSekunden  = 0;   // immer mit Timer=aus starten
 let timerHandle    = null;
 let timerGeneration = 0;   // verhindert veraltete transitionend-Callbacks
 const TIMER_BACK   = { 1: 1500, 3: 2000, 5: 3000, 10: 5000 };
-let autoRepeat     = localStorage.getItem('lernAutoRepeat') === '1';
+let autoRepeat     = false; // immer mit Repeat=aus starten
 
 function setAutoRepeat(val) {
   autoRepeat = val;
@@ -554,6 +554,12 @@ function speichereKartenReihenfolge(gruppeId, ids) {
 }
 function getSortierteKartenInGruppe(gruppeId) {
   const karten = studenten.filter(s => s.gruppeId === gruppeId);
+  const sort   = document.getElementById('select-karten-sort')?.value || 'manuell';
+
+  if (sort === 'az') return [...karten].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  if (sort === 'za') return [...karten].sort((a, b) => b.name.localeCompare(a.name, 'de'));
+
+  // Manuell: gespeicherte Reihenfolge anwenden
   const reihenfolge = ladeKartenReihenfolge(gruppeId);
   if (!reihenfolge.length) return karten;
   const ordered = [];
@@ -588,6 +594,18 @@ async function addGruppeInSammlung(sid, inputEl) {
   inputEl.value = '';
   renderVerwaltung();
   toast(`Gruppe „${name}" erstellt`);
+}
+
+// ── Favorit togglen (geteilt von mehreren UI-Stellen) ────
+async function toggleFavorit(id) {
+  const s = studenten.find(x => x.id === id);
+  if (!s) return;
+  s.favorit = !s.favorit;
+  try {
+    const dbRec = await dbGet('studenten', id);
+    if (dbRec) { dbRec.favorit = s.favorit; await dbPut('studenten', dbRec); }
+  } catch (err) { console.warn('Favorit DB-Fehler:', err); }
+  renderLernAuswahl();
 }
 
 // gruppe verschieben
@@ -663,23 +681,14 @@ function gruppeKartenAnzahl(gid) {
 
 function getGefilterteStudenten() {
   const suche = (document.getElementById('input-karten-suche')?.value || '').toLowerCase().trim();
-  const sort  = document.getElementById('select-karten-sort')?.value || 'neu';
   let result = [...studenten];
   if (suche) result = result.filter(s =>
     s.name.toLowerCase().includes(suche) ||
     (s.notiz || '').toLowerCase().includes(suche) ||
     (s.vorderseite || '').toLowerCase().includes(suche)
   );
-  switch (sort) {
-    case 'az': result.sort((a, b) => a.name.localeCompare(b.name, 'de')); break;
-    case 'za': result.sort((a, b) => b.name.localeCompare(a.name, 'de')); break;
-    case 'gruppe': result.sort((a, b) => {
-      const ga = gruppen.find(g => g.id === a.gruppeId)?.name || '';
-      const gb = gruppen.find(g => g.id === b.gruppeId)?.name || '';
-      return ga.localeCompare(gb, 'de') || a.name.localeCompare(b.name, 'de');
-    }); break;
-    default: result.sort((a, b) => Number(b.id) - Number(a.id)); break;
-  }
+  // Im Suchmodus immer A→Z für übersichtliche Ergebnisse
+  result.sort((a, b) => a.name.localeCompare(b.name, 'de'));
   return result;
 }
 
@@ -736,6 +745,8 @@ function fillKarteDetail(s) {
   else { notizEl.classList.add('hidden'); }
   showLinks('karte-detail-links', s.links || []);
   showVideo('karte-detail-video', s);
+  const favBtn = document.getElementById('btn-detail-favorit');
+  if (favBtn) { favBtn.classList.toggle('aktiv', !!s.favorit); }
   const counterEl = document.getElementById('karte-detail-counter');
   if (counterEl) counterEl.textContent = detailIds.length > 1 ? `${detailIndex + 1} / ${detailIds.length}` : '';
 }
@@ -1015,9 +1026,23 @@ async function teileKarte(s) {
 }
 
 document.getElementById('btn-karte-teilen').addEventListener('click', async e => {
-  e.stopPropagation(); // Overlay nicht schließen
+  e.stopPropagation();
   const s = studenten.find(x => x.id === detailIds[detailIndex]);
   if (s) await teileKarte(s);
+});
+
+document.getElementById('btn-detail-favorit').addEventListener('click', async e => {
+  e.stopPropagation();
+  const id = detailIds[detailIndex];
+  if (!id) return;
+  await toggleFavorit(id);
+  const s = studenten.find(x => x.id === id);
+  if (s) {
+    e.currentTarget.classList.toggle('aktiv', s.favorit);
+    // Auch Karte in der Liste aktualisieren
+    const listBtn = document.querySelector(`.btn-favorit[data-id="${id}"]`);
+    if (listBtn) { listBtn.classList.toggle('aktiv', s.favorit); listBtn.title = s.favorit ? 'Favorit entfernen' : 'Als Favorit markieren'; }
+  }
 });
 
 function detailNavigate(dir) {
@@ -1071,7 +1096,8 @@ function karteItemHtml(s, idx, total) {
     thumb = `<div class="karte-foto-leer karte-detail-trigger" data-id="${s.id}" title="Foto fehlt noch">📷</div>
        <input type="file" accept="image/*" class="karte-foto-input" data-id="${s.id}">`;
   }
-  const showMove = (total > 1);
+  const sortVal  = document.getElementById('select-karten-sort')?.value || 'manuell';
+  const showMove = (total > 1) && (sortVal === 'manuell');
   return `
     <div class="karte-item">
       <div class="karte-foto-wrapper">
@@ -1117,10 +1143,10 @@ function _renderVerwaltung() {
   const keinKarteHinweis = document.getElementById('keine-karten-hinweis');
   const toggleBtn        = document.getElementById('btn-toggle-alle-gruppen');
   const suche            = (document.getElementById('input-karten-suche')?.value || '').trim().toLowerCase();
-  const sort             = document.getElementById('select-karten-sort')?.value || 'neu';
+  const sort             = document.getElementById('select-karten-sort')?.value || 'manuell';
 
-  // ── FLAT MODE: Suche oder alphabetisch ───────────────
-  if (suche || sort === 'az' || sort === 'za') {
+  // ── FLAT MODE: nur bei aktiver Suche ─────────────────
+  if (suche) {
     if (toggleBtn) toggleBtn.style.visibility = 'hidden';
     keinSammlHinweis.classList.add('hidden');
     const gefiltert = getGefilterteStudenten();
@@ -1479,6 +1505,7 @@ function zeigeKarte() {
   nameVisible     = false;
   aktuelleWertung = null;
   isAnimating     = false;
+  document.getElementById('btn-lern-favorit')?.classList.add('hidden');
 
   // Karte zurücksetzen (Flip + Fly-out entfernen, ohne sichtbare Transition)
   const card = document.getElementById('lernkarte');
@@ -1618,6 +1645,14 @@ function zeigeName(wertung) {
 
   document.getElementById('btn-aufdecken').style.visibility = 'hidden';
   zeigeFeedback(wertung === 'gewusst' ? 'gewusst' : 'nicht');
+  // Stern im manuellen Modus anzeigen (kein Timer)
+  if (!timerSekunden) {
+    const lernFavBtn = document.getElementById('btn-lern-favorit');
+    if (lernFavBtn) {
+      lernFavBtn.classList.toggle('aktiv', !!s.favorit);
+      lernFavBtn.classList.remove('hidden');
+    }
+  }
 }
 
 function naechsteKarteOderEnde() {
@@ -2104,25 +2139,9 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
   const favBtn = e.target.closest('.btn-favorit');
   if (favBtn) {
     e.stopPropagation();
-    const id        = favBtn.dataset.id;
-    const s         = studenten.find(x => x.id === id);
-    if (!s) return;
-    const newFavorit = !s.favorit;
-    // Frisch aus DB lesen und nur favorit-Feld ändern – schützt Foto-Blob
-    try {
-      const dbRec = await dbGet('studenten', id);
-      if (dbRec) {
-        dbRec.favorit = newFavorit;
-        await dbPut('studenten', dbRec);
-      }
-    } catch (err) {
-      console.warn('Favorit DB-Fehler:', err);
-    }
-    // In-Memory und UI immer aktualisieren (auch bei DB-Fehler)
-    s.favorit = newFavorit;
-    favBtn.classList.toggle('aktiv', newFavorit);
-    favBtn.title = newFavorit ? 'Favorit entfernen' : 'Als Favorit markieren';
-    renderLernAuswahl();
+    await toggleFavorit(favBtn.dataset.id);
+    const s2 = studenten.find(x => x.id === favBtn.dataset.id);
+    if (s2) { favBtn.classList.toggle('aktiv', s2.favorit); favBtn.title = s2.favorit ? 'Favorit entfernen' : 'Als Favorit markieren'; }
     return;
   }
   // Sammlung Farbe ändern
@@ -2473,14 +2492,20 @@ document.getElementById('karte-edit-video').addEventListener('blur', async () =>
     const dy = e.changedTouches[0].clientY - touchStartY;
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
       detailNavigate(dx < 0 ? 1 : -1);
-    } else if (!touchMoved && !e.target.closest?.('.video-play-btn') && !e.target.closest?.('.karte-detail-share-btn')) {
+    } else if (!touchMoved
+        && !e.target.closest?.('.video-play-btn')
+        && !e.target.closest?.('.karte-detail-share-btn')
+        && !e.target.closest?.('.karte-detail-fav-btn')
+        && !e.target.closest?.('.link-btn')) {
       overlay.classList.add('hidden');
     }
   }, { passive: true });
 
   overlay.addEventListener('click', e => {
-    if (e.target.closest('.video-play-btn')) return;
+    if (e.target.closest('.video-play-btn'))        return;
     if (e.target.closest('.karte-detail-share-btn')) return;
+    if (e.target.closest('.karte-detail-fav-btn'))  return;
+    if (e.target.closest('.link-btn'))              return;
     if (!('ontouchstart' in window)) overlay.classList.add('hidden');
   });
 })();
@@ -2698,6 +2723,16 @@ document.getElementById('lern-feedback').addEventListener('click', e => {
     zeigeFeedback('gewusst');
   }
 });
+document.getElementById('btn-lern-favorit').addEventListener('click', async e => {
+  e.stopPropagation();
+  const s = lernKarten[lernIndex];
+  if (!s) return;
+  await toggleFavorit(s.id);
+  e.currentTarget.classList.toggle('aktiv', !!s.favorit);
+  // Auch Stern auf Karte aktualisieren
+  document.getElementById('lern-favorit-stern').classList.toggle('hidden', !s.favorit);
+});
+
 document.getElementById('btn-beenden').addEventListener('click', () => {
   stoppeAutoTimer();
   document.getElementById('lernen-flashcard').classList.add('hidden');
@@ -3410,11 +3445,9 @@ async function erstelleTutorialGruppeWennNeu() {
   await erstelleTutorialGruppeWennNeu();
   await ladeAlles();
   await repairOrphanGruppen();
-  ladeOpenGruppen();
+  // Reihenfolge laden – aber Open-States NICHT laden (alles geschlossen beim Start)
   ladeGruppenReihenfolge();
   ladeSammlungenReihenfolge();
-  ladeOpenSammlungen();
-  ladeOpenLernSammlungen();
   renderVerwaltung();
   // Timer-Buttons, Autorepeat & Label-Opacity initialisieren
   document.querySelectorAll('.timer-btn').forEach(b =>
