@@ -1,3 +1,9 @@
+// ── Hilfsfunktionen ─────────────────────────────────────────
+function debounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
 // ============================================================
 // DATABASE (IndexedDB)
 // ============================================================
@@ -1506,7 +1512,6 @@ function zeigeKarte() {
   nameVisible     = false;
   aktuelleWertung = null;
   isAnimating     = false;
-  document.getElementById('btn-lern-favorit')?.classList.add('hidden');
 
   // Karte zurücksetzen (Flip + Fly-out entfernen, ohne sichtbare Transition)
   const card = document.getElementById('lernkarte');
@@ -1541,6 +1546,9 @@ function zeigeKarte() {
   document.getElementById('lern-gruppe-text').textContent       = gName;
   document.getElementById('lern-name-karte-gruppe').textContent = gName;
   document.getElementById('lern-favorit-stern').classList.toggle('hidden', !s.favorit);
+  // Favorit-Button im Header: immer sichtbar, Zustand sofort aktualisieren
+  const favHdrBtn = document.getElementById('btn-lern-favorit');
+  if (favHdrBtn) { favHdrBtn.classList.remove('hidden'); favHdrBtn.classList.toggle('aktiv', !!s.favorit); }
   document.getElementById('lern-card-links').classList.add('hidden');
   const videoEl = document.getElementById('lern-card-video');
   if (videoEl) { videoEl.classList.add('hidden'); videoEl.innerHTML = ''; }
@@ -1646,14 +1654,9 @@ function zeigeName(wertung) {
 
   document.getElementById('btn-aufdecken').style.visibility = 'hidden';
   zeigeFeedback(wertung === 'gewusst' ? 'gewusst' : 'nicht');
-  // Stern im manuellen Modus anzeigen (kein Timer)
-  if (!timerSekunden) {
-    const lernFavBtn = document.getElementById('btn-lern-favorit');
-    if (lernFavBtn) {
-      lernFavBtn.classList.toggle('aktiv', !!s.favorit);
-      lernFavBtn.classList.remove('hidden');
-    }
-  }
+  // Favorit-Button im Header: Zustand nach Aufdecken aktualisieren
+  const lernFavBtn = document.getElementById('btn-lern-favorit');
+  if (lernFavBtn) { lernFavBtn.classList.toggle('aktiv', !!s.favorit); }
 }
 
 function naechsteKarteOderEnde() {
@@ -2528,10 +2531,11 @@ document.getElementById('btn-toggle-alle-gruppen').addEventListener('click', () 
 });
 
 // Suchen + Sortieren
+const renderVerwaltungDebounced = debounce(renderVerwaltung, 180);
 document.getElementById('input-karten-suche').addEventListener('input', () => {
   const hasText = document.getElementById('input-karten-suche').value.length > 0;
   document.getElementById('btn-suche-clear').classList.toggle('hidden', !hasText);
-  renderVerwaltung();
+  renderVerwaltungDebounced();
 });
 document.getElementById('btn-suche-clear').addEventListener('click', () => {
   document.getElementById('input-karten-suche').value = '';
