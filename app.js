@@ -1033,12 +1033,13 @@ document.getElementById('btn-karte-teilen').addEventListener('click', async e =>
 
 document.getElementById('btn-detail-favorit').addEventListener('click', async e => {
   e.stopPropagation();
+  const btn = e.currentTarget;
   const id = detailIds[detailIndex];
   if (!id) return;
   await toggleFavorit(id);
   const s = studenten.find(x => x.id === id);
   if (s) {
-    e.currentTarget.classList.toggle('aktiv', s.favorit);
+    btn.classList.toggle('aktiv', s.favorit);
     // Auch Karte in der Liste aktualisieren
     const listBtn = document.querySelector(`.btn-favorit[data-id="${id}"]`);
     if (listBtn) { listBtn.classList.toggle('aktiv', s.favorit); listBtn.title = s.favorit ? 'Favorit entfernen' : 'Als Favorit markieren'; }
@@ -2725,10 +2726,11 @@ document.getElementById('lern-feedback').addEventListener('click', e => {
 });
 document.getElementById('btn-lern-favorit').addEventListener('click', async e => {
   e.stopPropagation();
+  const btn = e.currentTarget;
   const s = lernKarten[lernIndex];
   if (!s) return;
   await toggleFavorit(s.id);
-  e.currentTarget.classList.toggle('aktiv', !!s.favorit);
+  btn.classList.toggle('aktiv', !!s.favorit);
   // Auch Stern auf Karte aktualisieren
   document.getElementById('lern-favorit-stern').classList.toggle('hidden', !s.favorit);
 });

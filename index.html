@@ -417,7 +417,10 @@
 
       <div id="lernen-flashcard" class="hidden">
         <div class="lern-header">
-          <button id="btn-beenden" class="btn-text">✕ Beenden</button>
+          <div class="lern-header-links">
+            <button id="btn-beenden" class="btn-text">✕ Beenden</button>
+            <button id="btn-lern-favorit" class="btn-lern-favorit hidden" title="Favorit">★</button>
+          </div>
           <div class="lern-progress-wrap">
             <div class="lern-progress-track">
               <div id="lern-progress-fill" class="lern-progress-fill" style="width:0%"></div>
@@ -485,7 +488,6 @@
             <div id="lern-feedback" class="lern-feedback hidden"></div>
           </div>
           <div class="btn-weiter-wrap">
-            <button id="btn-lern-favorit" class="btn-lern-favorit hidden" title="Favorit">★</button>
             <button id="btn-weiter" class="btn-nav">&#8594;</button>
           </div>
         </div>
@@ -663,6 +665,6 @@
     <div id="video-overlay-title" class="video-overlay-title"></div>
   </div>
 
-  <script src="app.js?v=56"></script>
+  <script src="app.js?v=57"></script>
 </body>
 </html>
