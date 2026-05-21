@@ -327,7 +327,11 @@
       </div>
 
       <div class="card">
-        <div class="card-header"><h2>Karte hinzufügen</h2></div>
+        <div class="card-header card-header-toggle" id="karte-hinzufuegen-header">
+          <h2>Karte hinzufügen</h2>
+          <span class="card-toggle-arrow">▶</span>
+        </div>
+        <div id="karte-hinzufuegen-body" class="hidden">
         <form id="form-karte">
           <div class="form-group">
             <label for="select-gruppe">Gruppe</label>
@@ -374,6 +378,7 @@
           </div>
           <button type="submit" id="btn-karte-speichern" class="btn-primary">Karte speichern</button>
         </form>
+        </div>
       </div>
 
     </section>

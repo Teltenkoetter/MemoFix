@@ -1137,6 +1137,24 @@ function karteItemHtml(s, idx, total) {
     </div>`;
 }
 
+// ── Karte-Hinzufügen-Form öffnen/schließen ────────────────
+function oeffneKarteHinzufuegenForm() {
+  const body  = document.getElementById('karte-hinzufuegen-body');
+  const arrow = document.querySelector('#karte-hinzufuegen-header .card-toggle-arrow');
+  body?.classList.remove('hidden');
+  if (arrow) arrow.classList.add('open');
+}
+
+document.getElementById('karte-hinzufuegen-header').addEventListener('click', () => {
+  const body   = document.getElementById('karte-hinzufuegen-body');
+  const arrow  = document.querySelector('#karte-hinzufuegen-header .card-toggle-arrow');
+  const opening = body.classList.toggle('hidden') === false; // true = gerade geöffnet
+  arrow?.classList.toggle('open', opening);
+  if (opening) {
+    document.getElementById('karte-hinzufuegen-header').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+});
+
 function renderVerwaltung() {
   const scrollY = window.scrollY;
   _renderVerwaltung();
@@ -2123,7 +2141,8 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
     const sel = document.getElementById('select-gruppe');
     sel.value = gid;
     localStorage.setItem('lastGruppeId', gid);
-    document.getElementById('form-karte').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    oeffneKarteHinzufuegenForm();
+    document.getElementById('karte-hinzufuegen-header').scrollIntoView({ behavior: 'smooth', block: 'start' });
     setTimeout(() => document.getElementById('input-name').focus(), 400);
     return;
   }

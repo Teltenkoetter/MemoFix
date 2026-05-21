@@ -191,6 +191,11 @@ main { max-width: 620px; margin: 0 auto; padding: 1rem 1rem 0.5rem; }
 }
 .card-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; position: relative; }
 .card-header h2 { font-size: 0.95rem; font-weight: 700; }
+.card-header-toggle { cursor: pointer; user-select: none; margin-bottom: 0; }
+.card-header-toggle:active { opacity: 0.6; }
+.card-toggle-arrow { margin-left: auto; font-size: 0.65rem; color: var(--muted); transition: transform 0.15s; }
+.card-toggle-arrow.open { transform: rotate(90deg); }
+#karte-hinzufuegen-body { padding-top: 1rem; }
 
 /* Logo watermark via ::after — pseudo-elements always use their own element as containing block */
 header::after,
