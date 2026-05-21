@@ -1151,7 +1151,9 @@ document.getElementById('karte-hinzufuegen-header').addEventListener('click', ()
   const opening = body.classList.toggle('hidden') === false; // true = gerade geöffnet
   arrow?.classList.toggle('open', opening);
   if (opening) {
-    document.getElementById('karte-hinzufuegen-header').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    requestAnimationFrame(() =>
+      document.getElementById('karte-hinzufuegen-header').scrollIntoView({ behavior: 'smooth', block: 'start' })
+    );
   }
 });
 
@@ -2142,7 +2144,9 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
     sel.value = gid;
     localStorage.setItem('lastGruppeId', gid);
     oeffneKarteHinzufuegenForm();
-    document.getElementById('karte-hinzufuegen-header').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    requestAnimationFrame(() =>
+      document.getElementById('karte-hinzufuegen-header').scrollIntoView({ behavior: 'smooth', block: 'start' })
+    );
     setTimeout(() => document.getElementById('input-name').focus(), 400);
     return;
   }
