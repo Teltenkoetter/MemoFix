@@ -1150,11 +1150,6 @@ document.getElementById('karte-hinzufuegen-header').addEventListener('click', ()
   const arrow  = document.querySelector('#karte-hinzufuegen-header .card-toggle-arrow');
   const opening = body.classList.toggle('hidden') === false; // true = gerade geöffnet
   arrow?.classList.toggle('open', opening);
-  if (opening) {
-    requestAnimationFrame(() =>
-      document.getElementById('karte-hinzufuegen-header').scrollIntoView({ behavior: 'smooth', block: 'start' })
-    );
-  }
 });
 
 function renderVerwaltung() {
@@ -2144,9 +2139,6 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
     sel.value = gid;
     localStorage.setItem('lastGruppeId', gid);
     oeffneKarteHinzufuegenForm();
-    requestAnimationFrame(() =>
-      document.getElementById('karte-hinzufuegen-header').scrollIntoView({ behavior: 'smooth', block: 'start' })
-    );
     setTimeout(() => document.getElementById('input-name').focus(), 400);
     return;
   }
