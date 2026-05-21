@@ -521,7 +521,9 @@ textarea.input-notiz::placeholder { color: var(--muted); }
 .gruppe-karten-section { margin-bottom: 0.75rem; }
 .fav-gruppe-section { margin-bottom: 0.5rem; }
 .fav-gruppe-header { cursor: pointer; }
-.fav-gruppe-header .gruppe-karten-title-text { font-weight: 600; }
+.fav-gruppe-header .gruppe-toggle-arrow,
+.fav-gruppe-header .gruppe-karten-title-text,
+.fav-gruppe-header .gruppe-karten-count { color: #f5c518 !important; font-weight: 600; }
 .fav-gruppe-item .check-label strong { color: #f5c518; }
 
 .gruppe-karten-header {
