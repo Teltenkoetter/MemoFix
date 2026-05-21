@@ -29,15 +29,16 @@ body {
   padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
 }
 
 header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(0,0,0,0.45);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   height: calc(var(--header-h) + env(safe-area-inset-top));
   padding: calc(0.9rem + env(safe-area-inset-top)) 1.25rem 0.9rem;
   border-bottom: 1px solid var(--border);
@@ -518,6 +519,11 @@ textarea.input-notiz::placeholder { color: var(--muted); }
 
 /* ── KARTEN (Verwaltung) ───────────────────────────── */
 .gruppe-karten-section { margin-bottom: 0.75rem; }
+.fav-gruppe-section { margin-bottom: 0.5rem; }
+.fav-gruppe-header { cursor: default; border-bottom: 1px solid rgba(245,197,24,0.2); margin-bottom: 0.25rem; }
+.fav-gruppe-header .gruppe-karten-title-text { color: #f5c518; font-weight: 600; }
+.fav-gruppe-header .gruppe-karten-count { color: rgba(245,197,24,0.65); }
+.fav-gruppe-item .check-label strong { color: #f5c518; }
 
 .gruppe-karten-header {
   display: flex; align-items: center; gap: 0.5rem;
@@ -1153,14 +1159,19 @@ textarea.input-notiz::placeholder { color: var(--muted); }
   bottom: calc(16px + env(safe-area-inset-bottom));
   left: 16px; right: 16px;
   background: rgba(14,14,20,0.8);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--border-strong);
   border-radius: 22px;
   display: flex;
   height: 64px;
   z-index: 100;
   box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+  /* iOS: eigene GPU-Schicht erzwingen – verhindert Verrutschen bei starkem Scroll */
+  transform: translateZ(0);
+  will-change: transform;
+  touch-action: none;
+  pointer-events: auto;
 }
 .nav-item {
   flex: 1; background: transparent; border: none;

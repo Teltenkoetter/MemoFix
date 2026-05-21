@@ -223,18 +223,24 @@ function oeffneVideoOverlay(videoId, titel) {
   const wrap = document.getElementById('video-iframe-wrap');
   const oldIframe = document.getElementById('video-iframe');
   if (oldIframe) oldIframe.remove();
-  const iframe = document.createElement('iframe');
-  iframe.id          = 'video-iframe';
-  iframe.src         = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0`;
-  iframe.allow       = 'autoplay; encrypted-media; picture-in-picture';
-  iframe.allowFullscreen = true;
-  iframe.setAttribute('frameborder', '0');
-  iframe.title       = 'YouTube Video';
-  wrap.appendChild(iframe);
 
+  const overlay = document.getElementById('video-overlay');
+  overlay.classList.remove('hidden');
   document.getElementById('video-overlay-title').textContent = titel || '';
-  document.getElementById('video-overlay').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+
+  // Kurze Verzögerung: Overlay erst sichtbar → dann iframe einsetzen
+  // Verhindert schwarze Fläche auf iOS Safari bei schnellem Öffnen
+  setTimeout(() => {
+    const iframe = document.createElement('iframe');
+    iframe.id          = 'video-iframe';
+    iframe.src         = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0`;
+    iframe.allow       = 'autoplay; encrypted-media; picture-in-picture';
+    iframe.allowFullscreen = true;
+    iframe.setAttribute('frameborder', '0');
+    iframe.title       = 'YouTube Video';
+    wrap.appendChild(iframe);
+  }, 80);
 }
 
 function schliesseVideoOverlay() {
@@ -680,8 +686,19 @@ async function ladeAlles() {
   ]);
 }
 
+function getKartenFuerGid(gid) {
+  if (gid === '__favoriten__') return studenten.filter(s => s.favorit);
+  if (gid.startsWith('__favoriten__:')) {
+    const sid   = gid.slice('__favoriten__:'.length);
+    const gsIds = new Set(gruppen.filter(g => g.sammlungId === sid).map(g => g.id));
+    return studenten.filter(s => s.favorit && gsIds.has(s.gruppeId));
+  }
+  return getSortierteKartenInGruppe(gid);
+}
+
 function gruppeKartenAnzahl(gid) {
   if (gid === '__favoriten__') return studenten.filter(s => s.favorit).length;
+  if (gid.startsWith('__favoriten__:')) return getKartenFuerGid(gid).length;
   return studenten.filter(s => s.gruppeId === gid).length;
 }
 
@@ -1185,6 +1202,18 @@ function _renderVerwaltung() {
     const isOpen = openSammlungen.has(sam.id);
     const kCount = sammlungKartenAnzahl(sam.id);
 
+    // ★ Favoriten dieser Sammlung — immer ganz oben, immer geöffnet
+    const samFavs = studenten.filter(s => s.favorit && gs.some(g => g.id === s.gruppeId));
+    const favGruppeHtml = samFavs.length ? `<div class="gruppe-karten-section fav-gruppe-section">
+      <div class="gruppe-karten-header fav-gruppe-header">
+        <span class="gruppe-karten-title-text">★ Favoriten</span>
+        <span class="gruppe-karten-count">${samFavs.length} Karte${samFavs.length !== 1 ? 'n' : ''}</span>
+      </div>
+      <div class="gruppe-karten-body">
+        ${samFavs.map((s, idx) => karteItemHtml(s, idx, samFavs.length)).join('')}
+      </div>
+    </div>` : '';
+
     const gruppenHtml = gs.map((g, gi) => {
       const kartenInGruppe = getSortierteKartenInGruppe(g.id);
       const isGroupOpen    = openGruppen.has(g.id);
@@ -1224,7 +1253,7 @@ function _renderVerwaltung() {
         </div>
       </div>
       <div class="sammlung-body${isOpen ? '' : ' hidden'}" id="sammlung-body-${sam.id}">
-        ${gruppenHtml}
+        ${favGruppeHtml}${gruppenHtml}
         <div class="neue-gruppe-row">
           <input type="text" class="input-neue-gruppe-sammlung" data-sid="${sam.id}" placeholder="Neue Gruppe…" maxlength="60">
           <button class="btn-gruppe-add-sammlung btn-icon" data-sid="${sam.id}">+</button>
@@ -1316,15 +1345,24 @@ function renderLernAuswahl() {
   sortierteSammlungen.forEach((sam, si) => {
     const gs = getSortierteGruppenInSammlung(sam.id);
     if (!gs.length) return;
-    const isOpen = openLernSammlungen.has(sam.id);
-    const farbe  = sammlungFarbe(sam, si);
+    const isOpen  = openLernSammlungen.has(sam.id);
+    const farbe   = sammlungFarbe(sam, si);
+    const samFavs = studenten.filter(s => s.favorit && gs.some(g => g.id === s.gruppeId));
+    const favItem = samFavs.length ? `
+      <div class="gruppe-check-item fav-gruppe-item" data-gid="__favoriten__:${sam.id}">
+        <div class="check-box">✓</div>
+        <div class="check-label">
+          <strong>★ Favoriten</strong>
+          <span>${samFavs.length} Karte${samFavs.length !== 1 ? 'n' : ''}</span>
+        </div>
+      </div>` : '';
     html += `<div class="lern-sammlung-section" style="${sammlungStyle(farbe)}">
       <div class="lern-sammlung-header" data-lern-sid="${sam.id}">
         <span class="lern-sammlung-toggle">${isOpen ? '▼' : '▶'}</span>
         <span>${esc(sam.name)}</span>
       </div>
       <div class="lern-sammlung-body${isOpen ? '' : ' hidden'}" data-lern-sid="${sam.id}">
-        ${lernGruppenHtml(gs)}
+        ${favItem}${lernGruppenHtml(gs)}
       </div>
     </div>`;
   });
@@ -1341,18 +1379,6 @@ function renderLernAuswahl() {
         ${lernGruppenHtml(orphans, false)}
       </div>
     </div>`;
-  }
-  // ⭐ Virtuelle Favoriten-Gruppe (nur wenn Favoriten vorhanden)
-  const favAnzahl = studenten.filter(s => s.favorit).length;
-  if (favAnzahl) {
-    html += `<div style="height:1px;background:var(--border);margin:0.35rem 0 0.1rem"></div>
-      <div class="gruppe-check-item" data-gid="__favoriten__">
-        <div class="check-box">✓</div>
-        <div class="check-label">
-          <strong>Favoriten ⭐</strong>
-          <span>${favAnzahl} Karte${favAnzahl !== 1 ? 'n' : ''}</span>
-        </div>
-      </div>`;
   }
   container.innerHTML = html;
   updateLernStartBtn();
@@ -2043,6 +2069,7 @@ document.getElementById('btn-karte-edit-save').addEventListener('click', async (
         s.foto = blob;
       } else {
         // Kein neues Foto — frisches Blob aus DB lesen (iOS-Blob-Schutz)
+        revokeUrl(s.id); // stale URL immer invalidieren
         try {
           const dbRec = await dbGet('studenten', s.id);
           if (dbRec?.foto) s.foto = dbRec.foto;
@@ -2602,16 +2629,11 @@ document.getElementById('btn-schwaeche-waehlen').addEventListener('click', async
 
 document.getElementById('btn-lernen-start').addEventListener('click', () => {
   const selectedGids = getSelectedGids();
-  let karten;
-  if (selectedGids.includes('__favoriten__')) {
-    const otherGids  = selectedGids.filter(g => g !== '__favoriten__');
-    const favKarten  = studenten.filter(s => s.favorit);
-    const otherKarten = studenten.filter(s => otherGids.includes(s.gruppeId));
-    const seen = new Set(favKarten.map(s => s.id));
-    karten = [...favKarten, ...otherKarten.filter(s => !seen.has(s.id))];
-  } else {
-    karten = selectedGids.flatMap(gid => getSortierteKartenInGruppe(gid));
-  }
+  const seen = new Set();
+  const karten = [];
+  selectedGids.forEach(gid => {
+    getKartenFuerGid(gid).forEach(s => { if (!seen.has(s.id)) { seen.add(s.id); karten.push(s); } });
+  });
   if (!karten.length) return;
   // Tutorial-Gruppen immer in Reihenfolge (nicht mischen)
   const isTutorial = selectedGids.length === 1 &&
@@ -2826,25 +2848,23 @@ document.getElementById('btn-export').addEventListener('click', () => {
     </div>`;
   }
 
-  // ⭐ Favoriten-Option ganz oben (nur wenn Favoriten vorhanden)
-  const favAnzahl = studenten.filter(s => s.favorit).length;
   let html = '';
-  if (favAnzahl) {
-    html += `<div class="gruppe-check-item" data-gid="__favoriten__">
-      ${checkBoxHtml(false)}
-      <div class="check-label">
-        <strong>Favoriten ⭐</strong>
-        <span>${favAnzahl} Karte${favAnzahl !== 1 ? 'n' : ''} aus allen Gruppen</span>
-      </div>
-    </div>
-    <div class="export-sammlung-header" style="margin-top:0.4rem">Gruppen</div>`;
-  }
 
-  // Nach Sammlungen gegliedert
+  // Nach Sammlungen gegliedert — Favoriten pro Sammlung zuoberst
   getSortierteSammlungen().forEach(sam => {
     const gs = getSortierteGruppenInSammlung(sam.id);
     if (!gs.length) return;
+    const samFavs = studenten.filter(s => s.favorit && gs.some(g => g.id === s.gruppeId));
     html += `<div class="export-sammlung-header">${esc(sam.name)}</div>`;
+    if (samFavs.length) {
+      html += `<div class="gruppe-check-item fav-gruppe-item" data-gid="__favoriten__:${sam.id}">
+        ${checkBoxHtml(false)}
+        <div class="check-label">
+          <strong>★ Favoriten</strong>
+          <span>${samFavs.length} Karte${samFavs.length !== 1 ? 'n' : ''}</span>
+        </div>
+      </div>`;
+    }
     html += gs.map(gruppeItemHtml).join('');
   });
   // Orphan-Gruppen
@@ -2915,14 +2935,13 @@ document.getElementById('btn-export-start').addEventListener('click', async () =
 
   // PDF-Warnung: gemischte Typen oder mehrere Sammlungen
   if (fmt === 'pdf') {
-    const exportStudVorschau = studenten.filter(s => {
-      if (selectedGids.includes('__favoriten__') && s.favorit) return true;
-      return selectedGids.filter(g => g !== '__favoriten__').includes(s.gruppeId);
-    });
-    const hatFoto  = exportStudVorschau.some(s => s.modus !== 'text' && s.foto);
-    const hatText  = exportStudVorschau.some(s => s.modus === 'text');
+    const exportStudVorschau = selectedGids.flatMap(gid => getKartenFuerGid(gid));
+    const seen0 = new Set(); const uniq0 = exportStudVorschau.filter(s => seen0.has(s.id) ? false : (seen0.add(s.id), true));
+    const hatFoto  = uniq0.some(s => s.modus !== 'text' && s.foto);
+    const hatText  = uniq0.some(s => s.modus === 'text');
     const sammlIds = new Set(
-      gruppen.filter(g => selectedGids.includes(g.id)).map(g => g.sammlungId).filter(Boolean)
+      gruppen.filter(g => selectedGids.some(gid => gid === g.id || gid === `__favoriten__:${g.sammlungId}`))
+             .map(g => g.sammlungId).filter(Boolean)
     );
     const warnTeile = [];
     if (hatFoto && hatText) warnTeile.push('⚠️ Foto- und Text-Karten gemischt — das Layout kann uneinheitlich wirken.');
@@ -2942,13 +2961,13 @@ document.getElementById('btn-export-start').addEventListener('click', async () =
     );
   }
 
-  // Favoriten + normale Gruppen auflösen (dedup)
-  const hasFavoriten  = selectedGids.includes('__favoriten__');
-  const normalGids    = selectedGids.filter(g => g !== '__favoriten__');
-  const favStudenten  = hasFavoriten ? studenten.filter(s => s.favorit) : [];
-  const normStudenten = studenten.filter(s => normalGids.includes(s.gruppeId));
-  const seen          = new Set(favStudenten.map(s => s.id));
-  const exportStudentenRaw = [...favStudenten, ...normStudenten.filter(s => !seen.has(s.id))];
+  // Alle gids auflösen (inkl. __favoriten__:sid), dedup
+  const seenEx = new Set();
+  const exportStudentenRaw = selectedGids
+    .flatMap(gid => getKartenFuerGid(gid))
+    .filter(s => seenEx.has(s.id) ? false : (seenEx.add(s.id), true));
+  const hasFavoriten = selectedGids.some(g => g === '__favoriten__' || g.startsWith('__favoriten__:'));
+  const normalGids   = selectedGids.filter(g => !g.startsWith('__favoriten__'));
 
   // Gruppen aus tatsächlich exportierten Karten ableiten
   const exportGruppenIds = new Set(exportStudentenRaw.map(s => s.gruppeId));
@@ -2991,12 +3010,10 @@ document.getElementById('btn-export-start').addEventListener('click', async () =
   let gruppenTeil;
   if (hasFavoriten && !normalGids.length) {
     gruppenTeil = 'favoriten';
-  } else if (selectedGids.length === gruppen.length + (hasFavoriten ? 1 : 0)) {
-    gruppenTeil = 'alle';
   } else if (exportGruppen.length === 1 && !hasFavoriten) {
     gruppenTeil = sanitize(exportGruppen[0].name);
   } else {
-    gruppenTeil = hasFavoriten ? `favoriten-${normalGids.length}-gruppen` : `${exportGruppen.length}-gruppen`;
+    gruppenTeil = `${exportGruppen.length}-gruppen`;
   }
 
   const filename = `memofix-${gruppenTeil}-${datum}.json`;
