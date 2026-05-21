@@ -1202,14 +1202,17 @@ function _renderVerwaltung() {
     const isOpen = openSammlungen.has(sam.id);
     const kCount = sammlungKartenAnzahl(sam.id);
 
-    // ★ Favoriten dieser Sammlung — immer ganz oben, immer geöffnet
-    const samFavs = studenten.filter(s => s.favorit && gs.some(g => g.id === s.gruppeId));
+    // ★ Favoriten dieser Sammlung — aufklappbar wie normale Gruppen
+    const samFavs   = studenten.filter(s => s.favorit && gs.some(g => g.id === s.gruppeId));
+    const favGid    = `__fav__:${sam.id}`;
+    const favOpen   = openGruppen.has(favGid);
     const favGruppeHtml = samFavs.length ? `<div class="gruppe-karten-section fav-gruppe-section">
-      <div class="gruppe-karten-header fav-gruppe-header">
+      <div class="gruppe-karten-header fav-gruppe-header" data-favgid="${favGid}">
+        <span class="gruppe-toggle-arrow">${favOpen ? '▼' : '▶'}</span>
         <span class="gruppe-karten-title-text">★ Favoriten</span>
         <span class="gruppe-karten-count">${samFavs.length} Karte${samFavs.length !== 1 ? 'n' : ''}</span>
       </div>
-      <div class="gruppe-karten-body">
+      <div id="gruppe-body-${favGid}" class="gruppe-karten-body${favOpen ? '' : ' hidden'}">
         ${samFavs.map((s, idx) => karteItemHtml(s, idx, samFavs.length)).join('')}
       </div>
     </div>` : '';
@@ -2122,6 +2125,25 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
     localStorage.setItem('lastGruppeId', gid);
     document.getElementById('form-karte').scrollIntoView({ behavior: 'smooth', block: 'start' });
     setTimeout(() => document.getElementById('input-name').focus(), 400);
+    return;
+  }
+
+  // Favoriten-Gruppe aufklappen / zuklappen
+  const favHeader = e.target.closest('.fav-gruppe-header');
+  if (favHeader && !e.target.closest('button')) {
+    const fgid  = favHeader.dataset.favgid;
+    const body  = document.getElementById(`gruppe-body-${fgid}`);
+    const arrow = favHeader.querySelector('.gruppe-toggle-arrow');
+    if (openGruppen.has(fgid)) {
+      openGruppen.delete(fgid);
+      body?.classList.add('hidden');
+      if (arrow) arrow.textContent = '▶';
+    } else {
+      openGruppen.add(fgid);
+      body?.classList.remove('hidden');
+      if (arrow) arrow.textContent = '▼';
+    }
+    saveOpenGruppen();
     return;
   }
 

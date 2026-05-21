@@ -520,9 +520,8 @@ textarea.input-notiz::placeholder { color: var(--muted); }
 /* ── KARTEN (Verwaltung) ───────────────────────────── */
 .gruppe-karten-section { margin-bottom: 0.75rem; }
 .fav-gruppe-section { margin-bottom: 0.5rem; }
-.fav-gruppe-header { cursor: default; border-bottom: 1px solid rgba(245,197,24,0.2); margin-bottom: 0.25rem; }
-.fav-gruppe-header .gruppe-karten-title-text { color: #f5c518; font-weight: 600; }
-.fav-gruppe-header .gruppe-karten-count { color: rgba(245,197,24,0.65); }
+.fav-gruppe-header { cursor: pointer; }
+.fav-gruppe-header .gruppe-karten-title-text { font-weight: 600; }
 .fav-gruppe-item .check-label strong { color: #f5c518; }
 
 .gruppe-karten-header {
