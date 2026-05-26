@@ -218,6 +218,30 @@ function showVideo(elId, s) {
   el.classList.remove('hidden');
 }
 
+// ── Scroll-Indikatoren für Text-Karten ───────────────────
+function updateScrollIndikatoren() {
+  const scroller = document.getElementById('lernkarte-text-vorderseite');
+  const topInd   = document.getElementById('scroll-ind-top');
+  const botInd   = document.getElementById('scroll-ind-bottom');
+  if (!scroller || !topInd || !botInd) return;
+  const st = scroller.scrollTop;
+  const sh = scroller.scrollHeight;
+  const ch = scroller.clientHeight;
+  topInd.classList.toggle('hidden', st < 5);
+  botInd.classList.toggle('hidden', st + ch >= sh - 5);
+}
+
+function resetScrollIndikatoren() {
+  const scroller = document.getElementById('lernkarte-text-vorderseite');
+  if (scroller) scroller.scrollTop = 0;
+  // Nach einem Reflow-Tick aktualisieren, damit scrollHeight korrekt ist
+  requestAnimationFrame(() => updateScrollIndikatoren());
+}
+
+// Scroll-Event auf dem scrollbaren Text-Bereich
+document.getElementById('lernkarte-text-vorderseite')
+  .addEventListener('scroll', updateScrollIndikatoren, { passive: true });
+
 function oeffneVideoOverlay(videoId, titel) {
   // Frischen iframe erstellen — iOS Safari friert alte iframes ein
   const wrap = document.getElementById('video-iframe-wrap');
@@ -432,7 +456,7 @@ function zeigeNameAuto() {
   const s = lernKarten[lernIndex];
   const kartenModus = s.modus || 'foto';
   if (kartenModus === 'text' && lernModus === 'name') {
-    document.getElementById('lernkarte-text-vorderseite').classList.add('hidden');
+    document.getElementById('lernkarte-text-scroll-wrap').classList.add('hidden');
     document.getElementById('lern-name-overlay').classList.remove('hidden');
     const n = document.getElementById('lern-notiz-text');
     if (s.notiz) { n.textContent = s.notiz; n.classList.remove('hidden'); } else n.classList.add('hidden');
@@ -441,7 +465,8 @@ function zeigeNameAuto() {
   } else if (kartenModus === 'text') {
     document.getElementById('lern-name-karte').classList.add('hidden');
     document.getElementById('lern-vorderseite-text').innerHTML = renderVorderseiteHtml(s.vorderseite || '');
-    document.getElementById('lernkarte-text-vorderseite').classList.remove('hidden');
+    document.getElementById('lernkarte-text-scroll-wrap').classList.remove('hidden');
+    resetScrollIndikatoren();
     const nr = document.getElementById('lern-notiz-text-rueck');
     if (s.notiz) { nr.textContent = s.notiz; nr.classList.remove('hidden'); } else nr.classList.add('hidden');
     showLinks('lern-card-links', s.links || []);
@@ -1612,7 +1637,7 @@ function zeigeKarte() {
 
   // Alle Anzeigebereiche zurücksetzen
   document.getElementById('lernkarte-foto-wrapper').classList.add('hidden');
-  document.getElementById('lernkarte-text-vorderseite').classList.add('hidden');
+  document.getElementById('lernkarte-text-scroll-wrap').classList.add('hidden');
   document.getElementById('lern-name-karte').classList.add('hidden');
 
   const aufdeckBtn = document.getElementById('btn-aufdecken');
@@ -1621,7 +1646,8 @@ function zeigeKarte() {
   if (kartenModus === 'text' && lernModus === 'name') {
     // Begriff-Karte UMGEKEHRT: Info/Definition vorne → Begriff aufdecken
     document.getElementById('lern-vorderseite-text').innerHTML = renderVorderseiteHtml(s.vorderseite || '');
-    document.getElementById('lernkarte-text-vorderseite').classList.remove('hidden');
+    document.getElementById('lernkarte-text-scroll-wrap').classList.remove('hidden');
+    resetScrollIndikatoren();
     aufdeckBtn.textContent = 'Begriff zeigen';
   } else if (kartenModus === 'text') {
     // Begriff-Karte NORMAL (Default): Begriff vorne → Info/Definition aufdecken
@@ -1654,7 +1680,7 @@ function zeigeName(wertung) {
   }
   if (kartenModus === 'text' && lernModus === 'name') {
     // Begriff-Karte umgekehrt aufdecken: Begriff im Overlay zeigen (Info/Definition war vorne)
-    document.getElementById('lernkarte-text-vorderseite').classList.add('hidden');
+    document.getElementById('lernkarte-text-scroll-wrap').classList.add('hidden');
     document.getElementById('lern-name-overlay').classList.remove('hidden');
     const notizEl = document.getElementById('lern-notiz-text');
     if (s.notiz) { notizEl.textContent = s.notiz; notizEl.classList.remove('hidden'); }
@@ -1665,7 +1691,8 @@ function zeigeName(wertung) {
     // Begriff-Karte normal aufdecken: Info/Definition anzeigen (Begriff war vorne)
     document.getElementById('lern-name-karte').classList.add('hidden');
     document.getElementById('lern-vorderseite-text').innerHTML = renderVorderseiteHtml(s.vorderseite || '');
-    document.getElementById('lernkarte-text-vorderseite').classList.remove('hidden');
+    document.getElementById('lernkarte-text-scroll-wrap').classList.remove('hidden');
+    resetScrollIndikatoren();
     const notizRueck = document.getElementById('lern-notiz-text-rueck');
     if (s.notiz) { notizRueck.textContent = s.notiz; notizRueck.classList.remove('hidden'); }
     else { notizRueck.classList.add('hidden'); }

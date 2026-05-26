@@ -403,12 +403,40 @@ textarea.input-notiz::placeholder { color: var(--muted); }
 }
 
 /* ── LERNKARTE TEXT VORDERSEITE ────────────────────── */
-.lernkarte-text-vorderseite {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  width: 100%; height: 100%;
-  padding: 2rem 1.5rem; text-align: center;
-  background: transparent;
+.lernkarte-text-scroll-wrap {
+  flex: 1; min-height: 0;
+  position: relative;
+  display: flex; flex-direction: column;
 }
+.lernkarte-text-vorderseite {
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  width: 100%; flex: 1; min-height: 0;
+  padding: 1.5rem 1.5rem; text-align: center;
+  background: transparent;
+  overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;
+}
+/* Kurzer Text: vertikal zentrieren via auto-margin oben/unten */
+.lernkarte-text-vorderseite > * { margin-top: auto; margin-bottom: auto; }
+.lernkarte-text-vorderseite > *:first-child { margin-top: auto; }
+.lernkarte-text-vorderseite > *:last-child  { margin-bottom: auto; }
+
+/* Scroll-Indikatoren */
+.scroll-ind {
+  position: absolute; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: center;
+  height: 2.2rem; pointer-events: none;
+  font-size: 0.7rem; color: rgba(255,255,255,0.7);
+  transition: opacity 0.2s;
+}
+.scroll-ind-top {
+  top: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%);
+}
+.scroll-ind-bottom {
+  bottom: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 100%);
+}
+.scroll-ind.hidden { opacity: 0; }
 .lernkarte-text-vorderseite p {
   font-size: 1.05rem; line-height: 1.65; color: var(--text);
   font-family: 'Inter', sans-serif; font-style: normal;
@@ -901,8 +929,17 @@ textarea.input-notiz::placeholder { color: var(--muted); }
 .lern-feedback.nicht-ok   { pointer-events: auto; cursor: pointer; }
 .lern-feedback.gewusst-ok { color: #4caf50; }
 .lern-feedback.nicht-ok   { color: #cc4444; }
-.lernkarte-foto-wrapper { flex: 1; min-height: 0; }
-.lernkarte-foto-wrapper img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lernkarte-foto-wrapper {
+  flex: 1; min-height: 0;
+  overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;
+  display: flex; align-items: center;
+  background: #000;
+}
+.lernkarte-foto-wrapper img {
+  width: 100%; height: auto;
+  flex-shrink: 0;   /* Bild nicht stauchen — darf über Container hinausgehen */
+  object-fit: contain; display: block;
+}
 
 /* Diagonaler Glanzeffekt auf dem Foto */
 .lernkarte-foto-wrapper::after {
