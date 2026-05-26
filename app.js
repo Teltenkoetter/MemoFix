@@ -2273,20 +2273,39 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
     }
     return;
   }
-  // Sammlung löschen
+  // Sammlung löschen (Kaskade: alle Gruppen + Karten)
   const sammlDelBtn = e.target.closest('.btn-sammlung-del');
   if (sammlDelBtn) {
-    const sid = sammlDelBtn.dataset.id;
-    const sam = sammlungen.find(x => x.id === sid);
-    const inSam = gruppen.filter(g => g.sammlungId === sid);
-    if (inSam.length) { toast(`Erst alle ${inSam.length} Gruppe${inSam.length !== 1 ? 'n' : ''} löschen`); return; }
-    if (!confirm(`Sammlung „${sam.name}" löschen?`)) return;
+    const sid        = sammlDelBtn.dataset.id;
+    const sam        = sammlungen.find(x => x.id === sid);
+    const inSam      = gruppen.filter(g => g.sammlungId === sid);
+    const inSamGidSet = new Set(inSam.map(g => g.id));
+    const kCount     = studenten.filter(s => inSamGidSet.has(s.gruppeId)).length;
+
+    const msg = inSam.length
+      ? `Sammlung „${sam.name}" löschen?\n\nDabei werden auch ${inSam.length} Gruppe${inSam.length !== 1 ? 'n' : ''} und ${kCount} Karte${kCount !== 1 ? 'n' : ''} unwiderruflich gelöscht.`
+      : `Sammlung „${sam.name}" löschen?`;
+    if (!confirm(msg)) return;
+
+    // Karten löschen
+    for (const s of studenten.filter(x => inSamGidSet.has(x.gruppeId))) {
+      await dbDelete('studenten', s.id); revokeUrl(s.id);
+    }
+    // Gruppen löschen
+    for (const g of inSam) await dbDelete('gruppen', g.id);
+    // Sammlung löschen
     await dbDelete('sammlungen', sid);
-    sammlungen = sammlungen.filter(x => x.id !== sid);
+
+    // In-Memory aufräumen
+    studenten          = studenten.filter(s => !inSamGidSet.has(s.gruppeId));
+    gruppen            = gruppen.filter(g => !inSamGidSet.has(g.id));
+    gruppenReihenfolge = gruppenReihenfolge.filter(x => !inSamGidSet.has(x));
+    saveGruppenReihenfolge();
+    sammlungen            = sammlungen.filter(x => x.id !== sid);
     sammlungenReihenfolge = sammlungenReihenfolge.filter(x => x !== sid);
     saveSammlungenReihenfolge();
     renderVerwaltung();
-    toast('Sammlung gelöscht');
+    toast(kCount > 0 ? `Sammlung gelöscht (${inSam.length} Gruppen, ${kCount} Karten entfernt)` : 'Sammlung gelöscht');
     return;
   }
   // Gruppe hinzufügen (Button)
@@ -2360,13 +2379,17 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
     }
     return;
   }
-  // Gruppe löschen
+  // Gruppe löschen (inkl. aller Karten)
   const delBtn = e.target.closest('.btn-gruppe-del');
   if (!delBtn) return;
   const id = delBtn.dataset.id;
   const g  = gruppen.find(x => x.id === id);
-  const n  = gruppeKartenAnzahl(id);
-  if (!confirm(n > 0 ? `Gruppe „${g.name}" und ${n} Karte(n) löschen?` : `Gruppe „${g.name}" löschen?`)) return;
+  if (!g) return;
+  const n  = studenten.filter(s => s.gruppeId === id).length;
+  const msg = n > 0
+    ? `Gruppe „${g.name}" löschen?\n\nDabei werden auch ${n} Karte${n !== 1 ? 'n' : ''} unwiderruflich gelöscht.`
+    : `Gruppe „${g.name}" löschen?`;
+  if (!confirm(msg)) return;
   for (const s of studenten.filter(x => x.gruppeId === id)) { await dbDelete('studenten', s.id); revokeUrl(s.id); }
   await dbDelete('gruppen', id);
   gruppen   = gruppen.filter(x => x.id !== id);
@@ -2374,7 +2397,7 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
   gruppenReihenfolge = gruppenReihenfolge.filter(x => x !== id);
   saveGruppenReihenfolge();
   renderVerwaltung();
-  toast('Gruppe gelöscht');
+  toast(n > 0 ? `Gruppe gelöscht (${n} Karte${n !== 1 ? 'n' : ''} entfernt)` : 'Gruppe gelöscht');
 });
 
 // Gruppe via Enter-Taste innerhalb Sammlung hinzufügen
