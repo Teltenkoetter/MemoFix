@@ -1402,7 +1402,8 @@ function renderLernAuswahl() {
     html += `<div class="lern-sammlung-section" style="${sammlungStyle(farbe)}">
       <div class="lern-sammlung-header" data-lern-sid="${sam.id}">
         <span class="lern-sammlung-toggle">${isOpen ? '▼' : '▶'}</span>
-        <span>${esc(sam.name)}</span>
+        <span class="lern-sammlung-name">${esc(sam.name)}</span>
+        <button class="btn-lern-sam-alle" data-sam-sid="${sam.id}" title="Alle Gruppen dieser Sammlung auswählen / abwählen">Alle</button>
       </div>
       <div class="lern-sammlung-body${isOpen ? '' : ' hidden'}" data-lern-sid="${sam.id}">
         ${favItem}${lernGruppenHtml(gs)}
@@ -2650,6 +2651,29 @@ document.querySelectorAll('.lernmodus-btn').forEach(btn => {
 });
 
 document.getElementById('gruppen-checkboxen').addEventListener('click', e => {
+  // Alle-Button: alle Gruppen einer Sammlung auswählen / abwählen
+  const alleBtn = e.target.closest('.btn-lern-sam-alle');
+  if (alleBtn) {
+    e.stopPropagation();
+    const sid  = alleBtn.dataset.samSid;
+    const body = document.querySelector(`.lern-sammlung-body[data-lern-sid="${sid}"]`);
+    if (!body) return;
+    const items      = body.querySelectorAll('.gruppe-check-item');
+    const allSel     = [...items].every(el => el.classList.contains('selected'));
+    items.forEach(el => el.classList.toggle('selected', !allSel));
+    // Sammlung aufklappen, damit man die Auswahl sieht
+    if (!openLernSammlungen.has(sid)) {
+      openLernSammlungen.add(sid);
+      saveOpenLernSammlungen();
+      body.classList.remove('hidden');
+      const hdr  = document.querySelector(`.lern-sammlung-header[data-lern-sid="${sid}"]`);
+      const icon = hdr?.querySelector('.lern-sammlung-toggle');
+      if (icon) icon.textContent = '▼';
+    }
+    updateLernStartBtn();
+    return;
+  }
+
   // Sammlung auf-/zuklappen
   const sammlHdr = e.target.closest('.lern-sammlung-header');
   if (sammlHdr) {
