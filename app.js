@@ -2943,14 +2943,20 @@ document.getElementById('btn-export').addEventListener('click', () => {
   if (!gruppen.length) { toast('Keine Gruppen vorhanden'); return; }
   const container = document.getElementById('export-gruppen-liste');
 
+  function setExportSel(item, sel) {
+    item.classList.toggle('selected', sel);
+    const cb = item.querySelector('.check-box');
+    if (sel) Object.assign(cb.style, { background: 'var(--accent)', borderColor: 'var(--accent)', color: '#000' });
+    else      Object.assign(cb.style, { background: '', borderColor: '', color: 'transparent' });
+  }
   function checkBoxHtml(selected = true) {
     return selected
       ? `<div class="check-box" style="background:var(--accent);border-color:var(--accent);color:#000">✓</div>`
       : `<div class="check-box" style="color:transparent">✓</div>`;
   }
-  function gruppeItemHtml(g) {
+  function gruppeItemHtml(g, samId) {
     const n = gruppeKartenAnzahl(g.id);
-    return `<div class="gruppe-check-item selected" data-gid="${g.id}">
+    return `<div class="gruppe-check-item selected" data-gid="${g.id}" data-export-sam="${samId}">
       ${checkBoxHtml(true)}
       <div class="check-label">
         <strong>${esc(g.name)}</strong>
@@ -2966,9 +2972,12 @@ document.getElementById('btn-export').addEventListener('click', () => {
     const gs = getSortierteGruppenInSammlung(sam.id);
     if (!gs.length) return;
     const samFavs = studenten.filter(s => s.favorit && gs.some(g => g.id === s.gruppeId));
-    html += `<div class="export-sammlung-header">${esc(sam.name)}</div>`;
+    html += `<div class="export-sammlung-header">
+      <span class="export-sammlung-name">${esc(sam.name)}</span>
+      <button class="btn-export-sam-alle" data-sam-id="${sam.id}">Alle</button>
+    </div>`;
     if (samFavs.length) {
-      html += `<div class="gruppe-check-item fav-gruppe-item" data-gid="__favoriten__:${sam.id}">
+      html += `<div class="gruppe-check-item fav-gruppe-item" data-gid="__favoriten__:${sam.id}" data-export-sam="${sam.id}">
         ${checkBoxHtml(false)}
         <div class="check-label">
           <strong>★ Favoriten</strong>
@@ -2976,25 +2985,31 @@ document.getElementById('btn-export').addEventListener('click', () => {
         </div>
       </div>`;
     }
-    html += gs.map(gruppeItemHtml).join('');
+    html += gs.map(g => gruppeItemHtml(g, sam.id)).join('');
   });
   // Orphan-Gruppen
   const orphans = gruppen.filter(g => !g.sammlungId || !sammlungen.find(s => s.id === g.sammlungId));
   if (orphans.length) {
-    html += `<div class="export-sammlung-header" style="opacity:.55">Ohne Sammlung</div>`;
-    html += orphans.map(gruppeItemHtml).join('');
+    html += `<div class="export-sammlung-header">
+      <span class="export-sammlung-name" style="opacity:.65">Ohne Sammlung</span>
+      <button class="btn-export-sam-alle" data-sam-id="__orphan__">Alle</button>
+    </div>`;
+    html += orphans.map(g => gruppeItemHtml(g, '__orphan__')).join('');
   }
   container.innerHTML = html;
 
+  // Einzelne Gruppen toggeln
   container.querySelectorAll('.gruppe-check-item').forEach(item => {
-    item.addEventListener('click', () => {
-      item.classList.toggle('selected');
-      const cb = item.querySelector('.check-box');
-      if (item.classList.contains('selected')) {
-        Object.assign(cb.style, { background: 'var(--accent)', borderColor: 'var(--accent)', color: '#000' });
-      } else {
-        Object.assign(cb.style, { background: '', borderColor: '', color: 'transparent' });
-      }
+    item.addEventListener('click', () => setExportSel(item, !item.classList.contains('selected')));
+  });
+  // Alle-Button pro Sammlung
+  container.querySelectorAll('.btn-export-sam-alle').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const sid   = btn.dataset.samId;
+      const items = container.querySelectorAll(`.gruppe-check-item[data-export-sam="${sid}"]`);
+      const allSel = [...items].every(el => el.classList.contains('selected'));
+      items.forEach(item => setExportSel(item, !allSel));
     });
   });
   document.getElementById('export-modal').classList.remove('hidden');
