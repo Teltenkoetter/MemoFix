@@ -1444,12 +1444,13 @@ textarea.input-notiz::placeholder { color: var(--muted); }
 .lern-sammlung-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .btn-lern-sam-alle {
   flex-shrink: 0; margin-left: auto;
-  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 5px; padding: 0.1rem 0.45rem;
-  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
-  color: var(--muted); cursor: pointer; transition: background 0.15s, color 0.15s;
+  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 5px; padding: 0.15rem 0.55rem;
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase;
+  color: rgba(255,255,255,0.7); cursor: pointer; transition: background 0.15s, color 0.15s;
 }
-.btn-lern-sam-alle:active { background: var(--sam-farbe, rgba(255,255,255,0.18)); color: #fff; }
+.btn-lern-sam-alle:hover  { background: rgba(255,255,255,0.18); color: #fff; }
+.btn-lern-sam-alle:active { background: var(--sam-farbe, rgba(255,255,255,0.25)); color: #fff; }
 .lern-sammlung-body { padding: 0 0.3rem 0.3rem; }
 .lern-sammlung-body.hidden { display: none; }
 
