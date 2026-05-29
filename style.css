@@ -26,7 +26,7 @@ body {
   background-color: var(--bg);
   color: var(--text);
   min-height: 100dvh;
-  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  padding-bottom: calc(var(--nav-h) + max(env(safe-area-inset-bottom), 12px));
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
@@ -64,6 +64,20 @@ header h1 { font-size: 1rem; letter-spacing: 0.2px; color: var(--text); }
   transition: border-color 0.15s, color 0.15s;
 }
 .btn-help:active { border-color: var(--accent); color: var(--accent); }
+.btn-lang {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  height: 28px; padding: 0 0.5rem;
+  border-radius: 14px;
+  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px;
+  font-family: inherit;
+  cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 2px;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.btn-lang:active { border-color: var(--accent); color: var(--accent); background: rgba(255,255,255,0.1); }
 
 /* ── MODALS ─────────────────────────────────────────── */
 .modal-backdrop {
@@ -832,7 +846,7 @@ textarea.input-notiz::placeholder { color: var(--muted); }
 /* ── LERNEN – FLASHCARD ────────────────────────────── */
 #lernen-flashcard {
   display: flex; flex-direction: column; position: relative;
-  height: calc(100dvh - var(--header-h) - env(safe-area-inset-top) - var(--nav-h) - env(safe-area-inset-bottom) - 2rem);
+  height: calc(100dvh - var(--header-h) - env(safe-area-inset-top) - var(--nav-h) - max(env(safe-area-inset-bottom), 12px) - 2rem);
   min-height: 420px;
 }
 .lern-header {
@@ -1122,7 +1136,7 @@ textarea.input-notiz::placeholder { color: var(--muted); }
 #lernen-ende {
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  min-height: calc(100dvh - var(--header-h) - env(safe-area-inset-top) - var(--nav-h) - env(safe-area-inset-bottom) - 2rem);
+  min-height: calc(100dvh - var(--header-h) - env(safe-area-inset-top) - var(--nav-h) - max(env(safe-area-inset-bottom), 12px) - 2rem);
 }
 .ende-card {
   background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
@@ -1210,7 +1224,7 @@ textarea.input-notiz::placeholder { color: var(--muted); }
 /* ── BOTTOM NAV — schwebend, glasartig ─────────────── */
 .bottom-nav {
   position: fixed;
-  bottom: calc(16px + env(safe-area-inset-bottom));
+  bottom: calc(16px + max(env(safe-area-inset-bottom), 12px));
   left: 16px; right: 16px;
   background: rgba(14,14,20,0.8);
   backdrop-filter: blur(14px);
@@ -1320,7 +1334,7 @@ textarea.input-notiz::placeholder { color: var(--muted); }
   width: 100%;
 }
 .karte-detail-swipe-hint {
-  position: absolute; bottom: calc(2rem + env(safe-area-inset-bottom));
+  position: absolute; bottom: calc(2rem + max(env(safe-area-inset-bottom), 12px));
   left: 50%; transform: translateX(-50%);
   font-size: 0.8rem; color: rgba(255,255,255,0.45);
   letter-spacing: 0.5px; pointer-events: none;
@@ -1329,7 +1343,7 @@ textarea.input-notiz::placeholder { color: var(--muted); }
 .karte-detail-swipe-hint.fade-out { opacity: 0; }
 .karte-detail-share-btn {
   position: absolute;
-  bottom: calc(1.4rem + env(safe-area-inset-bottom));
+  bottom: calc(1.4rem + max(env(safe-area-inset-bottom), 12px));
   left: 1.5rem;
   background: rgba(255,255,255,0.1);
   border: 1px solid rgba(255,255,255,0.18);
@@ -1344,7 +1358,7 @@ textarea.input-notiz::placeholder { color: var(--muted); }
 
 .karte-detail-fav-btn {
   position: absolute;
-  bottom: calc(1.4rem + env(safe-area-inset-bottom));
+  bottom: calc(1.4rem + max(env(safe-area-inset-bottom), 12px));
   right: 1.5rem;
   background: rgba(255,255,255,0.1);
   border: 1px solid rgba(255,255,255,0.18);
@@ -1362,7 +1376,7 @@ textarea.input-notiz::placeholder { color: var(--muted); }
 /* ── TOAST ─────────────────────────────────────────── */
 .toast {
   position: fixed;
-  bottom: calc(96px + env(safe-area-inset-bottom));
+  bottom: calc(96px + max(env(safe-area-inset-bottom), 12px));
   left: 50%; transform: translateX(-50%);
   background: rgba(20,20,26,0.92);
   backdrop-filter: blur(12px);
@@ -1618,7 +1632,7 @@ textarea.input-notiz::placeholder { color: var(--muted); }
   justify-content: center;
   padding: 1rem;
   padding-top: calc(1rem + env(safe-area-inset-top));
-  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  padding-bottom: calc(1rem + max(env(safe-area-inset-bottom), 12px));
 }
 .video-overlay.hidden { display: none; }
 

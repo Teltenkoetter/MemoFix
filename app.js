@@ -5,6 +5,694 @@ function debounce(fn, ms) {
 }
 
 // ============================================================
+// INTERNATIONALISATION (DE / EN)
+// ============================================================
+
+let currentLang = localStorage.getItem('memoLang') || 'de';
+
+/** Simple string lookup */
+function t(key) {
+  return (TRANS[currentLang] ?? TRANS.de)[key] ?? TRANS.de[key] ?? key;
+}
+/** Parametrised lookup – calls function values with supplied args */
+function tf(key, ...args) {
+  const v = (TRANS[currentLang] ?? TRANS.de)[key] ?? TRANS.de[key];
+  return typeof v === 'function' ? v(...args) : (v ?? key);
+}
+
+const TRANS = {
+  de: {
+    // ── Navigation ────────────────────────────────────────
+    nav_verwaltung: 'Verwaltung',
+    nav_lernen: 'Lernen',
+    nav_statistik: 'Statistik',
+    nav_sicherung: 'Sicherung',
+    // ── Header ────────────────────────────────────────────
+    help_title: 'Hilfe',
+    // ── Verwaltung ────────────────────────────────────────
+    sammlungen: 'Sammlungen',
+    alle_oeffnen: 'Alle öffnen',
+    alle_schliessen: 'Alle schließen',
+    karten_suchen: '🔍 Karten suchen…',
+    manuell: 'Manuell ▲▼',
+    sort_az: 'A → Z',
+    sort_za: 'Z → A',
+    neue_sammlung: 'Neue Sammlung…',
+    keine_sammlungen: 'Noch keine Sammlungen. Bitte eine Sammlung anlegen.',
+    keine_karten: 'Noch keine Karten vorhanden.',
+    keine_karten_gefunden: 'Keine Karten gefunden.',
+    keine_inhalte: 'Keine Inhalte vorhanden.',
+    // ── Karte hinzufügen ──────────────────────────────────
+    karte_hinzufuegen: 'Karte hinzufügen',
+    gruppe_waehlen: 'Gruppe wählen…',
+    karten_inhalt: 'Karten-Inhalt',
+    tippen_foto: 'Tippen zum Foto auswählen',
+    notiz_ph: 'Zusatzinfo zum Begriff… (max. 250 Zeichen)',
+    text_ph: 'Text, Definition oder Erklärung… (max. 300 Zeichen)',
+    karte_speichern: 'Karte speichern',
+    wird_gespeichert: 'Wird gespeichert…',
+    name_label: 'Name',
+    begriff_label: 'Begriff',
+    gruppe_label: 'Gruppe',
+    notiz_label: 'Notiz',
+    links_label: 'Links',
+    youtube_label: 'YouTube',
+    optional: '(optional)',
+    optional_aufdecken: '(optional, erscheint beim Aufdecken)',
+    optional_url: '(optional, eine URL pro Zeile)',
+    optional_video: '(optional — Video-ID oder URL)',
+    foto_wechseln: 'Foto wechseln',
+    typ_label: 'Typ',
+    chip_foto: '📷 Foto',
+    chip_text: '📖 Begriff',
+    text_vorderseite: 'Text / Vorderseite',
+    speichern: 'Speichern',
+    name_ph: 'Name oder Begriff…',
+    // ── Karte detail ──────────────────────────────────────
+    swipe_hint: '‹ wischen ›',
+    // ── Lernen ────────────────────────────────────────────
+    gruppen_auswaehlen: 'Gruppen auswählen',
+    alle: 'Alle',
+    keine: 'Keine',
+    schwaechste: 'Schwächste',
+    normal: 'Normal',
+    normal_desc: '📷 Foto · 📖 Begriff → Lösung',
+    umgekehrt: 'Umgekehrt',
+    umgekehrt_desc: 'Lösung → 📷 Foto · 📖 Begriff',
+    lernen_starten: 'Lernen starten',
+    lernen_starten_n: (n) => `Lernen starten (${n} Karte${n !== 1 ? 'n' : ''})`,
+    beenden: '✕ Beenden',
+    gemischt: '⇄ Gemischt',
+    sortiert: '↕ Sortiert',
+    tippen_aufdecken: 'Tippen zum Aufdecken',
+    begriff_zeigen: 'Begriff zeigen',
+    info_zeigen: 'Info zeigen',
+    bild_zeigen: 'Bild zeigen',
+    // ── Ende ──────────────────────────────────────────────
+    uebung_beendet: 'Übung beendet!',
+    gewusst_lbl: 'Gewusst ✓',
+    nachgeschaut_lbl: 'Nachgeschaut ✗',
+    neue_uebung: 'Neue Übung starten',
+    nachgeschaut_ueben: '↺ Nachgeschaut üben',
+    andere_gruppen: 'Andere Gruppen auswählen',
+    // ── Statistik ─────────────────────────────────────────
+    uebersicht: 'Übersicht',
+    sitzungen: 'Sitzungen',
+    trefferquote: 'Ø Trefferquote',
+    abfragen: 'Abfragen gesamt',
+    schwerste_karten: 'Schwierigste Karten',
+    keine_daten: 'Noch keine Daten vorhanden.',
+    schwaechste_ueben: '⟳ Schwächste Karten jetzt üben',
+    letzte_sitzungen: 'Letzte Sitzungen',
+    keine_sitzungen: 'Noch keine Sitzungen absolviert.',
+    statistik_reset: 'Statistik zurücksetzen',
+    statistik_reset_desc: 'Alle Sitzungsdaten löschen, Karten bleiben erhalten',
+    loeschen: 'Löschen',
+    // ── Sicherung ─────────────────────────────────────────
+    exportieren: 'Exportieren',
+    exportieren_desc: 'Einzelne Gruppen oder alles als Backup speichern',
+    importieren: 'Importieren',
+    importieren_desc: 'Karten aus einer Backup-Datei laden',
+    datenspeicher_title: '⚠️ Datenspeicher',
+    datenspeicher_text: 'Karten werden lokal im Browser gespeichert. Erstellen Sie regelmäßig Backups — z. B. wenn Sie Safari-Daten löschen, gehen die Karten verloren.',
+    // ── Export-Modal ──────────────────────────────────────
+    gruppen_exportieren: 'Gruppen exportieren',
+    welche_gruppen: 'Welche Gruppen sollen exportiert werden?',
+    exportieren_start: 'Exportieren',
+    pdf_drucken: '🖨 PDF drucken',
+    ios_hinweis: '📱 <strong>iPhone / iPad:</strong> Die Datei wird über das Teilen-Menü geöffnet. Tippe dort auf <em>„In Dateien sichern"</em>, um den Speicherort selbst zu wählen.',
+    pdf_hinweis: '🖨 Im Druckdialog <em>„Als PDF sichern"</em> wählen · <strong>iPhone:</strong> Teilen-Symbol → „In Dateien sichern"',
+    // ── Import-Modal ──────────────────────────────────────
+    gefundene_gruppen: 'Gefundene Gruppen in der Datei:',
+    hinzufuegen_label: '➕ Hinzufügen',
+    hinzufuegen_desc: 'Neue Gruppen ergänzen · Bestehende behalten',
+    ersetzen_label: '🔄 Alles ersetzen',
+    ersetzen_desc: 'Alle vorhandenen Karten werden überschrieben',
+    importieren_start: 'Importieren',
+    // ── Gruppe verschieben ────────────────────────────────
+    gruppe_verschieben: 'Gruppe verschieben',
+    keine_anderen_sammlungen: 'Keine anderen Sammlungen vorhanden.',
+    // ── Modals ────────────────────────────────────────────
+    karte_bearbeiten: 'Karte bearbeiten',
+    karte_kopieren: 'Karte kopieren',
+    // ── Video ─────────────────────────────────────────────
+    auf_youtube: 'Auf YouTube öffnen',
+    video_ungueltig: 'Ungültige Video-ID oder URL',
+    video_laden: 'Titel wird geladen…',
+    video_extern: '↗ Embedding gesperrt — wird als YouTube-Link gespeichert',
+    // ── Favoriten ─────────────────────────────────────────
+    fav_entfernen: 'Favorit entfernen',
+    fav_markieren: 'Als Favorit markieren',
+    favoriten: '★ Favoriten',
+    // ── Karten-Aktionen ───────────────────────────────────
+    bearbeiten: 'Bearbeiten',
+    kopieren: 'Kopieren',
+    karte_loeschen_title: 'Löschen',
+    foto_fehlt: 'Foto fehlt noch',
+    sammlung_wechseln: 'Sammlung wechseln',
+    sammlung_zuweisen: 'Sammlung zuweisen',
+    farbe_aendern: 'Farbe ändern',
+    neue_gruppe: 'Neue Gruppe…',
+    ohne_sammlung: 'Ohne Sammlung',
+    alle_gruppen_toggle: 'Alle Gruppen dieser Sammlung auswählen / abwählen',
+    // ── Toast-Meldungen ───────────────────────────────────
+    toast_gruppe_erstellt:      (name)    => `Gruppe „${name}" erstellt`,
+    toast_kopiert:              'Inhalt kopiert ✓',
+    toast_teilen_nv:            'Teilen nicht verfügbar',
+    toast_neue_runde:           '🔁 Neue Runde…',
+    toast_karte_kopiert:        (name)    => `Karte kopiert: „${name}"`,
+    toast_foto_fehlt:           'Bitte ein Foto auswählen.',
+    toast_karte_aktualisiert:   (name)    => `Karte aktualisiert: „${name}"`,
+    toast_sammlung_erstellt:    (name)    => `Sammlung „${name}" erstellt`,
+    toast_sammlung_umbenannt:   (name)    => `Sammlung umbenannt in „${name}"`,
+    toast_sammlung_geloescht:   (g, k)    => g > 0 ? `Sammlung gelöscht (${g} Gruppe${g !== 1 ? 'n' : ''}, ${k} Karte${k !== 1 ? 'n' : ''} entfernt)` : 'Sammlung gelöscht',
+    toast_verschoben:           (gN, sN)  => `„${gN}" → ${sN}`,
+    toast_foto_aktualisiert:    'Foto aktualisiert',
+    toast_fehler:               (msg)     => `Fehler: ${msg}`,
+    toast_gruppe_umbenannt:     (name)    => `Gruppe umbenannt in „${name}"`,
+    toast_gruppe_geloescht:     (n)       => n > 0 ? `Gruppe gelöscht (${n} Karte${n !== 1 ? 'n' : ''} entfernt)` : 'Gruppe gelöscht',
+    toast_gemischt:             'Karten gemischt',
+    toast_sortiert:             'Reihenfolge wiederhergestellt',
+    toast_statistik:            'Statistik gelöscht',
+    toast_keine_gruppen:        'Keine Gruppen vorhanden',
+    toast_keine_auswahl:        'Keine Gruppe ausgewählt',
+    toast_popup:                'Popups erlauben und nochmal versuchen',
+    toast_schwaechste:          (n, src)  => `${n} schwächste Karte${n !== 1 ? 'n' : ''} ${src}`,
+    toast_aus_auswahl:          'aus Auswahl',
+    toast_ausgewaehlt:          'ausgewählt',
+    toast_keine_stat_auswahl:   'Noch keine Statistikdaten für diese Auswahl',
+    toast_keine_stat:           'Noch keine Statistikdaten vorhanden',
+    toast_nachgeschaut:         (n)       => `${n} nachgeschaute Karte${n !== 1 ? 'n' : ''} nochmal`,
+    toast_foto_pflicht:         'Bitte ein Foto auswählen',
+    toast_text_pflicht:         'Bitte einen Text eingeben',
+    toast_karte_gespeichert:    (name)    => `Karte „${name}" gespeichert`,
+    toast_lesefehler:           (msg)     => `Fehler beim Lesen: ${msg}`,
+    toast_import_ok:            (n)       => `Import erfolgreich – ${n} Karten geladen`,
+    toast_import_neu:           (n)       => `${n} neue Karte${n !== 1 ? 'n' : ''} hinzugefügt`,
+    toast_import_nichts:        'Alle Karten bereits vorhanden – nichts hinzugefügt',
+    toast_import_fehler:        (msg)     => `Fehler beim Import: ${msg}`,
+    toast_exportiert:           (n, fav)  => fav ? `${n} Favorit${n !== 1 ? 'en' : ''} exportiert` : `${n} Gruppe${n !== 1 ? 'n' : ''} exportiert`,
+    // ── Confirm-Dialoge ───────────────────────────────────
+    confirm_karte:       (name)       => `Karte „${name}" löschen?`,
+    confirm_sammlung:    (name, g, k) => g > 0 ? `Sammlung „${name}" löschen?\n\nDabei werden auch ${g} Gruppe${g !== 1 ? 'n' : ''} und ${k} Karte${k !== 1 ? 'n' : ''} unwiderruflich gelöscht.` : `Sammlung „${name}" löschen?`,
+    confirm_gruppe:      (name, n)    => n > 0 ? `Gruppe „${name}" löschen?\n\nDabei werden auch ${n} Karte${n !== 1 ? 'n' : ''} unwiderruflich gelöscht.` : `Gruppe „${name}" löschen?`,
+    confirm_statistik:   'Alle Statistikdaten löschen? Die Karten bleiben erhalten.',
+    confirm_pdf:         (warn)       => `${warn}\n\nTrotzdem als PDF exportieren?`,
+    // ── Prompt-Dialoge ────────────────────────────────────
+    prompt_sammlung: 'Neuer Sammlungsname:',
+    prompt_gruppe:   'Neuer Gruppenname:',
+    // ── Sonstige ──────────────────────────────────────────
+    lernen_hinweis:      'Bitte zuerst Sammlungen, Gruppen und Karten anlegen.',
+    schwaechste_n:       (n) => `⟳ Schwächste ${n} Karte${n !== 1 ? 'n' : ''} jetzt üben`,
+    import_vorhanden:    'vorhanden',
+    import_neu_badge:    '· neu',
+    wird_aufbereitet:    'Wird aufbereitet…',
+    karte_n:             (n) => `${n} Karte${n !== 1 ? 'n' : ''}`,
+    gr_abbr: 'Gr.', k_abbr: 'K.',
+    pdf_warn_mixed: (sam) => `„${sam}": enthält Foto- und Text-Karten`,
+    pdf_warn_multi: 'Mehrere Sammlungen ausgewählt',
+    schlies_app:    '✓ Schließen & zur App',
+  },
+  en: {
+    // ── Navigation ────────────────────────────────────────
+    nav_verwaltung: 'Manage',
+    nav_lernen: 'Learn',
+    nav_statistik: 'Stats',
+    nav_sicherung: 'Backup',
+    // ── Header ────────────────────────────────────────────
+    help_title: 'Help',
+    // ── Verwaltung ────────────────────────────────────────
+    sammlungen: 'Collections',
+    alle_oeffnen: 'Expand all',
+    alle_schliessen: 'Collapse all',
+    karten_suchen: '🔍 Search cards…',
+    manuell: 'Manual ▲▼',
+    sort_az: 'A → Z',
+    sort_za: 'Z → A',
+    neue_sammlung: 'New collection…',
+    keine_sammlungen: 'No collections yet. Please create one.',
+    keine_karten: 'No cards yet.',
+    keine_karten_gefunden: 'No cards found.',
+    keine_inhalte: 'No content available.',
+    // ── Karte hinzufügen ──────────────────────────────────
+    karte_hinzufuegen: 'Add card',
+    gruppe_waehlen: 'Choose group…',
+    karten_inhalt: 'Card content',
+    tippen_foto: 'Tap to select photo',
+    notiz_ph: 'Extra info… (max. 250 chars)',
+    text_ph: 'Text, definition or explanation… (max. 300 chars)',
+    karte_speichern: 'Save card',
+    wird_gespeichert: 'Saving…',
+    name_label: 'Name',
+    begriff_label: 'Term',
+    gruppe_label: 'Group',
+    notiz_label: 'Note',
+    links_label: 'Links',
+    youtube_label: 'YouTube',
+    optional: '(optional)',
+    optional_aufdecken: '(optional, shown when revealed)',
+    optional_url: '(optional, one URL per line)',
+    optional_video: '(optional — Video ID or URL)',
+    foto_wechseln: 'Change photo',
+    typ_label: 'Type',
+    chip_foto: '📷 Photo',
+    chip_text: '📖 Term',
+    text_vorderseite: 'Text / Front side',
+    speichern: 'Save',
+    name_ph: 'Name or term…',
+    // ── Karte detail ──────────────────────────────────────
+    swipe_hint: '‹ swipe ›',
+    // ── Lernen ────────────────────────────────────────────
+    gruppen_auswaehlen: 'Select groups',
+    alle: 'All',
+    keine: 'None',
+    schwaechste: 'Weakest',
+    normal: 'Normal',
+    normal_desc: '📷 Photo · 📖 Term → Answer',
+    umgekehrt: 'Reversed',
+    umgekehrt_desc: 'Answer → 📷 Photo · 📖 Term',
+    lernen_starten: 'Start learning',
+    lernen_starten_n: (n) => `Start learning (${n} card${n !== 1 ? 's' : ''})`,
+    beenden: '✕ Quit',
+    gemischt: '⇄ Shuffled',
+    sortiert: '↕ Sorted',
+    tippen_aufdecken: 'Tap to reveal',
+    begriff_zeigen: 'Show term',
+    info_zeigen: 'Show info',
+    bild_zeigen: 'Show image',
+    // ── Ende ──────────────────────────────────────────────
+    uebung_beendet: 'Session complete!',
+    gewusst_lbl: 'Correct ✓',
+    nachgeschaut_lbl: 'Looked up ✗',
+    neue_uebung: 'Start new session',
+    nachgeschaut_ueben: '↺ Practise looked-up',
+    andere_gruppen: 'Choose other groups',
+    // ── Statistik ─────────────────────────────────────────
+    uebersicht: 'Overview',
+    sitzungen: 'Sessions',
+    trefferquote: 'Avg. score',
+    abfragen: 'Total queries',
+    schwerste_karten: 'Hardest cards',
+    keine_daten: 'No data yet.',
+    schwaechste_ueben: '⟳ Practise weakest cards now',
+    letzte_sitzungen: 'Recent sessions',
+    keine_sitzungen: 'No sessions yet.',
+    statistik_reset: 'Reset statistics',
+    statistik_reset_desc: 'Delete all session data, cards are kept',
+    loeschen: 'Delete',
+    // ── Sicherung ─────────────────────────────────────────
+    exportieren: 'Export',
+    exportieren_desc: 'Save individual groups or everything as a backup',
+    importieren: 'Import',
+    importieren_desc: 'Load cards from a backup file',
+    datenspeicher_title: '⚠️ Data storage',
+    datenspeicher_text: 'Cards are stored locally in the browser. Create regular backups — e.g. clearing Safari data will also delete all cards.',
+    // ── Export-Modal ──────────────────────────────────────
+    gruppen_exportieren: 'Export groups',
+    welche_gruppen: 'Which groups should be exported?',
+    exportieren_start: 'Export',
+    pdf_drucken: '🖨 Print PDF',
+    ios_hinweis: '📱 <strong>iPhone / iPad:</strong> The file opens via the share menu. Tap <em>"Save to Files"</em> to choose the location.',
+    pdf_hinweis: '🖨 In the print dialog choose <em>"Save as PDF"</em> · <strong>iPhone:</strong> Share icon → "Save to Files"',
+    // ── Import-Modal ──────────────────────────────────────
+    gefundene_gruppen: 'Groups found in file:',
+    hinzufuegen_label: '➕ Add',
+    hinzufuegen_desc: 'Add new groups · Keep existing',
+    ersetzen_label: '🔄 Replace all',
+    ersetzen_desc: 'All existing cards will be overwritten',
+    importieren_start: 'Import',
+    // ── Gruppe verschieben ────────────────────────────────
+    gruppe_verschieben: 'Move group',
+    keine_anderen_sammlungen: 'No other collections available.',
+    // ── Modals ────────────────────────────────────────────
+    karte_bearbeiten: 'Edit card',
+    karte_kopieren: 'Copy card',
+    // ── Video ─────────────────────────────────────────────
+    auf_youtube: 'Open on YouTube',
+    video_ungueltig: 'Invalid video ID or URL',
+    video_laden: 'Loading title…',
+    video_extern: '↗ Embedding blocked — saved as YouTube link',
+    // ── Favoriten ─────────────────────────────────────────
+    fav_entfernen: 'Remove favourite',
+    fav_markieren: 'Mark as favourite',
+    favoriten: '★ Favourites',
+    // ── Karten-Aktionen ───────────────────────────────────
+    bearbeiten: 'Edit',
+    kopieren: 'Copy',
+    karte_loeschen_title: 'Delete',
+    foto_fehlt: 'Photo missing',
+    sammlung_wechseln: 'Change collection',
+    sammlung_zuweisen: 'Assign collection',
+    farbe_aendern: 'Change colour',
+    neue_gruppe: 'New group…',
+    ohne_sammlung: 'No collection',
+    alle_gruppen_toggle: 'Select / deselect all groups in this collection',
+    // ── Toast-Meldungen ───────────────────────────────────
+    toast_gruppe_erstellt:      (name)    => `Group "${name}" created`,
+    toast_kopiert:              'Copied ✓',
+    toast_teilen_nv:            'Sharing not available',
+    toast_neue_runde:           '🔁 New round…',
+    toast_karte_kopiert:        (name)    => `Card copied: "${name}"`,
+    toast_foto_fehlt:           'Please select a photo.',
+    toast_karte_aktualisiert:   (name)    => `Card updated: "${name}"`,
+    toast_sammlung_erstellt:    (name)    => `Collection "${name}" created`,
+    toast_sammlung_umbenannt:   (name)    => `Collection renamed to "${name}"`,
+    toast_sammlung_geloescht:   (g, k)    => g > 0 ? `Collection deleted (${g} group${g !== 1 ? 's' : ''}, ${k} card${k !== 1 ? 's' : ''} removed)` : 'Collection deleted',
+    toast_verschoben:           (gN, sN)  => `"${gN}" → ${sN}`,
+    toast_foto_aktualisiert:    'Photo updated',
+    toast_fehler:               (msg)     => `Error: ${msg}`,
+    toast_gruppe_umbenannt:     (name)    => `Group renamed to "${name}"`,
+    toast_gruppe_geloescht:     (n)       => n > 0 ? `Group deleted (${n} card${n !== 1 ? 's' : ''} removed)` : 'Group deleted',
+    toast_gemischt:             'Cards shuffled',
+    toast_sortiert:             'Order restored',
+    toast_statistik:            'Statistics deleted',
+    toast_keine_gruppen:        'No groups available',
+    toast_keine_auswahl:        'No group selected',
+    toast_popup:                'Allow pop-ups and try again',
+    toast_schwaechste:          (n, src)  => `${n} weakest card${n !== 1 ? 's' : ''} ${src}`,
+    toast_aus_auswahl:          'from selection',
+    toast_ausgewaehlt:          'selected',
+    toast_keine_stat_auswahl:   'No statistics yet for this selection',
+    toast_keine_stat:           'No statistics available yet',
+    toast_nachgeschaut:         (n)       => `${n} looked-up card${n !== 1 ? 's' : ''} again`,
+    toast_foto_pflicht:         'Please select a photo',
+    toast_text_pflicht:         'Please enter some text',
+    toast_karte_gespeichert:    (name)    => `Card "${name}" saved`,
+    toast_lesefehler:           (msg)     => `Read error: ${msg}`,
+    toast_import_ok:            (n)       => `Import successful – ${n} card${n !== 1 ? 's' : ''} loaded`,
+    toast_import_neu:           (n)       => `${n} new card${n !== 1 ? 's' : ''} added`,
+    toast_import_nichts:        'All cards already present – nothing added',
+    toast_import_fehler:        (msg)     => `Import error: ${msg}`,
+    toast_exportiert:           (n, fav)  => fav ? `${n} favourite${n !== 1 ? 's' : ''} exported` : `${n} group${n !== 1 ? 's' : ''} exported`,
+    // ── Confirm-Dialoge ───────────────────────────────────
+    confirm_karte:       (name)       => `Delete card "${name}"?`,
+    confirm_sammlung:    (name, g, k) => g > 0 ? `Delete collection "${name}"?\n\nThis will also permanently delete ${g} group${g !== 1 ? 's' : ''} and ${k} card${k !== 1 ? 's' : ''}.` : `Delete collection "${name}"?`,
+    confirm_gruppe:      (name, n)    => n > 0 ? `Delete group "${name}"?\n\nThis will also permanently delete ${n} card${n !== 1 ? 's' : ''}.` : `Delete group "${name}"?`,
+    confirm_statistik:   'Delete all statistics? Cards are kept.',
+    confirm_pdf:         (warn)       => `${warn}\n\nExport as PDF anyway?`,
+    // ── Prompt-Dialoge ────────────────────────────────────
+    prompt_sammlung: 'New collection name:',
+    prompt_gruppe:   'New group name:',
+    // ── Sonstige ──────────────────────────────────────────
+    lernen_hinweis:      'Please create collections, groups and cards first.',
+    schwaechste_n:       (n) => `⟳ Practise ${n} weakest card${n !== 1 ? 's' : ''} now`,
+    import_vorhanden:    'existing',
+    import_neu_badge:    '· new',
+    wird_aufbereitet:    'Preparing…',
+    karte_n:             (n) => `${n} card${n !== 1 ? 's' : ''}`,
+    gr_abbr: 'Gr.', k_abbr: 'C.',
+    pdf_warn_mixed: (sam) => `"${sam}": contains photo and text cards`,
+    pdf_warn_multi: 'Multiple collections selected',
+    schlies_app:    '✓ Close & back to app',
+  }
+};
+
+// ── applyTranslations: aktualisiert alle statischen DOM-Texte ──
+function applyTranslations() {
+  document.documentElement.lang = currentLang;
+
+  // Lang-Toggle-Button
+  const btnLang = document.getElementById('btn-lang');
+  if (btnLang) btnLang.textContent = currentLang === 'de' ? 'EN' : 'DE';
+
+  // Bottom-Nav
+  const navMap = { verwaltung: 'nav_verwaltung', lernen: 'nav_lernen', statistik: 'nav_statistik', sicherung: 'nav_sicherung' };
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    const sp = btn.querySelector('span');
+    if (sp && navMap[btn.dataset.view]) sp.textContent = t(navMap[btn.dataset.view]);
+  });
+
+  // Header
+  const btnInfo = document.getElementById('btn-info');
+  if (btnInfo) btnInfo.title = t('help_title');
+
+  // Info-Modal Inhalt (Hilfe)
+  const infoBody = document.querySelector('#info-modal .modal-body');
+  if (infoBody) infoBody.innerHTML = getHelpHtml();
+  const infoH2 = document.querySelector('#info-modal .modal-header h2');
+  if (infoH2) infoH2.textContent = t('help_title');
+
+  // Karte-Edit-Modal Labels
+  const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  const setPH  = (id, v) => { const el = document.getElementById(id); if (el) el.placeholder = v; };
+  setTxt('karte-edit-chip-foto', t('chip_foto'));
+  setTxt('karte-edit-chip-text', t('chip_text'));
+  setTxt('btn-karte-edit-save',  t('speichern'));
+  document.querySelector('label[for="karte-edit-gruppe"]')?.childNodes[0] && (() => {
+    const el = document.querySelector('label[for="karte-edit-gruppe"]');
+    if (el) el.childNodes[0].textContent = t('gruppe_label');
+  })();
+  document.querySelector('label[for="karte-edit-vorderseite"]') && (() => {
+    const el = document.querySelector('label[for="karte-edit-vorderseite"]');
+    if (el) el.childNodes[0].textContent = t('text_vorderseite');
+  })();
+  setPH('karte-edit-notiz', t('notiz_ph'));
+
+  // Gruppe-Verschieben-Modal
+  const gvH2 = document.querySelector('#gruppe-verschieben-modal .modal-header h2');
+  if (gvH2) gvH2.textContent = t('gruppe_verschieben');
+
+  // Export-Modal
+  document.querySelector('#export-modal .modal-header h2')?.childNodes[0] &&
+    (document.querySelector('#export-modal .modal-header h2').textContent = t('gruppen_exportieren'));
+  document.querySelector('#export-modal .modal-hint')?.childNodes[0] &&
+    (document.querySelector('#export-modal .modal-hint').textContent = t('welche_gruppen'));
+  setTxt('btn-export-alle',  t('alle'));
+  setTxt('btn-export-keine', t('keine'));
+  setTxt('btn-export-start', t('exportieren_start'));
+  const iosHint = document.getElementById('export-ios-hinweis');
+  if (iosHint) iosHint.innerHTML = t('ios_hinweis');
+  const pdfHint = document.getElementById('export-pdf-hinweis');
+  if (pdfHint) pdfHint.innerHTML = t('pdf_hinweis');
+
+  // Import-Modal
+  document.querySelector('#import-modal .modal-header h2') &&
+    (document.querySelector('#import-modal .modal-header h2').textContent = t('importieren'));
+  document.querySelector('#import-modal .modal-hint') &&
+    (document.querySelector('#import-modal .modal-hint').textContent = t('gefundene_gruppen'));
+  setTxt('btn-import-start', t('importieren_start'));
+  const [addBtn, repBtn] = document.querySelectorAll('.import-modus-btn');
+  if (addBtn) {
+    addBtn.querySelector('.modus-label').textContent = t('hinzufuegen_label');
+    addBtn.querySelector('.modus-desc').textContent  = t('hinzufuegen_desc');
+  }
+  if (repBtn) {
+    repBtn.querySelector('.modus-label').textContent = t('ersetzen_label');
+    repBtn.querySelector('.modus-desc').textContent  = t('ersetzen_desc');
+  }
+
+  // Verwaltung – statische Elemente
+  document.querySelector('#view-verwaltung .card-header h2')?.childNodes[0] &&
+    (document.querySelector('#view-verwaltung .card-header h2').textContent = t('sammlungen'));
+  setPH('input-karten-suche', t('karten_suchen'));
+  setPH('input-neue-sammlung', t('neue_sammlung'));
+  const sortSel = document.getElementById('select-karten-sort');
+  if (sortSel) {
+    const [om, oaz, oza] = sortSel.options;
+    if (om)  om.textContent  = t('manuell');
+    if (oaz) oaz.textContent = t('sort_az');
+    if (oza) oza.textContent = t('sort_za');
+  }
+
+  // Karte-Hinzufügen-Header
+  const khH2 = document.querySelector('#karte-hinzufuegen-header h2');
+  if (khH2) khH2.textContent = t('karte_hinzufuegen');
+  document.querySelector('label[for="select-gruppe"]') &&
+    (document.querySelector('label[for="select-gruppe"]').textContent = t('gruppe_label'));
+  const labelName = document.getElementById('label-input-name');
+  if (labelName) labelName.textContent = t('name_label');
+  setPH('input-name', t('name_ph'));
+  document.querySelector('label[for="input-vorderseite"]') &&
+    (document.querySelector('label[for="input-vorderseite"]').childNodes[0].textContent = t('karten_inhalt'));
+  setTxt('chip-foto', t('chip_foto'));
+  setTxt('chip-text', t('chip_text'));
+  setPH('input-vorderseite', t('text_ph'));
+  setPH('input-notiz', t('notiz_ph'));
+  setTxt('btn-karte-speichern', t('karte_speichern'));
+
+  // Lernen-Auswahl
+  document.querySelector('#lernen-auswahl-header h2') &&
+    (document.querySelector('#lernen-auswahl-header h2').textContent = t('gruppen_auswaehlen'));
+  setTxt('btn-alle-waehlen',   t('alle'));
+  setTxt('btn-keine-waehlen',  t('keine'));
+  setTxt('btn-schwaeche-waehlen', t('schwaechste'));
+  const [mFoto, mName] = document.querySelectorAll('.lernmodus-btn');
+  if (mFoto) {
+    mFoto.querySelector('.modus-label').textContent = t('normal');
+    mFoto.querySelector('.modus-desc').textContent  = t('normal_desc');
+  }
+  if (mName) {
+    mName.querySelector('.modus-label').textContent = t('umgekehrt');
+    mName.querySelector('.modus-desc').textContent  = t('umgekehrt_desc');
+  }
+  const lernStartBtn = document.getElementById('btn-lernen-start');
+  if (lernStartBtn && lernStartBtn.disabled) lernStartBtn.textContent = t('lernen_starten');
+
+  // Flashcard
+  setTxt('btn-beenden',  t('beenden'));
+  setTxt('btn-mischen',  t('gemischt'));
+  const hintSpan = document.querySelector('#lern-hint-pill span');
+  if (hintSpan) hintSpan.textContent = t('tippen_aufdecken');
+  const aufdeckBtn = document.getElementById('btn-aufdecken');
+  if (aufdeckBtn && aufdeckBtn.style.visibility !== 'hidden') {
+    // Keep current context-label unless hidden
+  }
+
+  // Lernen-Ende
+  setTxt('btn-neue-uebung',       t('neue_uebung'));
+  setTxt('btn-nachgeschaut-ueben', t('nachgeschaut_ueben'));
+  setTxt('btn-ende-auswahl',      t('andere_gruppen'));
+  document.querySelector('#lernen-ende h2') &&
+    (document.querySelector('#lernen-ende h2').textContent = t('uebung_beendet'));
+  document.querySelector('.stat-label.stat-gewusst-lbl') &&
+    (document.querySelector('.stat-label.stat-gewusst-lbl').textContent = t('gewusst_lbl'));
+  document.querySelector('.stat-label.stat-nicht-lbl') &&
+    (document.querySelector('.stat-label.stat-nicht-lbl').textContent = t('nachgeschaut_lbl'));
+  document.querySelectorAll('.stat-label').forEach((el, i) => {
+    if (i === 0) el.textContent = t('gewusst_lbl');
+    if (i === 1) el.textContent = t('nachgeschaut_lbl');
+  });
+
+  // Statistik
+  document.querySelectorAll('#view-statistik .card-header h2').forEach((el, i) => {
+    if (i === 0) el.textContent = t('uebersicht');
+    if (i === 1) el.textContent = t('schwerste_karten');
+    if (i === 2) el.textContent = t('letzte_sitzungen');
+  });
+  document.querySelectorAll('.stat-overview-label').forEach((el, i) => {
+    if (i === 0) el.textContent = t('sitzungen');
+    if (i === 1) el.textContent = t('trefferquote');
+    if (i === 2) el.textContent = t('abfragen');
+  });
+  setTxt('keine-schwierig-hinweis', t('keine_daten'));
+  const schwBtn = document.getElementById('btn-schwaeche-ueben');
+  if (schwBtn) schwBtn.textContent = t('schwaechste_ueben');
+  document.getElementById('keine-verlauf-hinweis') &&
+    (document.getElementById('keine-verlauf-hinweis').textContent = t('keine_sitzungen'));
+  document.querySelector('#view-statistik .sicherung-info strong') &&
+    (document.querySelector('#view-statistik .sicherung-info strong').textContent = t('statistik_reset'));
+  document.querySelector('#view-statistik .sicherung-info p') &&
+    (document.querySelector('#view-statistik .sicherung-info p').textContent = t('statistik_reset_desc'));
+  setTxt('btn-statistik-loeschen', t('loeschen'));
+
+  // Sicherung
+  document.querySelectorAll('#view-sicherung .sicherung-info').forEach((el, i) => {
+    if (i === 0) { el.querySelector('strong').textContent = t('exportieren'); el.querySelector('p').textContent = t('exportieren_desc'); }
+    if (i === 1) { el.querySelector('strong').textContent = t('importieren'); el.querySelector('p').textContent = t('importieren_desc'); }
+  });
+  document.querySelector('#view-sicherung .info-card strong') &&
+    (document.querySelector('#view-sicherung .info-card strong').textContent = t('datenspeicher_title'));
+  document.querySelector('#view-sicherung .info-card p') &&
+    (document.querySelector('#view-sicherung .info-card p').textContent = t('datenspeicher_text'));
+  setTxt('btn-export', t('exportieren'));
+  setTxt('btn-import-trigger', t('importieren'));
+
+  // Karte-Detail
+  const swipeHint = document.getElementById('karte-detail-swipe-hint');
+  if (swipeHint) swipeHint.textContent = t('swipe_hint');
+
+  // Dynamische Listen neu rendern
+  renderVerwaltung();
+  renderLernAuswahl();
+}
+
+// ── Help-Modal HTML generieren ─────────────────────────────
+function getHelpHtml() {
+  const sections = currentLang === 'en' ? [
+    { title: '🎴 Learning mode', rows: [
+      ['🖼️', '<strong>Photo card: Image → Term</strong> — See the image, recall the term · Tap the card → it flips → term appears'],
+      ['📖', '<strong>Term card: Term → Info</strong> — See the term, recall the info/definition · Tap to flip'],
+      ['🔄', '<strong>Reversed mode</strong> — Mode "Term → Image/Text": visualise the answer, then reveal image/definition'],
+      ['🔍', '<strong>"Show term"</strong> — Reveal answer without tapping, counts as looked-up (✗)'],
+      ['✓✗', '<strong>Correct rating</strong> — Tap ✓ or ✗ to change your rating'],
+      ['↺',  '<strong>Practise looked-up</strong> — After the session, repeat only the cards you looked up'],
+      ['🎯', '<strong>Weakest cards</strong> — Starts with the cards you looked up most often · based on your current selection'],
+      ['↔️', '<strong>Arrows / Swipe</strong> — Browse cards without rating · left/right swipe does the same'],
+      ['💬', '<strong>Note</strong> — Appears when revealed as extra info'],
+      ['⏱',  '<strong>Auto-timer</strong> — Choose 3 · 5 · 8 · 12 s: card flips automatically, then moves on · timer runs without scoring'],
+      ['🔁', '<strong>Autorepeat</strong> — After the last card the round restarts automatically'],
+      ['⭐', '<strong>Favourites</strong> — Tap the star to mark a card as favourite · export as Favourites group under BACKUP'],
+    ]},
+    { title: '⚙️ Manage', rows: [
+      ['📂', '<strong>3 levels:</strong> Collection → Group → Card — e.g. "University" → "Biology Ch. 3" → individual cards'],
+      ['1️⃣', '<strong>Create collection</strong> — Top-level category for related groups · sort with ▲▼ · 📁 move group between collections'],
+      ['2️⃣', '<strong>Create group</strong> — Within a collection · sort within collection with ▲▼'],
+      ['3️⃣', '<strong>Add card</strong> — ＋ on the group header taps into that group · or choose group in the form below, enter name, pick 📷 Photo <em>or</em> 📖 Term'],
+      ['📷', '<strong>Photo card</strong> — Photo as front, name as back · tap photo to replace'],
+      ['📖', '<strong>Term card</strong> — Term on front, info/definition on back · multi-line text shown as bullet list'],
+      ['🔍', '<strong>Full view</strong> — Tap card name → image/text shown large · swipe left/right to browse'],
+      ['📋', '<strong>Copy</strong> — Duplicate card into another group (✏️ opens Edit modal)'],
+      ['🎨', '<strong>Collection colour</strong> — Tap the colour dot next to the collection name · appears as left stripe and card background in learning mode'],
+      ['🔗', '<strong>Links</strong> — Add links when editing a card (e.g. Wikipedia, YouTube) · shown as tappable links when revealed'],
+      ['💬', '<strong>Note</strong> — Short extra info per card (max. 250 chars) · shown when revealed'],
+    ]},
+    { title: '💾 Storage & Backup', rows: [
+      ['📱', 'Cards are stored <strong>locally in the browser</strong> — no server, no internet needed'],
+      ['📤', '<strong>Export as file</strong> — Save and share individual groups or everything · <strong>iPhone:</strong> Share menu → "Save to Files"'],
+      ['🖨', '<strong>Export as PDF</strong> — Under BACKUP choose groups, select "PDF" · opens print view · choose "Save as PDF" in print dialog'],
+      ['📥', '<strong>Import</strong> — Add (keep existing) or Replace all · also imports collection structure'],
+      ['⚠️', '"Clear Safari data" in iPhone Settings also deletes all cards — export regularly!'],
+    ]},
+    { title: '🔧 Troubleshooting', rows: [
+      ['🖼️', '<strong>Images missing or export stuck?</strong> — Close and reopen the app · images reload immediately · no data is lost'],
+    ]},
+  ] : [
+    { title: '🎴 Lernmodus', rows: [
+      ['🖼️', '<strong>Foto-Karte: Bild → Begriff</strong> — Bild sehen, Begriff erinnern · Karte antippen → dreht sich um → Begriff erscheint'],
+      ['📖', '<strong>Begriff-Karte: Begriff → Info</strong> — Begriff sehen, Info/Definition erinnern · Karte antippen → dreht sich um'],
+      ['🔄', '<strong>Umgekehrt lernen</strong> — Modus „Begriff → Bild/Text": Begriff vorstellen, dann Bild/Definition aufdecken'],
+      ['🔍', '<strong>„Begriff zeigen"</strong> — Antwort aufdecken ohne Tippen, zählt als nachgeschaut (✗)'],
+      ['✓✗', '<strong>Wertung korrigieren</strong> — ✓ oder ✗ antippen, um die Wertung zu ändern'],
+      ['↺',  '<strong>Nachgeschaut üben</strong> — nach der Übung nur die nicht gewussten Karten wiederholen'],
+      ['🎯', '<strong>Schwächste Karten</strong> — startet mit den Karten, die du am häufigsten nachgeschaut hast · bezieht sich auf deine aktuelle Auswahl'],
+      ['↔️', '<strong>Pfeile / Wischen</strong> — Karten ohne Wertung vor- und zurückblättern · links/rechts wischen hat denselben Effekt'],
+      ['💬', '<strong>Notiz</strong> — erscheint beim Aufdecken als Zusatzinfo'],
+      ['⏱',  '<strong>Auto-Timer</strong> — 3 · 5 · 8 · 12 s wählen: Karte dreht sich automatisch um, danach geht es zur nächsten · Timer-Durchläufe ohne Bewertung zählen nicht in die Statistik'],
+      ['🔁', '<strong>Autorepeat</strong> — nach dem letzten Bild startet die Runde automatisch neu'],
+      ['⭐', '<strong>Favoriten</strong> — Stern antippen markiert eine Karte als Favorit · unter SICHERUNG gezielt als Favoriten-Gruppe exportieren'],
+    ]},
+    { title: '⚙️ Verwaltung', rows: [
+      ['📂', '<strong>3 Ebenen:</strong> Sammlung → Gruppe → Karte — z.B. „Hochschule" → „Biologie Kap. 3" → einzelne Karten'],
+      ['1️⃣', '<strong>Sammlung erstellen</strong> — Oberkategorie für verwandte Gruppen · per ▲▼ sortieren · 📁 Gruppe zwischen Sammlungen verschieben'],
+      ['2️⃣', '<strong>Gruppe erstellen</strong> — innerhalb einer Sammlung · per ▲▼ innerhalb der Sammlung sortieren'],
+      ['3️⃣', '<strong>Karte hinzufügen</strong> — ＋ am Gruppen-Header tippt direkt in diese Gruppe · oder unten im Formular Gruppe wählen, Name eingeben, 📷 Foto <em>oder</em> 📖 Text wählen'],
+      ['📷', '<strong>Foto-Karte</strong> — Foto als Vorderseite, Name als Rückseite · Foto antippen zum Austauschen'],
+      ['📖', '<strong>Begriff-Karte</strong> — Begriff vorne, Info/Definition hinten · mehrzeilige Texte werden als Aufzählung dargestellt'],
+      ['🔍', '<strong>Großansicht</strong> — Kartennamen antippen → Bild/Text wird groß angezeigt · links/rechts wischen zum Durchblättern'],
+      ['📋', '<strong>Kopieren</strong> — Karte in eine andere Gruppe duplizieren (✏️ öffnet Bearbeiten-Modal)'],
+      ['🎨', '<strong>Sammlungsfarbe</strong> — Farbpunkt neben dem Sammlungsnamen antippen · Farbe erscheint als Streifen links und als Kartenhintergrund im Lernmodus'],
+      ['🔗', '<strong>Links</strong> — beim Bearbeiten einer Karte Links hinzufügen (z.&nbsp;B. Wikipedia, YouTube) · erscheinen beim Aufdecken als tippbare Verweise'],
+      ['💬', '<strong>Notiz</strong> — kurze Zusatzinfo pro Karte (max. 250 Zeichen) · wird beim Aufdecken angezeigt'],
+    ]},
+    { title: '💾 Datenspeicher & Backup', rows: [
+      ['📱', 'Karten werden <strong>lokal im Browser</strong> gespeichert — kein Server, kein Internet nötig'],
+      ['📤', '<strong>Exportieren als Datei</strong> — einzelne Gruppen oder alles sichern und teilen · <strong>iPhone:</strong> Teilen-Menü → „In Dateien sichern"'],
+      ['🖨', '<strong>Exportieren als PDF</strong> — unter SICHERUNG Gruppen wählen, Format „PDF" wählen · öffnet Druckansicht mit allen Karten · im Druckdialog „Als PDF sichern" wählen'],
+      ['📥', '<strong>Importieren</strong> — Hinzufügen (bestehende behalten) oder Alles ersetzen · importiert auch Sammlungsstruktur'],
+      ['⚠️', '„Safari-Daten löschen" in den iPhone-Einstellungen entfernt auch alle Karten — regelmäßig exportieren!'],
+    ]},
+    { title: '🔧 Probleme & Lösungen', rows: [
+      ['🖼️', '<strong>Bilder verschwunden oder Export hängt?</strong> — App schließen und neu öffnen · die Bilder werden sofort wieder geladen · keine Daten gehen verloren'],
+    ]},
+  ];
+
+  return sections.map((sec, i) => `
+    ${i > 0 ? '<div class="modal-divider"></div>' : ''}
+    <div class="modal-section">
+      <div class="modal-section-title">${sec.title}</div>
+      <div class="anleitung-zeilen">
+        ${sec.rows.map(([icon, text]) => `
+          <div class="anleitung-zeile">
+            <span class="anleitung-icon">${icon}</span>
+            <div class="anleitung-text">${text}</div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('') +
+    `<p class="modal-meta-device">📱 ${currentLang === 'en' ? 'Optimised for iPhone portrait' : 'Optimiert für iPhone im Hochformat'}</p>
+     <p class="modal-meta">Version 2.0 · Klaus Teltenkötter 2026 <span id="build-version" class="modal-meta-build"></span></p>`;
+}
+
+// ============================================================
 // DATABASE (IndexedDB)
 // ============================================================
 
@@ -213,7 +901,7 @@ function showVideo(elId, s) {
   } else {
     // Embedding gesperrt → Link zu YouTube
     const ytUrl = `https://www.youtube.com/watch?v=${esc(s.videoId)}`;
-    el.innerHTML = `<a href="${ytUrl}" target="_blank" rel="noopener noreferrer" class="video-play-btn video-play-btn-ext"><span class="video-play-btn-icon">▶</span><span class="video-play-btn-label">Auf YouTube öffnen</span></a>`;
+    el.innerHTML = `<a href="${ytUrl}" target="_blank" rel="noopener noreferrer" class="video-play-btn video-play-btn-ext"><span class="video-play-btn-icon">▶</span><span class="video-play-btn-label">${t('auf_youtube')}</span></a>`;
   }
   el.classList.remove('hidden');
 }
@@ -630,7 +1318,7 @@ async function addGruppeInSammlung(sid, inputEl) {
   gruppen.push(g);
   inputEl.value = '';
   renderVerwaltung();
-  toast(`Gruppe „${name}" erstellt`);
+  toast(tf('toast_gruppe_erstellt', name));
 }
 
 // ── Favorit togglen (geteilt von mehreren UI-Stellen) ────
@@ -1069,8 +1757,8 @@ async function teileKarte(s) {
   // Letzter Fallback: Zwischenablage
   try {
     await navigator.clipboard.writeText(shareText);
-    toast('Inhalt kopiert ✓');
-  } catch (_) { toast('Teilen nicht verfügbar'); }
+    toast(t('toast_kopiert'));
+  } catch (_) { toast(t('toast_teilen_nv')); }
 }
 
 document.getElementById('btn-karte-teilen').addEventListener('click', async e => {
@@ -1090,7 +1778,7 @@ document.getElementById('btn-detail-favorit').addEventListener('click', async e 
     btn.classList.toggle('aktiv', s.favorit);
     // Auch Karte in der Liste aktualisieren
     const listBtn = document.querySelector(`.btn-favorit[data-id="${id}"]`);
-    if (listBtn) { listBtn.classList.toggle('aktiv', s.favorit); listBtn.title = s.favorit ? 'Favorit entfernen' : 'Als Favorit markieren'; }
+    if (listBtn) { listBtn.classList.toggle('aktiv', s.favorit); listBtn.title = s.favorit ? t('fav_entfernen') : t('fav_markieren'); }
   }
 });
 
@@ -1142,7 +1830,7 @@ function karteItemHtml(s, idx, total) {
        <div class="karte-foto-overlay">📷</div>
        <input type="file" accept="image/*" class="karte-foto-input" data-id="${s.id}">`;
   } else {
-    thumb = `<div class="karte-foto-leer karte-detail-trigger" data-id="${s.id}" title="Foto fehlt noch">📷</div>
+    thumb = `<div class="karte-foto-leer karte-detail-trigger" data-id="${s.id}" title="${t('foto_fehlt')}">📷</div>
        <input type="file" accept="image/*" class="karte-foto-input" data-id="${s.id}">`;
   }
   const sortVal  = document.getElementById('select-karten-sort')?.value || 'manuell';
@@ -1153,12 +1841,12 @@ function karteItemHtml(s, idx, total) {
         ${thumb}
       </div>
       <span class="karte-name karte-detail-trigger" data-id="${s.id}">${esc(s.name)}${s.notiz ? ' <span style="opacity:.45;font-size:.7rem">📝</span>' : ''}${s.links?.length ? ' <span style="opacity:.45;font-size:.7rem">🔗</span>' : ''}${s.videoId ? ' <span style="opacity:.55;font-size:.7rem">▶</span>' : ''}</span>
-      <button class="btn-favorit${s.favorit ? ' aktiv' : ''}" data-id="${s.id}" title="${s.favorit ? 'Favorit entfernen' : 'Als Favorit markieren'}">★</button>
+      <button class="btn-favorit${s.favorit ? ' aktiv' : ''}" data-id="${s.id}" title="${s.favorit ? t('fav_entfernen') : t('fav_markieren')}">★</button>
       ${showMove ? `<button class="btn-karte-move" data-id="${s.id}" data-gid="${s.gruppeId}" data-dir="up" ${idx === 0 ? 'disabled' : ''}>▲</button>
       <button class="btn-karte-move" data-id="${s.id}" data-gid="${s.gruppeId}" data-dir="down" ${idx === total - 1 ? 'disabled' : ''}>▼</button>` : ''}
-      <button class="btn-karte-ren"  data-id="${s.id}" title="Bearbeiten">✏️</button>
-      <button class="btn-karte-copy" data-id="${s.id}" title="Kopieren">📋</button>
-      <button class="btn-karte-del"  data-id="${s.id}" title="Löschen">✕</button>
+      <button class="btn-karte-ren"  data-id="${s.id}" title="${t('bearbeiten')}">✏️</button>
+      <button class="btn-karte-copy" data-id="${s.id}" title="${t('kopieren')}">📋</button>
+      <button class="btn-karte-del"  data-id="${s.id}" title="${t('karte_loeschen_title')}">✕</button>
     </div>`;
 }
 
@@ -1193,7 +1881,7 @@ function _renderVerwaltung() {
   // ── Gruppe-Select ────────────────────────────────────
   const sel     = document.getElementById('select-gruppe');
   const savedId = localStorage.getItem('lastGruppeId') || sel.value;
-  sel.innerHTML = '<option value="">Gruppe wählen…</option>' +
+  sel.innerHTML = `<option value="">${t('gruppe_waehlen')}</option>` +
     sortierteSammlungen.map(sam => {
       const gs = getSortierteGruppenInSammlung(sam.id);
       if (!gs.length) return '';
@@ -1217,7 +1905,7 @@ function _renderVerwaltung() {
     keinKarteHinweis.classList.toggle('hidden', gefiltert.length > 0);
     container.innerHTML = gefiltert.length
       ? gefiltert.map(s => karteItemHtml(s, 0, 1)).join('')
-      : '<p class="hinweis" style="padding:0.5rem 0">Keine Karten gefunden.</p>';
+      : `<p class="hinweis" style="padding:0.5rem 0">${t('keine_karten_gefunden')}</p>`;
     return;
   }
 
@@ -1228,7 +1916,7 @@ function _renderVerwaltung() {
     container.innerHTML = '';
     keinSammlHinweis.classList.remove('hidden');
     keinKarteHinweis.classList.add('hidden');
-    if (toggleBtn) toggleBtn.textContent = 'Alle öffnen';
+    if (toggleBtn) toggleBtn.textContent = t('alle_oeffnen');
     return;
   }
   keinSammlHinweis.classList.add('hidden');
@@ -1249,8 +1937,8 @@ function _renderVerwaltung() {
     const favGruppeHtml = samFavs.length ? `<div class="gruppe-karten-section fav-gruppe-section">
       <div class="gruppe-karten-header fav-gruppe-header" data-favgid="${favGid}">
         <span class="gruppe-toggle-arrow">${favOpen ? '▼' : '▶'}</span>
-        <span class="gruppe-karten-title-text">★ Favoriten</span>
-        <span class="gruppe-karten-count">${samFavs.length} Karte${samFavs.length !== 1 ? 'n' : ''}</span>
+        <span class="gruppe-karten-title-text">${t('favoriten')}</span>
+        <span class="gruppe-karten-count">${tf('karte_n', samFavs.length)}</span>
       </div>
       <div id="gruppe-body-${favGid}" class="gruppe-karten-body${favOpen ? '' : ' hidden'}">
         ${samFavs.map((s, idx) => karteItemHtml(s, idx, samFavs.length)).join('')}
@@ -1265,12 +1953,12 @@ function _renderVerwaltung() {
         <div class="gruppe-karten-header" data-gid="${g.id}">
           <span class="gruppe-toggle-arrow">${isGroupOpen ? '▼' : '▶'}</span>
           <span class="gruppe-karten-title-text">${esc(g.name)}</span>
-          <span class="gruppe-karten-count">${gCount} Karte${gCount !== 1 ? 'n' : ''}</span>
+          <span class="gruppe-karten-count">${tf('karte_n', gCount)}</span>
           <div class="gruppe-mgmt-btns">
-            <button class="btn-gruppe-add-karte" data-gid="${g.id}" title="Karte hinzufügen">＋</button>
+            <button class="btn-gruppe-add-karte" data-gid="${g.id}" title="${t('karte_hinzufuegen')}">＋</button>
             <button class="btn-gruppe-move" data-id="${g.id}" data-dir="up" data-sid="${sam.id}"${gi === 0 ? ' disabled' : ''}>▲</button>
             <button class="btn-gruppe-move" data-id="${g.id}" data-dir="down" data-sid="${sam.id}"${gi === gs.length - 1 ? ' disabled' : ''}>▼</button>
-            <button class="btn-gruppe-move-sammlung" data-id="${g.id}" title="Sammlung wechseln">📁</button>
+            <button class="btn-gruppe-move-sammlung" data-id="${g.id}" title="${t('sammlung_wechseln')}">📁</button>
             <button class="btn-gruppe-ren" data-id="${g.id}">✏️</button>
             <button class="btn-gruppe-del" data-id="${g.id}">✕</button>
           </div>
@@ -1286,11 +1974,11 @@ function _renderVerwaltung() {
       <div class="sammlung-header" data-sid="${sam.id}">
         <span class="sammlung-toggle-icon">${isOpen ? '▼' : '▶'}</span>
         <span class="sammlung-name-text">${esc(sam.name)}</span>
-        <span class="sammlung-count">${gs.length} Gr. · ${kCount} K.</span>
+        <span class="sammlung-count">${gs.length} ${t('gr_abbr')} · ${kCount} ${t('k_abbr')}</span>
         <div class="sammlung-btns">
           <button class="btn-sammlung-move" data-id="${sam.id}" data-dir="up"${si === 0 ? ' disabled' : ''}>▲</button>
           <button class="btn-sammlung-move" data-id="${sam.id}" data-dir="down"${si === sortierteSammlungen.length - 1 ? ' disabled' : ''}>▼</button>
-          <button class="btn-sammlung-farbe" data-id="${sam.id}" style="background:${farbe}" title="Farbe ändern"></button>
+          <button class="btn-sammlung-farbe" data-id="${sam.id}" style="background:${farbe}" title="${t('farbe_aendern')}"></button>
           <button class="btn-sammlung-ren" data-id="${sam.id}">✏️</button>
           <button class="btn-sammlung-del" data-id="${sam.id}">✕</button>
         </div>
@@ -1298,7 +1986,7 @@ function _renderVerwaltung() {
       <div class="sammlung-body${isOpen ? '' : ' hidden'}" id="sammlung-body-${sam.id}">
         ${favGruppeHtml}${gruppenHtml}
         <div class="neue-gruppe-row">
-          <input type="text" class="input-neue-gruppe-sammlung" data-sid="${sam.id}" placeholder="Neue Gruppe…" maxlength="60">
+          <input type="text" class="input-neue-gruppe-sammlung" data-sid="${sam.id}" placeholder="${t('neue_gruppe')}" maxlength="60">
           <button class="btn-gruppe-add-sammlung btn-icon" data-sid="${sam.id}">+</button>
         </div>
       </div>
@@ -1317,9 +2005,9 @@ function _renderVerwaltung() {
         <div class="gruppe-karten-header" data-gid="${g.id}">
           <span class="gruppe-toggle-arrow">${isGroupOpen ? '▼' : '▶'}</span>
           <span class="gruppe-karten-title-text">${esc(g.name)}</span>
-          <span class="gruppe-karten-count">${gCount} Karte${gCount !== 1 ? 'n' : ''}</span>
+          <span class="gruppe-karten-count">${tf('karte_n', gCount)}</span>
           <div class="gruppe-mgmt-btns">
-            <button class="btn-gruppe-move-sammlung" data-id="${g.id}" title="Sammlung zuweisen">📁</button>
+            <button class="btn-gruppe-move-sammlung" data-id="${g.id}" title="${t('sammlung_zuweisen')}">📁</button>
             <button class="btn-gruppe-ren" data-id="${g.id}">✏️</button>
             <button class="btn-gruppe-del" data-id="${g.id}">✕</button>
           </div>
@@ -1333,8 +2021,8 @@ function _renderVerwaltung() {
     html += `<div class="sammlung-section sammlung-section--orphan">
       <div class="sammlung-header" data-sid="__orphan__">
         <span class="sammlung-toggle-icon">${isOpen ? '▼' : '▶'}</span>
-        <span class="sammlung-name-text" style="opacity:.65">Ohne Sammlung</span>
-        <span class="sammlung-count">${orphanGs.length} Gr.</span>
+        <span class="sammlung-name-text" style="opacity:.65">${t('ohne_sammlung')}</span>
+        <span class="sammlung-count">${orphanGs.length} ${t('gr_abbr')}</span>
         <div class="sammlung-btns"></div>
       </div>
       <div class="sammlung-body${isOpen ? '' : ' hidden'}" id="sammlung-body-__orphan__">
@@ -1343,12 +2031,12 @@ function _renderVerwaltung() {
     </div>`;
   }
 
-  container.innerHTML = html || '<p class="hinweis" style="padding:0.5rem 0">Keine Inhalte vorhanden.</p>';
+  container.innerHTML = html || `<p class="hinweis" style="padding:0.5rem 0">${t('keine_inhalte')}</p>`;
 
   // ── Toggle-Button Text ────────────────────────────────
   if (toggleBtn) {
     const anyOpen = sortierteSammlungen.some(s => openSammlungen.has(s.id)) || openSammlungen.has('__orphan__');
-    toggleBtn.textContent = anyOpen ? 'Alle schließen' : 'Alle öffnen';
+    toggleBtn.textContent = anyOpen ? t('alle_schliessen') : t('alle_oeffnen');
   }
 }
 
@@ -1359,7 +2047,7 @@ function _renderVerwaltung() {
 function renderLernAuswahl() {
   const container = document.getElementById('gruppen-checkboxen');
   if (!gruppen.length) {
-    container.innerHTML = '<p class="hinweis">Bitte zuerst Sammlungen, Gruppen und Karten anlegen.</p>';
+    container.innerHTML = `<p class="hinweis">${t('lernen_hinweis')}</p>`;
     document.getElementById('btn-lernen-start').disabled = true;
     return;
   }
@@ -1379,7 +2067,7 @@ function renderLernAuswahl() {
           <div class="check-box">✓</div>
           <div class="check-label">
             <strong>${esc(g.name)}</strong>
-            <span>${n} Karte${n !== 1 ? 'n' : ''}${icon ? ' · ' + icon : ''}</span>
+            <span>${tf('karte_n', n)}${icon ? ' · ' + icon : ''}</span>
           </div>
         </div>`;
     }).join('');
@@ -1395,15 +2083,15 @@ function renderLernAuswahl() {
       <div class="gruppe-check-item fav-gruppe-item" data-gid="__favoriten__:${sam.id}">
         <div class="check-box">✓</div>
         <div class="check-label">
-          <strong>★ Favoriten</strong>
-          <span>${samFavs.length} Karte${samFavs.length !== 1 ? 'n' : ''}</span>
+          <strong>${t('favoriten')}</strong>
+          <span>${tf('karte_n', samFavs.length)}</span>
         </div>
       </div>` : '';
     html += `<div class="lern-sammlung-section" style="${sammlungStyle(farbe)}">
       <div class="lern-sammlung-header" data-lern-sid="${sam.id}">
         <span class="lern-sammlung-toggle">${isOpen ? '▼' : '▶'}</span>
         <span class="lern-sammlung-name">${esc(sam.name)}</span>
-        <button class="btn-lern-sam-alle" data-sam-sid="${sam.id}" title="Alle Gruppen dieser Sammlung auswählen / abwählen">Alle</button>
+        <button class="btn-lern-sam-alle" data-sam-sid="${sam.id}" title="${t('alle_gruppen_toggle')}">${t('alle')}</button>
       </div>
       <div class="lern-sammlung-body${isOpen ? '' : ' hidden'}" data-lern-sid="${sam.id}">
         ${favItem}${lernGruppenHtml(gs)}
@@ -1417,7 +2105,7 @@ function renderLernAuswahl() {
     html += `<div class="lern-sammlung-section">
       <div class="lern-sammlung-header" data-lern-sid="__orphan__">
         <span class="lern-sammlung-toggle">${isOpen ? '▼' : '▶'}</span>
-        <span>Ohne Sammlung</span>
+        <span>${t('ohne_sammlung')}</span>
       </div>
       <div class="lern-sammlung-body${isOpen ? '' : ' hidden'}" data-lern-sid="__orphan__">
         ${lernGruppenHtml(orphans, false)}
@@ -1436,7 +2124,7 @@ function updateLernStartBtn() {
   const total = getSelectedGids().reduce((s, gid) => s + gruppeKartenAnzahl(gid), 0);
   const btn = document.getElementById('btn-lernen-start');
   btn.disabled = total === 0;
-  btn.textContent = total > 0 ? `Lernen starten (${total} Karte${total !== 1 ? 'n' : ''})` : 'Lernen starten';
+  btn.textContent = total > 0 ? tf('lernen_starten_n', total) : t('lernen_starten');
 }
 
 // ============================================================
@@ -1503,13 +2191,13 @@ async function renderStatistik() {
 
     const schwacheKarten = await getSchwacheKarten();
     if (schwacheKarten.length) {
-      schwaeBtn.textContent = `⟳ Schwächste ${schwacheKarten.length} Karte${schwacheKarten.length !== 1 ? 'n' : ''} jetzt üben`;
+      schwaeBtn.textContent = tf('schwaechste_n', schwacheKarten.length);
       schwaeBtn.classList.remove('hidden');
       schwaeBtn.onclick = () => {
         showView('lernen');
         document.getElementById('lernen-auswahl').classList.add('hidden');
         starteSession(schwacheKarten);
-        toast(`${schwacheKarten.length} schwächste Karte${schwacheKarten.length !== 1 ? 'n' : ''} ausgewählt`);
+        toast(tf('toast_schwaechste', schwacheKarten.length, t('toast_ausgewaehlt')));
       };
     } else {
       schwaeBtn.classList.add('hidden');
@@ -1649,22 +2337,19 @@ function zeigeKarte() {
     document.getElementById('lern-vorderseite-text').innerHTML = renderVorderseiteHtml(s.vorderseite || '');
     document.getElementById('lernkarte-text-scroll-wrap').classList.remove('hidden');
     resetScrollIndikatoren();
-    aufdeckBtn.textContent = 'Begriff zeigen';
+    aufdeckBtn.textContent = t('begriff_zeigen');
   } else if (kartenModus === 'text') {
-    // Begriff-Karte NORMAL (Default): Begriff vorne → Info/Definition aufdecken
     document.getElementById('lern-name-karte').classList.remove('hidden');
     document.getElementById('lern-name-karte-text').textContent = s.name;
-    aufdeckBtn.textContent = 'Info zeigen';
+    aufdeckBtn.textContent = t('info_zeigen');
   } else if (lernModus === 'name') {
-    // Foto-Karte umgekehrt: Begriff vorne → Bild hinten
     document.getElementById('lern-name-karte').classList.remove('hidden');
     document.getElementById('lern-name-karte-text').textContent = s.name;
-    aufdeckBtn.textContent = 'Bild zeigen';
+    aufdeckBtn.textContent = t('bild_zeigen');
   } else {
-    // Foto-Karte normal: Bild vorne → Begriff hinten
     if (s.foto) document.getElementById('lern-foto').src = getFotoUrl(s);
     document.getElementById('lernkarte-foto-wrapper').classList.toggle('hidden', !s.foto);
-    aufdeckBtn.textContent = 'Begriff zeigen';
+    aufdeckBtn.textContent = t('begriff_zeigen');
   }
   starteAutoTimer();
 }
@@ -1755,7 +2440,7 @@ async function zeigeEnde() {
   await speichereSitzung();
   if (autoRepeat) {
     const pause = timerSekunden ? 600 : 1800;
-    toast(`🔁 Neue Runde…`);
+    toast(t('toast_neue_runde'));
     setTimeout(() => starteSession(lernKarten), pause);
     return;
   }
@@ -1776,10 +2461,10 @@ let lernIstGemischt    = true;
 function aktualisiereMischenBtn() {
   const btn = document.getElementById('btn-mischen');
   if (lernIstGemischt) {
-    btn.textContent = '⇄ Gemischt';
+    btn.textContent = t('gemischt');
     btn.classList.add('active');
   } else {
-    btn.textContent = '↕ Sortiert';
+    btn.textContent = t('sortiert');
     btn.classList.remove('active');
   }
 }
@@ -1863,7 +2548,7 @@ function openKarteEditModal(studentId, mode) {
   editModalStudentId = studentId;
   const s = studenten.find(x => x.id === studentId);
 
-  document.getElementById('karte-edit-titel').textContent = mode === 'copy' ? 'Karte kopieren' : 'Karte bearbeiten';
+  document.getElementById('karte-edit-titel').textContent = mode === 'copy' ? t('karte_kopieren') : t('karte_bearbeiten');
   document.getElementById('karte-edit-name').value  = s.name;
   document.getElementById('karte-edit-notiz').value = s.notiz || '';
   document.getElementById('karte-edit-links').value = (s.links || []).join('\n');
@@ -1878,7 +2563,7 @@ function openKarteEditModal(studentId, mode) {
   const isFoto = s.modus !== 'text';
   document.getElementById('karte-edit-chip-foto').classList.toggle('active', isFoto);
   document.getElementById('karte-edit-chip-text').classList.toggle('active', !isFoto);
-  document.getElementById('karte-edit-name-label').textContent = isFoto ? 'Name' : 'Begriff';
+  document.getElementById('karte-edit-name-label').textContent = isFoto ? t('name_label') : t('begriff_label');
 
   // Felder ein-/ausblenden
   document.getElementById('karte-edit-foto-gruppe').classList.toggle('hidden', !isFoto);
@@ -1995,8 +2680,18 @@ document.querySelectorAll('.nav-item').forEach(btn =>
   btn.addEventListener('click', () => showView(btn.dataset.view)));
 
 // Info-Modal
-document.getElementById('btn-info').addEventListener('click', () =>
-  document.getElementById('info-modal').classList.remove('hidden'));
+document.getElementById('btn-lang').addEventListener('click', () => {
+  currentLang = currentLang === 'de' ? 'en' : 'de';
+  localStorage.setItem('memoLang', currentLang);
+  applyTranslations();
+});
+
+document.getElementById('btn-info').addEventListener('click', () => {
+  // Help modal body up-to-date with current language
+  const body = document.querySelector('#info-modal .modal-body');
+  if (body) body.innerHTML = getHelpHtml();
+  document.getElementById('info-modal').classList.remove('hidden');
+});
 document.getElementById('btn-info-close').addEventListener('click', () =>
   document.getElementById('info-modal').classList.add('hidden'));
 document.getElementById('info-modal').addEventListener('click', e => {
@@ -2017,7 +2712,7 @@ function karteEditSetModus(isFoto) {
   }
   document.getElementById('karte-edit-chip-foto').classList.toggle('active', isFoto);
   document.getElementById('karte-edit-chip-text').classList.toggle('active', !isFoto);
-  document.getElementById('karte-edit-name-label').textContent = isFoto ? 'Name' : 'Begriff';
+  document.getElementById('karte-edit-name-label').textContent = isFoto ? t('name_label') : t('begriff_label');
   document.getElementById('karte-edit-foto-gruppe').classList.toggle('hidden', !isFoto);
   document.getElementById('karte-edit-vorderseite-gruppe').classList.toggle('hidden', isFoto);
 }
@@ -2079,7 +2774,7 @@ document.getElementById('btn-karte-edit-save').addEventListener('click', async (
     }
     await dbPut('studenten', newS);
     studenten.push(newS);
-    toast(`Karte kopiert: „${name}"`);
+    toast(tf('toast_karte_kopiert', name));
   } else {
     const s       = studenten.find(x => x.id === editModalStudentId);
     const newModus = document.getElementById('karte-edit-chip-foto').classList.contains('active') ? 'foto' : 'text';
@@ -2087,7 +2782,7 @@ document.getElementById('btn-karte-edit-save').addEventListener('click', async (
 
     // Moduswechsel text → foto: Foto erforderlich (oder noch kein Foto vorhanden)
     if (newModus === 'foto' && !fotoFile && !s.foto) {
-      toast('Bitte ein Foto auswählen.'); return;
+      toast(t('toast_foto_fehlt')); return;
     }
 
     s.name       = name;
@@ -2124,7 +2819,7 @@ document.getElementById('btn-karte-edit-save').addEventListener('click', async (
     }
 
     await dbPut('studenten', s);
-    toast(`Karte aktualisiert: „${name}"`);
+    toast(tf('toast_karte_aktualisiert', name));
   }
   document.getElementById('karte-edit-modal').classList.add('hidden');
   renderVerwaltung();
@@ -2142,7 +2837,7 @@ document.getElementById('btn-sammlung-add').addEventListener('click', async () =
   saveOpenSammlungen();
   input.value = '';
   renderVerwaltung();
-  toast(`Sammlung „${name}" erstellt`);
+  toast(tf('toast_sammlung_erstellt', name));
 });
 document.getElementById('input-neue-sammlung').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('btn-sammlung-add').click();
@@ -2223,12 +2918,12 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
   if (karteDelBtn) {
     const id = karteDelBtn.dataset.id;
     const s  = studenten.find(x => x.id === id);
-    if (!confirm(`Karte „${s.name}" löschen?`)) return;
+    if (!confirm(tf('confirm_karte', s.name))) return;
     await dbDelete('studenten', id);
     revokeUrl(id);
     studenten = studenten.filter(x => x.id !== id);
     renderVerwaltung();
-    toast('Karte gelöscht');
+    toast(currentLang === 'en' ? 'Card deleted' : 'Karte gelöscht');
     return;
   }
   // Favorit togglen
@@ -2237,7 +2932,7 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
     e.stopPropagation();
     await toggleFavorit(favBtn.dataset.id);
     const s2 = studenten.find(x => x.id === favBtn.dataset.id);
-    if (s2) { favBtn.classList.toggle('aktiv', s2.favorit); favBtn.title = s2.favorit ? 'Favorit entfernen' : 'Als Favorit markieren'; }
+    if (s2) { favBtn.classList.toggle('aktiv', s2.favorit); favBtn.title = s2.favorit ? t('fav_entfernen') : t('fav_markieren'); }
     return;
   }
   // Sammlung Farbe ändern
@@ -2264,12 +2959,12 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
   const sammlRenBtn = e.target.closest('.btn-sammlung-ren');
   if (sammlRenBtn) {
     const sam = sammlungen.find(x => x.id === sammlRenBtn.dataset.id);
-    const newName = prompt('Neuer Sammlungsname:', sam.name);
+    const newName = prompt(t('prompt_sammlung'), sam.name);
     if (newName && newName.trim() && newName.trim() !== sam.name) {
       sam.name = newName.trim();
       await dbPut('sammlungen', sam);
       renderVerwaltung();
-      toast(`Sammlung umbenannt in „${sam.name}"`);
+      toast(tf('toast_sammlung_umbenannt', sam.name));
     }
     return;
   }
@@ -2282,10 +2977,7 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
     const inSamGidSet = new Set(inSam.map(g => g.id));
     const kCount     = studenten.filter(s => inSamGidSet.has(s.gruppeId)).length;
 
-    const msg = inSam.length
-      ? `Sammlung „${sam.name}" löschen?\n\nDabei werden auch ${inSam.length} Gruppe${inSam.length !== 1 ? 'n' : ''} und ${kCount} Karte${kCount !== 1 ? 'n' : ''} unwiderruflich gelöscht.`
-      : `Sammlung „${sam.name}" löschen?`;
-    if (!confirm(msg)) return;
+    if (!confirm(tf('confirm_sammlung', sam.name, inSam.length, kCount))) return;
 
     // Karten löschen
     for (const s of studenten.filter(x => inSamGidSet.has(x.gruppeId))) {
@@ -2305,7 +2997,7 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
     sammlungenReihenfolge = sammlungenReihenfolge.filter(x => x !== sid);
     saveSammlungenReihenfolge();
     renderVerwaltung();
-    toast(kCount > 0 ? `Sammlung gelöscht (${inSam.length} Gruppen, ${kCount} Karten entfernt)` : 'Sammlung gelöscht');
+    toast(tf('toast_sammlung_geloescht', inSam.length, kCount));
     return;
   }
   // Gruppe hinzufügen (Button)
@@ -2320,7 +3012,7 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
   if (moveSammlBtn) {
     gruppeVerschiebenId = moveSammlBtn.dataset.id;
     const g = gruppen.find(x => x.id === gruppeVerschiebenId);
-    document.getElementById('gruppe-verschieben-info').textContent = `„${esc(g.name)}" verschieben nach:`;
+    document.getElementById('gruppe-verschieben-info').textContent = currentLang === 'en' ? `Move "${esc(g.name)}" to:` : `„${esc(g.name)}" verschieben nach:`;
     const andere = getSortierteSammlungen().filter(s => s.id !== g.sammlungId);
     document.getElementById('sammlung-auswahl-liste').innerHTML = andere.length
       ? andere.map(s => `
@@ -2328,7 +3020,7 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
             <span class="sammlung-ziel-name">${esc(s.name)}</span>
             <span class="sammlung-ziel-count">${sammlungKartenAnzahl(s.id)} K.</span>
           </div>`).join('')
-      : '<p class="hinweis" style="padding:0.75rem 0">Keine anderen Sammlungen vorhanden.</p>';
+      : `<p class="hinweis" style="padding:0.75rem 0">${t('keine_anderen_sammlungen')}</p>`;
     document.getElementById('gruppe-verschieben-modal').classList.remove('hidden');
     return;
   }
@@ -2370,12 +3062,12 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
   const renBtn = e.target.closest('.btn-gruppe-ren');
   if (renBtn) {
     const g = gruppen.find(x => x.id === renBtn.dataset.id);
-    const newName = prompt('Neuer Gruppenname:', g.name);
+    const newName = prompt(t('prompt_gruppe'), g.name);
     if (newName && newName.trim() && newName.trim() !== g.name) {
       g.name = newName.trim();
       await dbPut('gruppen', g);
       renderVerwaltung();
-      toast(`Gruppe umbenannt in „${g.name}"`);
+      toast(tf('toast_gruppe_umbenannt', g.name));
     }
     return;
   }
@@ -2386,10 +3078,7 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
   const g  = gruppen.find(x => x.id === id);
   if (!g) return;
   const n  = studenten.filter(s => s.gruppeId === id).length;
-  const msg = n > 0
-    ? `Gruppe „${g.name}" löschen?\n\nDabei werden auch ${n} Karte${n !== 1 ? 'n' : ''} unwiderruflich gelöscht.`
-    : `Gruppe „${g.name}" löschen?`;
-  if (!confirm(msg)) return;
+  if (!confirm(tf('confirm_gruppe', g.name, n))) return;
   for (const s of studenten.filter(x => x.gruppeId === id)) { await dbDelete('studenten', s.id); revokeUrl(s.id); }
   await dbDelete('gruppen', id);
   gruppen   = gruppen.filter(x => x.id !== id);
@@ -2397,7 +3086,7 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
   gruppenReihenfolge = gruppenReihenfolge.filter(x => x !== id);
   saveGruppenReihenfolge();
   renderVerwaltung();
-  toast(n > 0 ? `Gruppe gelöscht (${n} Karte${n !== 1 ? 'n' : ''} entfernt)` : 'Gruppe gelöscht');
+  toast(tf('toast_gruppe_geloescht', n));
 });
 
 // Gruppe via Enter-Taste innerhalb Sammlung hinzufügen
@@ -2421,9 +3110,9 @@ document.getElementById('sammlungen-liste').addEventListener('change', async e =
     s.foto = blob;
     await dbPut('studenten', s);
     renderVerwaltung();
-    toast('Foto aktualisiert');
+    toast(t('toast_foto_aktualisiert'));
   } catch (err) {
-    toast('Fehler: ' + err.message);
+    toast(tf('toast_fehler', err.message));
   }
 });
 
@@ -2446,7 +3135,7 @@ document.getElementById('sammlung-auswahl-liste').addEventListener('click', asyn
   document.getElementById('gruppe-verschieben-modal').classList.add('hidden');
   gruppeVerschiebenId = null;
   renderVerwaltung();
-  toast(`„${g.name}" → ${sam.name}`);
+  toast(tf('toast_verschoben', g.name, sam.name));
 });
 
 // Letzte Gruppe merken
@@ -2460,14 +3149,14 @@ document.getElementById('chip-foto').addEventListener('click', () => {
   document.getElementById('chip-text').classList.remove('active');
   document.getElementById('foto-bereich').classList.remove('hidden');
   document.getElementById('text-bereich').classList.add('hidden');
-  document.getElementById('label-input-name').textContent = 'Name';
+  document.getElementById('label-input-name').textContent = t('name_label');
 });
 document.getElementById('chip-text').addEventListener('click', () => {
   document.getElementById('chip-text').classList.add('active');
   document.getElementById('chip-foto').classList.remove('active');
   document.getElementById('text-bereich').classList.remove('hidden');
   document.getElementById('foto-bereich').classList.add('hidden');
-  document.getElementById('label-input-name').textContent = 'Begriff';
+  document.getElementById('label-input-name').textContent = t('begriff_label');
 });
 
 // Foto Vorschau (Karte hinzufügen)
@@ -2501,12 +3190,12 @@ document.getElementById('form-karte').addEventListener('submit', async e => {
     let s;
     if (modus === 'foto') {
       const file = document.getElementById('input-foto').files[0];
-      if (!file) { toast('Bitte ein Foto auswählen'); return; }
+      if (!file) { toast(t('toast_foto_pflicht')); return; }
       const blob = await compressPhoto(file);
       s = { id: Date.now().toString(), name, gruppeId, modus: 'foto', foto: blob, vorderseite: '', notiz, links, videoId, videoTitel, erstellt: new Date().toISOString() };
     } else {
       const vorderseite = document.getElementById('input-vorderseite').value.trim();
-      if (!vorderseite) { toast('Bitte einen Text eingeben'); return; }
+      if (!vorderseite) { toast(t('toast_text_pflicht')); return; }
       s = { id: Date.now().toString(), name, gruppeId, modus: 'text', foto: null, vorderseite, notiz, links, videoId, videoTitel, erstellt: new Date().toISOString() };
     }
     await dbPut('studenten', s);
@@ -2522,11 +3211,11 @@ document.getElementById('form-karte').addEventListener('submit', async e => {
     document.getElementById('foto-vorschau').classList.add('hidden');
     document.getElementById('upload-placeholder').classList.remove('hidden');
     renderVerwaltung();
-    toast(`Karte „${name}" gespeichert`);
+    toast(tf('toast_karte_gespeichert', name));
   } catch (err) {
-    toast('Fehler: ' + err.message);
+    toast(tf('toast_fehler', err.message));
   } finally {
-    btn.disabled = false; btn.textContent = 'Karte speichern';
+    btn.disabled = false; btn.textContent = t('karte_speichern');
   }
 });
 
@@ -2567,11 +3256,11 @@ document.getElementById('input-video').addEventListener('blur', async () => {
   if (!status) return;
   if (!raw) { status.textContent = ''; status.className = 'video-input-status'; return; }
   const id = extrahiereYoutubeId(raw);
-  if (!id) { status.textContent = 'Ungültige Video-ID oder URL'; status.className = 'video-input-status err'; return; }
-  status.textContent = 'Titel wird geladen…'; status.className = 'video-input-status laden';
+  if (!id) { status.textContent = t('video_ungueltig'); status.className = 'video-input-status err'; return; }
+  status.textContent = t('video_laden'); status.className = 'video-input-status laden';
   const titel = await ladeVideoTitel(id);
   if (titel) { status.textContent = `✓ ${titel}`; status.className = 'video-input-status ok'; }
-  else       { status.textContent = '↗ Embedding gesperrt — wird als YouTube-Link gespeichert'; status.className = 'video-input-status laden'; }
+  else       { status.textContent = t('video_extern'); status.className = 'video-input-status laden'; }
 });
 
 // Blur-Validierung: Video-Feld im Edit-Modal
@@ -2581,11 +3270,11 @@ document.getElementById('karte-edit-video').addEventListener('blur', async () =>
   if (!status) return;
   if (!raw) { status.textContent = ''; status.className = 'video-input-status'; return; }
   const id = extrahiereYoutubeId(raw);
-  if (!id) { status.textContent = 'Ungültige Video-ID oder URL'; status.className = 'video-input-status err'; return; }
-  status.textContent = 'Titel wird geladen…'; status.className = 'video-input-status laden';
+  if (!id) { status.textContent = t('video_ungueltig'); status.className = 'video-input-status err'; return; }
+  status.textContent = t('video_laden'); status.className = 'video-input-status laden';
   const titel = await ladeVideoTitel(id);
   if (titel) { status.textContent = `✓ ${titel}`; status.className = 'video-input-status ok'; }
-  else       { status.textContent = '↗ Embedding gesperrt — wird als YouTube-Link gespeichert'; status.className = 'video-input-status laden'; }
+  else       { status.textContent = t('video_extern'); status.className = 'video-input-status laden'; }
 });
 
 // Overlay: Swipe-Navigation + Tippen zum Schließen
@@ -2729,13 +3418,13 @@ document.getElementById('btn-schwaeche-waehlen').addEventListener('click', async
   const selectedGids  = getSelectedGids();
   const schwacheKarten = await getSchwacheKarten(selectedGids.length ? selectedGids : null);
   if (!schwacheKarten.length) {
-    toast(selectedGids.length ? 'Noch keine Statistikdaten für diese Auswahl' : 'Noch keine Statistikdaten vorhanden');
+    toast(selectedGids.length ? t('toast_keine_stat_auswahl') : t('toast_keine_stat'));
     return;
   }
   document.getElementById('lernen-auswahl').classList.add('hidden');
   starteSession(schwacheKarten);
-  const label = selectedGids.length ? 'aus Auswahl' : 'ausgewählt';
-  toast(`${schwacheKarten.length} schwächste Karte${schwacheKarten.length !== 1 ? 'n' : ''} ${label}`);
+  const label = selectedGids.length ? t('toast_aus_auswahl') : t('toast_ausgewaehlt');
+  toast(tf('toast_schwaechste', schwacheKarten.length, label));
 });
 
 document.getElementById('btn-lernen-start').addEventListener('click', () => {
@@ -2833,11 +3522,10 @@ document.getElementById('btn-mischen').addEventListener('click', () => {
   lernIstGemischt = !lernIstGemischt;
   if (lernIstGemischt) {
     mischen(lernKarten);
-    toast('Karten gemischt');
+    toast(t('toast_gemischt'));
   } else {
-    // Ursprungsreihenfolge wiederherstellen
     lernKarten = [...lernKartenOriginal];
-    toast('Reihenfolge wiederhergestellt');
+    toast(t('toast_sortiert'));
   }
   lernIndex = 0;
   aktualisiereMischenBtn();
@@ -2906,7 +3594,7 @@ document.getElementById('btn-nachgeschaut-ueben').addEventListener('click', () =
   if (!nachKarten.length) return;
   document.getElementById('lernen-ende').classList.add('hidden');
   starteSession(nachKarten);
-  toast(`${nachKarten.length} nachgeschaute Karte${nachKarten.length !== 1 ? 'n' : ''} nochmal`);
+  toast(tf('toast_nachgeschaut', nachKarten.length));
 });
 document.getElementById('btn-ende-auswahl').addEventListener('click', () => {
   document.getElementById('lernen-ende').classList.add('hidden');
@@ -2928,10 +3616,10 @@ document.addEventListener('keydown', e => {
 // ============================================================
 
 document.getElementById('btn-statistik-loeschen').addEventListener('click', async () => {
-  if (!confirm('Alle Statistikdaten löschen? Die Karten bleiben erhalten.')) return;
+  if (!confirm(t('confirm_statistik'))) return;
   await dbClear('sitzungen');
   renderStatistik();
-  toast('Statistik gelöscht');
+  toast(t('toast_statistik'));
 });
 
 // ============================================================
@@ -2940,7 +3628,7 @@ document.getElementById('btn-statistik-loeschen').addEventListener('click', asyn
 
 // Export Modal öffnen
 document.getElementById('btn-export').addEventListener('click', () => {
-  if (!gruppen.length) { toast('Keine Gruppen vorhanden'); return; }
+  if (!gruppen.length) { toast(t('toast_keine_gruppen')); return; }
   const container = document.getElementById('export-gruppen-liste');
 
   function setExportSel(item, sel) {
@@ -2974,14 +3662,14 @@ document.getElementById('btn-export').addEventListener('click', () => {
     const samFavs = studenten.filter(s => s.favorit && gs.some(g => g.id === s.gruppeId));
     html += `<div class="export-sammlung-header">
       <span class="export-sammlung-name">${esc(sam.name)}</span>
-      <button class="btn-export-sam-alle" data-sam-id="${sam.id}">Alle</button>
+      <button class="btn-export-sam-alle" data-sam-id="${sam.id}">${t('alle')}</button>
     </div>`;
     if (samFavs.length) {
       html += `<div class="gruppe-check-item fav-gruppe-item" data-gid="__favoriten__:${sam.id}" data-export-sam="${sam.id}">
         ${checkBoxHtml(false)}
         <div class="check-label">
-          <strong>★ Favoriten</strong>
-          <span>${samFavs.length} Karte${samFavs.length !== 1 ? 'n' : ''}</span>
+          <strong>${t('favoriten')}</strong>
+          <span>${tf('karte_n', samFavs.length)}</span>
         </div>
       </div>`;
     }
@@ -2991,8 +3679,8 @@ document.getElementById('btn-export').addEventListener('click', () => {
   const orphans = gruppen.filter(g => !g.sammlungId || !sammlungen.find(s => s.id === g.sammlungId));
   if (orphans.length) {
     html += `<div class="export-sammlung-header">
-      <span class="export-sammlung-name" style="opacity:.65">Ohne Sammlung</span>
-      <button class="btn-export-sam-alle" data-sam-id="__orphan__">Alle</button>
+      <span class="export-sammlung-name" style="opacity:.65">${t('ohne_sammlung')}</span>
+      <button class="btn-export-sam-alle" data-sam-id="__orphan__">${t('alle')}</button>
     </div>`;
     html += orphans.map(g => gruppeItemHtml(g, '__orphan__')).join('');
   }
@@ -3046,14 +3734,14 @@ document.querySelectorAll('.export-fmt-btn').forEach(btn => {
     document.getElementById('export-ios-hinweis').classList.toggle('hidden', fmt !== 'datei');
     document.getElementById('export-pdf-hinweis').classList.toggle('hidden', fmt !== 'pdf');
     document.getElementById('btn-export-start').textContent =
-      fmt === 'pdf' ? '🖨 PDF drucken' : 'Exportieren';
+      fmt === 'pdf' ? t('pdf_drucken') : t('exportieren_start');
   });
 });
 
 document.getElementById('btn-export-start').addEventListener('click', async () => {
   const selectedGids = [...document.querySelectorAll('#export-gruppen-liste .gruppe-check-item.selected')]
     .map(el => el.dataset.gid);
-  if (!selectedGids.length) { toast('Keine Gruppe ausgewählt'); return; }
+  if (!selectedGids.length) { toast(t('toast_keine_auswahl')); return; }
 
   // PDF: Fenster SOFORT öffnen (synchron, direkt beim Klick) — bevor irgendein await folgt,
   // damit iOS Safari es als Nutzer-Geste akzeptiert und nicht als Popup blockt.
@@ -3070,20 +3758,19 @@ document.getElementById('btn-export-start').addEventListener('click', async () =
              .map(g => g.sammlungId).filter(Boolean)
     );
     const warnTeile = [];
-    if (hatFoto && hatText) warnTeile.push('⚠️ Foto- und Text-Karten gemischt — das Layout kann uneinheitlich wirken.');
-    if (sammlIds.size > 1)  warnTeile.push('⚠️ Mehrere Sammlungen ausgewählt — verschiedene Themen in einem PDF.');
-    if (warnTeile.length && !confirm(warnTeile.join('\n\n') + '\n\nTrotzdem als PDF exportieren?')) return;
+    if (hatFoto && hatText) warnTeile.push('⚠️ ' + tf('pdf_warn_mixed', [...sammlIds][0] || ''));
+    if (sammlIds.size > 1)  warnTeile.push('⚠️ ' + t('pdf_warn_multi'));
+    if (warnTeile.length && !confirm(tf('confirm_pdf', warnTeile.join('\n\n')))) return;
   }
 
   let pdfWin = null;
   if (fmt === 'pdf') {
     pdfWin = window.open('', '_blank');
-    if (!pdfWin) { toast('Popups erlauben und nochmal versuchen'); return; }
-    // Ladeplatzhalter anzeigen während Daten aufbereitet werden
+    if (!pdfWin) { toast(t('toast_popup')); return; }
     pdfWin.document.write(
       '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>MemoFix</title></head>' +
       '<body style="font-family:sans-serif;padding:2rem;color:#666;background:#fff">' +
-      'Wird aufbereitet…</body></html>'
+      t('wird_aufbereitet') + '</body></html>'
     );
   }
 
@@ -3169,10 +3856,7 @@ document.getElementById('btn-export-start').addEventListener('click', async () =
   }
 
   document.getElementById('export-modal').classList.add('hidden');
-  const toastMsg = hasFavoriten && !normalGids.length
-    ? `${exportStudentenRaw.length} Favorit${exportStudentenRaw.length !== 1 ? 'en' : ''} exportiert`
-    : `${exportGruppen.length} Gruppe${exportGruppen.length !== 1 ? 'n' : ''} exportiert`;
-  toast(toastMsg);
+  toast(tf('toast_exportiert', hasFavoriten && !normalGids.length ? exportStudentenRaw.length : exportGruppen.length, hasFavoriten && !normalGids.length));
 });
 
 // ── PDF EXPORT ─────────────────────────────────────────────
@@ -3315,7 +3999,7 @@ body{font-family:-apple-system,Helvetica,Arial,sans-serif;background:#fff;color:
 </style>
 </head>
 <body>
-<button class="pv-close-btn" onclick="window.close()">✕ Schließen &amp; zur App</button>
+<button class="pv-close-btn" onclick="window.close()">${t('schlies_app')}</button>
 ${body}
 <script>
 // Warten bis alle Bilder geladen sind, dann drucken
@@ -3356,7 +4040,7 @@ document.getElementById('input-import').addEventListener('change', async e => {
       const existing = gruppen.find(x => x.name === g.name);
       return `<div class="import-gruppe-zeile">
         <span class="import-gruppe-name">${esc(g.name)}</span>
-        <span class="import-gruppe-details">${count} Karte${count !== 1 ? 'n' : ''}${existing ? ' · <span class="import-gruppe-vorhanden">vorhanden</span>' : ' · neu'}</span>
+        <span class="import-gruppe-details">${tf('karte_n', count)}${existing ? ' · <span class="import-gruppe-vorhanden">' + t('import_vorhanden') + '</span>' : ' ' + t('import_neu_badge')}</span>
       </div>`;
     }).join('');
 
@@ -3364,7 +4048,7 @@ document.getElementById('input-import').addEventListener('change', async e => {
     document.querySelector('.import-modus-btn[data-modus="hinzufuegen"]').classList.add('active');
     document.getElementById('import-modal').classList.remove('hidden');
   } catch (err) {
-    toast('Fehler beim Lesen: ' + err.message);
+    toast(tf('toast_lesefehler', err.message));
   }
 });
 
@@ -3431,13 +4115,11 @@ document.getElementById('btn-import-start').addEventListener('click', async () =
     importDatenBuffer = null;
     const neu = studenten.length - vorher;
     const toastText = modus === 'ersetzen'
-      ? `Import erfolgreich – ${studenten.length} Karten geladen`
-      : neu > 0
-        ? `${neu} neue Karte${neu !== 1 ? 'n' : ''} hinzugefügt`
-        : 'Alle Karten bereits vorhanden – nichts hinzugefügt';
+      ? tf('toast_import_ok', studenten.length)
+      : neu > 0 ? tf('toast_import_neu', neu) : t('toast_import_nichts');
     toast(toastText);
   } catch (err) {
-    toast('Fehler beim Import: ' + err.message);
+    toast(tf('toast_import_fehler', err.message));
   }
 });
 
@@ -3597,7 +4279,7 @@ async function erstelleTutorialGruppeWennNeu() {
   // Reihenfolge laden – aber Open-States NICHT laden (alles geschlossen beim Start)
   ladeGruppenReihenfolge();
   ladeSammlungenReihenfolge();
-  renderVerwaltung();
+  applyTranslations(); // setzt Sprache + rendert Verwaltung + LernAuswahl
   // Timer-Buttons, Autorepeat & Label-Opacity initialisieren
   document.querySelectorAll('.timer-btn').forEach(b =>
     b.classList.toggle('active', +b.dataset.sek === timerSekunden)
