@@ -47,6 +47,7 @@ header {
   justify-content: space-between;
 }
 header h1 { font-size: 1rem; letter-spacing: 0.2px; color: var(--text); }
+.header-btns { display: flex; align-items: center; gap: 0.4rem; }
 .title-memo { font-weight: 700; }
 .title-pix  { font-weight: 300; color: var(--text-dim); }
 
