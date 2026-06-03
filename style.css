@@ -481,6 +481,18 @@ textarea.input-notiz::placeholder { color: var(--muted); }
   content: '•';
   color: var(--text); font-size: 1.1rem; flex-shrink: 0; opacity: 0.5;
 }
+.lern-vorderseite-liste .header-zeile {
+  list-style: none;
+  margin-left: -1.2em;
+  margin-top: 0.6em;
+  font-weight: bold;
+}
+.lern-vorderseite-liste .header-zeile::before {
+  content: none;
+}
+.lern-vorderseite-liste .header-zeile-first {
+  margin-top: 0;
+}
 
 /* ── NOTIZ ─────────────────────────────────────────── */
 /* Notiz im Overlay (nach Aufdecken bei Foto-Karten) */

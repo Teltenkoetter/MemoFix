@@ -1460,7 +1460,15 @@ function renderVorderseiteHtml(text) {
   const bold = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   const zeilen = text.split('\n').map(z => z.trim()).filter(z => z.length > 0);
   if (zeilen.length <= 1) return `<p>${bold(text.trim())}</p>`;
-  return `<ul class="lern-vorderseite-liste">${zeilen.map(z => `<li>${bold(z)}</li>`).join('')}</ul>`;
+  const istHeader = z => /^\*\*[^*]+\*\*$/.test(z.trim());
+  const items = zeilen.map((z, i) => {
+    if (istHeader(z)) {
+      const cls = i === 0 ? 'header-zeile header-zeile-first' : 'header-zeile';
+      return `<li class="${cls}">${bold(z)}</li>`;
+    }
+    return `<li>${bold(z)}</li>`;
+  });
+  return `<ul class="lern-vorderseite-liste">${items.join('')}</ul>`;
 }
 
 // ── Karte Detail Overlay ──────────────────────────────
