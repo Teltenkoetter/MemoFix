@@ -1457,9 +1457,10 @@ async function getSchwacheKarten(gruppeIds = null) {
 // Mehrzeiligen Text als Bullet-Liste oder einfachen Absatz rendern
 function renderVorderseiteHtml(text) {
   if (!text) return '';
+  const bold = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   const zeilen = text.split('\n').map(z => z.trim()).filter(z => z.length > 0);
-  if (zeilen.length <= 1) return `<p>${esc(text.trim())}</p>`;
-  return `<ul class="lern-vorderseite-liste">${zeilen.map(z => `<li>${esc(z)}</li>`).join('')}</ul>`;
+  if (zeilen.length <= 1) return `<p>${bold(text.trim())}</p>`;
+  return `<ul class="lern-vorderseite-liste">${zeilen.map(z => `<li>${bold(z)}</li>`).join('')}</ul>`;
 }
 
 // ── Karte Detail Overlay ──────────────────────────────
