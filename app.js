@@ -2122,11 +2122,23 @@ function renderLernAuswahl() {
     </div>`;
   }
   container.innerHTML = html;
+  // Gespeicherte Gruppenauswahl wiederherstellen
+  try {
+    const saved = JSON.parse(localStorage.getItem('memoLernGids') || '[]');
+    if (saved.length) {
+      container.querySelectorAll('.gruppe-check-item').forEach(el => {
+        if (saved.includes(el.dataset.gid)) el.classList.add('selected');
+      });
+    }
+  } catch(e) {}
   updateLernStartBtn();
 }
 
 function getSelectedGids() {
   return [...document.querySelectorAll('.gruppe-check-item.selected')].map(el => el.dataset.gid);
+}
+function saveLernSelection() {
+  localStorage.setItem('memoLernGids', JSON.stringify(getSelectedGids()));
 }
 
 function updateLernStartBtn() {
@@ -2621,6 +2633,7 @@ function openKarteEditModal(studentId, mode) {
 
 function showView(name) {
   if (name !== 'lernen') gebeWakeLockFrei(); // Lern-View verlassen → Bildschirmsperre wieder aktiv
+  localStorage.setItem('memoLastView', name);
   ['verwaltung', 'lernen', 'statistik', 'sicherung'].forEach(v =>
     document.getElementById(`view-${v}`).classList.toggle('hidden', v !== name));
   document.querySelectorAll('.nav-item').forEach(b =>
@@ -3382,6 +3395,7 @@ document.getElementById('gruppen-checkboxen').addEventListener('click', e => {
     const items      = body.querySelectorAll('.gruppe-check-item');
     const allSel     = [...items].every(el => el.classList.contains('selected'));
     items.forEach(el => el.classList.toggle('selected', !allSel));
+    saveLernSelection();
     // Sammlung aufklappen, damit man die Auswahl sieht
     if (!openLernSammlungen.has(sid)) {
       openLernSammlungen.add(sid);
@@ -3411,15 +3425,18 @@ document.getElementById('gruppen-checkboxen').addEventListener('click', e => {
   if (!item) return;
   item.classList.toggle('selected');
   updateLernStartBtn();
+  saveLernSelection();
 });
 
 document.getElementById('btn-alle-waehlen').addEventListener('click', () => {
   document.querySelectorAll('.gruppe-check-item').forEach(el => el.classList.add('selected'));
   updateLernStartBtn();
+  saveLernSelection();
 });
 document.getElementById('btn-keine-waehlen').addEventListener('click', () => {
   document.querySelectorAll('.gruppe-check-item').forEach(el => el.classList.remove('selected'));
   updateLernStartBtn();
+  saveLernSelection();
 });
 
 // Schwächste starten – aus aktueller Gruppen-Auswahl (oder alle wenn nichts gewählt)
@@ -4289,6 +4306,9 @@ async function erstelleTutorialGruppeWennNeu() {
   ladeGruppenReihenfolge();
   ladeSammlungenReihenfolge();
   applyTranslations(); // setzt Sprache + rendert Verwaltung + LernAuswahl
+  // Letzten Tab wiederherstellen
+  const lastView = localStorage.getItem('memoLastView');
+  if (lastView && lastView !== 'verwaltung') showView(lastView);
   // Timer-Buttons, Autorepeat & Label-Opacity initialisieren
   document.querySelectorAll('.timer-btn').forEach(b =>
     b.classList.toggle('active', +b.dataset.sek === timerSekunden)
@@ -4373,3 +4393,67 @@ document.addEventListener('visibilitychange', async () => {
     erwerbeWakeLock(); // Wake Lock nach Rückkehr wieder anfordern
   }
 });
+
+// ── Pinch-Zoom auf Lernkarte-Foto ──────────────────────────────
+(function() {
+  const img     = document.getElementById('lern-foto');
+  const wrapper = document.getElementById('lernkarte-foto-wrapper');
+  if (!img || !wrapper) return;
+
+  let scale = 1, baseScale = 1;
+  let tx = 0, ty = 0, baseTx = 0, baseTy = 0;
+  let startDist = 0, startMidX = 0, startMidY = 0;
+  let lastTap = 0;
+
+  function setTransform(s, x, y, animate) {
+    scale = s; tx = x; ty = y;
+    img.style.transition = animate ? 'transform 0.2s ease' : '';
+    img.style.transform  = `translate(${tx}px,${ty}px) scale(${scale})`;
+    wrapper.classList.toggle('zoomed', scale > 1.01);
+  }
+
+  function resetZoom() {
+    scale = 1; tx = 0; ty = 0; baseScale = 1; baseTx = 0; baseTy = 0;
+    img.style.transition = 'transform 0.2s ease';
+    img.style.transform  = '';
+    wrapper.classList.remove('zoomed');
+  }
+
+  function touchDist(t) {
+    return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  }
+
+  img.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      startDist = touchDist(e.touches);
+      startMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      startMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      baseScale = scale; baseTx = tx; baseTy = ty;
+      img.style.transition = '';
+    } else if (e.touches.length === 1) {
+      const now = Date.now();
+      if (now - lastTap < 300 && scale > 1) { resetZoom(); e.preventDefault(); }
+      lastTap = now;
+    }
+  }, { passive: false });
+
+  img.addEventListener('touchmove', e => {
+    if (e.touches.length !== 2) return;
+    e.preventDefault();
+    const newDist = touchDist(e.touches);
+    const newMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    const newMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    const s = Math.min(Math.max(baseScale * (newDist / startDist), 1), 5);
+    setTransform(s, baseTx + (newMidX - startMidX), baseTy + (newMidY - startMidY), false);
+  }, { passive: false });
+
+  img.addEventListener('touchend', () => {
+    if (scale < 1.05) resetZoom();
+    else { baseScale = scale; baseTx = tx; baseTy = ty; }
+  });
+
+  // Zoom zurücksetzen wenn eine neue Karte geladen wird (src-Wechsel)
+  new MutationObserver(() => resetZoom())
+    .observe(img, { attributes: true, attributeFilter: ['src'] });
+})();

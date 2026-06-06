@@ -973,10 +973,16 @@ textarea.input-notiz::placeholder { color: var(--muted); }
   display: flex; align-items: center;
   background: #000;
 }
+.lernkarte-foto-wrapper.zoomed {
+  overflow: hidden;
+  touch-action: none;
+}
 .lernkarte-foto-wrapper img {
   width: 100%; height: auto;
   flex-shrink: 0;   /* Bild nicht stauchen — darf über Container hinausgehen */
   object-fit: contain; display: block;
+  transform-origin: center center;
+  will-change: transform;
 }
 
 /* Diagonaler Glanzeffekt auf dem Foto */
