@@ -1326,11 +1326,17 @@ async function toggleFavorit(id) {
   const s = studenten.find(x => x.id === id);
   if (!s) return;
   s.favorit = !s.favorit;
+  const neuWert = s.favorit;
+  renderLernAuswahl();                          // optimistisch: sofort anzeigen
   try {
-    const dbRec = await dbGet('studenten', id);
-    if (dbRec) { dbRec.favorit = s.favorit; await dbPut('studenten', dbRec); }
+    await dbPut('studenten', s);               // direkt speichern (kein dbGet nötig)
   } catch (err) { console.warn('Favorit DB-Fehler:', err); }
-  renderLernAuswahl();
+  // Falls ladeAlles() während des await studenten überschrieben hat: korrigieren
+  const aktuell = studenten.find(x => x.id === id);
+  if (aktuell && aktuell.favorit !== neuWert) {
+    aktuell.favorit = neuWert;
+    renderLernAuswahl();
+  }
 }
 
 // gruppe verschieben
