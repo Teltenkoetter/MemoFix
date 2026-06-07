@@ -484,7 +484,7 @@ textarea.input-notiz::placeholder { color: var(--muted); }
 .lern-vorderseite-liste .header-zeile {
   list-style: none;
   margin-left: -1.2em;
-  margin-top: 0.6em;
+  margin-top: 1.4em;
   font-weight: bold;
 }
 .lern-vorderseite-liste .header-zeile::before {
