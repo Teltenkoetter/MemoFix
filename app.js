@@ -4308,9 +4308,12 @@ async function erstelleTutorialGruppeWennNeu() {
   await erstelleTutorialGruppeWennNeu();
   await ladeAlles();
   await repairOrphanGruppen();
-  // Reihenfolge laden – aber Open-States NICHT laden (alles geschlossen beim Start)
+  // Reihenfolge und Open-States laden
   ladeGruppenReihenfolge();
   ladeSammlungenReihenfolge();
+  ladeOpenSammlungen();
+  ladeOpenGruppen();
+  ladeOpenLernSammlungen();
   applyTranslations(); // setzt Sprache + rendert Verwaltung + LernAuswahl
   // Letzten Tab wiederherstellen
   const lastView = localStorage.getItem('memoLastView');
