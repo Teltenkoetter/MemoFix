@@ -2297,6 +2297,7 @@ function zeigeKarte() {
   nameVisible     = false;
   aktuelleWertung = null;
   isAnimating     = false;
+  document.getElementById('lern-repeat-pause').classList.add('hidden');
 
   // Karte zurücksetzen (Flip + Fly-out entfernen, ohne sichtbare Transition)
   const card = document.getElementById('lernkarte');
@@ -2467,6 +2468,7 @@ async function zeigeEnde() {
   await speichereSitzung();
   if (autoRepeat) {
     const pause = timerSekunden ? 600 : 1800;
+    document.getElementById('lern-repeat-pause').classList.remove('hidden');
     toast(t('toast_neue_runde'));
     setTimeout(() => starteSession(lernKarten), pause);
     return;

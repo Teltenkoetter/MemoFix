@@ -825,6 +825,14 @@ textarea.input-notiz::placeholder { color: var(--muted); }
   font-size: 0.7rem; padding: 0.2rem 0.1rem; border-radius: 6px;
 }
 /* Countdown 3-2-1 */
+.lern-repeat-pause {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 15;
+  border-radius: 22px;
+}
+
 .lern-countdown {
   position: absolute;
   top: 50%; left: 50%;
