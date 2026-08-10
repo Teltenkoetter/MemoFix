@@ -977,6 +977,7 @@ textarea.input-notiz::placeholder { color: var(--muted); }
 .lern-feedback.nicht-ok   { color: #cc4444; }
 .lernkarte-foto-wrapper {
   flex: 1; min-height: 0;
+  position: relative;
   overflow: hidden;
   display: flex; align-items: center; justify-content: center;
   background: #000;
@@ -1318,12 +1319,16 @@ textarea.input-notiz::placeholder { color: var(--muted); }
   width: 100%; border-radius: 18px; overflow: hidden;
   background: rgba(255,255,255,0.04);
   max-height: 60dvh;
+  position: relative;
   display: flex; align-items: center; justify-content: center;
 }
 .karte-detail-foto-wrap img {
   width: 100%; max-height: 60dvh;
   object-fit: contain; display: block;
   border-radius: 18px;
+}
+.karte-detail-foto-wrap.has-slideshow {
+  height: 60dvh;
 }
 .karte-detail-text-wrap {
   width: 100%; background: rgba(255,255,255,0.04);
@@ -1794,4 +1799,64 @@ textarea.input-notiz::placeholder { color: var(--muted); }
     text-align: right;
     margin-top: 8mm;
   }
+}
+
+/* ── MEHRERE FOTOS: Slideshow (Lernkarte + Detail-Overlay) ── */
+.foto-slideshow {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+}
+.foto-slides {
+  flex: 1; min-height: 0;
+  display: flex; overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.foto-slide {
+  flex: 0 0 100%; scroll-snap-align: center;
+  display: flex; align-items: center; justify-content: center;
+}
+.foto-slide img { width: 100%; height: 100%; display: block; }
+.lernkarte-foto-wrapper .foto-slide img { object-fit: cover; }
+.karte-detail-foto-wrap .foto-slide img { object-fit: contain; max-height: 60dvh; }
+.foto-dots {
+  position: absolute; bottom: 10px; left: 0; right: 0;
+  display: flex; justify-content: center; gap: 6px;
+  pointer-events: none;
+}
+.foto-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(255,255,255,0.4);
+  transition: background 0.2s, transform 0.2s;
+}
+.foto-dot.active { background: #fff; transform: scale(1.3); }
+
+/* ── MEHRERE FOTOS: Thumbnail-Liste im Bearbeiten-Formular ── */
+.karte-edit-fotos-liste {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin: 8px 0;
+}
+.karte-edit-foto-thumb {
+  position: relative;
+  width: 64px; height: 64px;
+  border-radius: 8px; overflow: hidden;
+  background: rgba(255,255,255,0.04);
+}
+.karte-edit-foto-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.btn-foto-entfernen {
+  position: absolute; top: 2px; right: 2px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: rgba(0,0,0,0.7); color: #fff; border: none;
+  font-size: 11px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+}
+
+/* ── MEHRERE FOTOS: Badge auf Verwaltung-Thumbnail ───────── */
+.karte-foto-multi-badge {
+  position: absolute; top: 4px; left: 4px;
+  background: rgba(0,0,0,0.7); color: #fff;
+  font-size: 0.65rem; font-weight: 700;
+  padding: 1px 5px; border-radius: 10px;
+  pointer-events: none;
 }

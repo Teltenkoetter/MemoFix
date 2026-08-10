@@ -981,11 +981,52 @@ let sammlungen = [];
 const urlCache = new Map();
 function getFotoUrl(s) {
   if (!s.foto) return '';
-  if (!urlCache.has(s.id)) urlCache.set(s.id, URL.createObjectURL(s.foto));
-  return urlCache.get(s.id);
+  const key = s.id + '#0';
+  if (!urlCache.has(key)) urlCache.set(key, URL.createObjectURL(s.foto));
+  return urlCache.get(key);
+}
+// Alle Bilder einer Karte (für Slideshow) — Fallback auf einzelnes foto-Feld
+function getFotoUrls(s) {
+  const list = (s.fotos && s.fotos.length) ? s.fotos : (s.foto ? [s.foto] : []);
+  return list.map((blob, i) => {
+    const key = s.id + '#' + i;
+    if (!urlCache.has(key)) urlCache.set(key, URL.createObjectURL(blob));
+    return urlCache.get(key);
+  });
 }
 function revokeUrl(id) {
-  if (urlCache.has(id)) { URL.revokeObjectURL(urlCache.get(id)); urlCache.delete(id); }
+  [...urlCache.keys()].filter(k => k.startsWith(id + '#')).forEach(k => {
+    URL.revokeObjectURL(urlCache.get(k));
+    urlCache.delete(k);
+  });
+}
+
+// Zeigt ein Einzelbild (#imgId) oder — bei mehreren Fotos — eine Wisch-Slideshow
+// (#imgId-slideshow / -slides / -dots müssen im HTML vorhanden sein)
+function renderFotoSlideshow(imgId, wrapId, s) {
+  const urls      = getFotoUrls(s);
+  const img       = document.getElementById(imgId);
+  const wrap      = document.getElementById(wrapId);
+  const slideshow = document.getElementById(imgId + '-slideshow');
+  const slidesEl  = document.getElementById(imgId + '-slides');
+  const dotsEl    = document.getElementById(imgId + '-dots');
+  const multi     = urls.length > 1;
+  if (wrap) wrap.classList.toggle('has-slideshow', multi);
+  if (multi && slideshow) {
+    img.classList.add('hidden');
+    slideshow.classList.remove('hidden');
+    slidesEl.innerHTML = urls.map(u => `<div class="foto-slide"><img src="${u}" alt=""></div>`).join('');
+    dotsEl.innerHTML = urls.map((_, i) => `<span class="foto-dot${i === 0 ? ' active' : ''}"></span>`).join('');
+    slidesEl.scrollLeft = 0;
+    slidesEl.onscroll = () => {
+      const idx = Math.round(slidesEl.scrollLeft / (slidesEl.clientWidth || 1));
+      [...dotsEl.children].forEach((d, i) => d.classList.toggle('active', i === idx));
+    };
+  } else {
+    if (slideshow) slideshow.classList.add('hidden');
+    img.classList.remove('hidden');
+    img.src = urls[0] || '';
+  }
 }
 
 // learning
@@ -1160,7 +1201,7 @@ function zeigeNameAuto() {
     showLinks('lern-card-links', s.links || []);
     showVideo('lern-card-video', s);
   } else if (lernModus === 'name') {
-    if (s.foto) document.getElementById('lern-foto').src = getFotoUrl(s);
+    renderFotoSlideshow('lern-foto', 'lernkarte-foto-wrapper', s);
     document.getElementById('lernkarte-foto-wrapper').classList.remove('hidden');
     document.getElementById('lern-name-karte').classList.add('hidden');
     const n = document.getElementById('lern-notiz-text');
@@ -1485,7 +1526,8 @@ function fillKarteDetail(s) {
   const isText = s.modus === 'text';
   const fotoWrap = document.getElementById('karte-detail-foto-wrap');
   const textWrap = document.getElementById('karte-detail-text-wrap');
-  document.getElementById('karte-detail-foto').src = (isText || !s.foto) ? '' : getFotoUrl(s);
+  if (!isText && s.foto) renderFotoSlideshow('karte-detail-foto', 'karte-detail-foto-wrap', s);
+  else document.getElementById('karte-detail-foto').src = '';
   document.getElementById('karte-detail-text').innerHTML = isText ? renderVorderseiteHtml(s.vorderseite || '') : '';
   fotoWrap.classList.toggle('hidden', isText);
   textWrap.classList.toggle('hidden', !isText);
@@ -1841,8 +1883,10 @@ function karteItemHtml(s, idx, total) {
   if (isText) {
     thumb = `<div class="karte-text-thumb karte-detail-trigger" data-id="${s.id}">${esc((s.vorderseite || '').substring(0, 40))}${(s.vorderseite || '').length > 40 ? '…' : ''}</div>`;
   } else if (s.foto) {
+    const multiCount = (s.fotos && s.fotos.length > 1) ? s.fotos.length : 0;
     thumb = `<img src="${getFotoUrl(s)}" alt="${esc(s.name)}" loading="lazy">
        <div class="karte-foto-overlay">📷</div>
+       ${multiCount ? `<div class="karte-foto-multi-badge">${multiCount}</div>` : ''}
        <input type="file" accept="image/*" class="karte-foto-input" data-id="${s.id}">`;
   } else {
     thumb = `<div class="karte-foto-leer karte-detail-trigger" data-id="${s.id}" title="${t('foto_fehlt')}">📷</div>
@@ -2375,7 +2419,7 @@ function zeigeKarte() {
     document.getElementById('lern-name-karte-text').textContent = s.name;
     aufdeckBtn.textContent = t('bild_zeigen');
   } else {
-    if (s.foto) document.getElementById('lern-foto').src = getFotoUrl(s);
+    renderFotoSlideshow('lern-foto', 'lernkarte-foto-wrapper', s);
     document.getElementById('lernkarte-foto-wrapper').classList.toggle('hidden', !s.foto);
     aufdeckBtn.textContent = t('begriff_zeigen');
   }
@@ -2414,7 +2458,7 @@ function zeigeName(wertung) {
     showVideo('lern-card-video', s);
   } else if (lernModus === 'name') {
     // Foto-Karte umgekehrt aufdecken: Bild anzeigen
-    document.getElementById('lern-foto').src = getFotoUrl(s);
+    renderFotoSlideshow('lern-foto', 'lernkarte-foto-wrapper', s);
     document.getElementById('lernkarte-foto-wrapper').classList.remove('hidden');
     document.getElementById('lern-name-karte').classList.add('hidden');
     const notizEl = document.getElementById('lern-notiz-text');
@@ -2572,7 +2616,21 @@ function starteSession(karten, shuffle = true) {
 // KARTE EDIT MODAL
 // ============================================================
 
-function openKarteEditModal(studentId, mode) {
+// Puffer der aktuell im Bearbeiten-Formular gezeigten Fotos: { blob, url }
+let editFotosBuffer = [];
+
+function renderEditFotosListe() {
+  const el = document.getElementById('karte-edit-fotos-liste');
+  if (!el) return;
+  el.innerHTML = editFotosBuffer.map((f, i) => `
+    <div class="karte-edit-foto-thumb">
+      <img src="${f.url}" alt="">
+      <button type="button" class="btn-foto-entfernen" data-idx="${i}" title="Entfernen">✕</button>
+    </div>`).join('');
+  el.classList.toggle('hidden', editFotosBuffer.length === 0);
+}
+
+async function openKarteEditModal(studentId, mode) {
   editModalMode      = mode;
   editModalStudentId = studentId;
   const s = studenten.find(x => x.id === studentId);
@@ -2598,16 +2656,18 @@ function openKarteEditModal(studentId, mode) {
   document.getElementById('karte-edit-foto-gruppe').classList.toggle('hidden', !isFoto);
   document.getElementById('karte-edit-vorderseite-gruppe').classList.toggle('hidden', isFoto);
 
-  // Foto-Vorschau zurücksetzen
+  // Foto-Puffer zurücksetzen und mit aktuellen (frischen) Bildern befüllen
   document.getElementById('karte-edit-foto-input').value = '';
-  const vorschau = document.getElementById('karte-edit-foto-vorschau');
-  if (isFoto && s.foto) {
-    vorschau.src = getFotoUrl(s);
-    vorschau.classList.remove('hidden');
-  } else {
-    vorschau.src = '';
-    vorschau.classList.add('hidden');
+  editFotosBuffer.forEach(f => URL.revokeObjectURL(f.url));
+  editFotosBuffer = [];
+  if (isFoto) {
+    try {
+      const dbRec = await dbGet('studenten', s.id);
+      const blobs = (dbRec?.fotos && dbRec.fotos.length) ? dbRec.fotos : (dbRec?.foto ? [dbRec.foto] : []);
+      editFotosBuffer = blobs.map(blob => ({ blob, url: URL.createObjectURL(blob) }));
+    } catch (err) { console.warn('Foto DB-Fehler:', err); }
   }
+  renderEditFotosListe();
   if (s.modus === 'text') {
     document.getElementById('karte-edit-vorderseite').value = s.vorderseite || '';
   }
@@ -2675,6 +2735,14 @@ function dataUrlToBlob(dataUrl) {
   const arr   = new Uint8Array(bytes.length);
   for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
   return new Blob([arr], { type: mime });
+}
+
+// Konvertiert importierte foto/fotos-Felder (dataURLs) zurück in Blobs
+function importFotosFelder(s) {
+  if (s.modus === 'text') return { foto: null, fotos: [] };
+  const list  = (s.fotos && s.fotos.length) ? s.fotos : (s.foto ? [s.foto] : []);
+  const fotos = list.map(dataUrlToBlob);
+  return { foto: fotos[0] || null, fotos };
 }
 
 // ============================================================
@@ -2749,15 +2817,25 @@ function karteEditSetModus(isFoto) {
 document.getElementById('karte-edit-chip-foto').addEventListener('click', () => karteEditSetModus(true));
 document.getElementById('karte-edit-chip-text').addEventListener('click', () => karteEditSetModus(false));
 document.getElementById('karte-edit-foto-input').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const v = document.getElementById('karte-edit-foto-vorschau');
-    v.src = ev.target.result;
-    v.classList.remove('hidden');
-  };
-  reader.readAsDataURL(file);
+  const files = [...e.target.files];
+  if (!files.length) return;
+  Promise.all(files.map(file => new Promise(res => {
+    const r = new FileReader();
+    r.onload = ev => res(new Blob([ev.target.result], { type: file.type }));
+    r.readAsArrayBuffer(file);
+  }))).then(blobs => {
+    blobs.forEach(blob => editFotosBuffer.push({ blob, url: URL.createObjectURL(blob) }));
+    renderEditFotosListe();
+    e.target.value = '';
+  });
+});
+document.getElementById('karte-edit-fotos-liste').addEventListener('click', e => {
+  const btn = e.target.closest('.btn-foto-entfernen');
+  if (!btn) return;
+  const idx = +btn.dataset.idx;
+  URL.revokeObjectURL(editFotosBuffer[idx].url);
+  editFotosBuffer.splice(idx, 1);
+  renderEditFotosListe();
 });
 
 document.getElementById('btn-karte-edit-close').addEventListener('click', () =>
@@ -2793,12 +2871,13 @@ document.getElementById('btn-karte-edit-save').addEventListener('click', async (
     let newS;
     if (orig.modus === 'text') {
       newS = { id: Date.now().toString(), name, gruppeId, modus: 'text',
-               foto: null, vorderseite: orig.vorderseite || '', notiz, links,
+               foto: null, fotos: [], vorderseite: orig.vorderseite || '', notiz, links,
                videoId, videoTitel, erstellt: new Date().toISOString() };
     } else {
-      const fotoBuf = await orig.foto.arrayBuffer();
+      const fotos = await Promise.all(editFotosBuffer.map(async f =>
+        new Blob([await f.blob.arrayBuffer()], { type: f.blob.type })));
       newS = { id: Date.now().toString(), name, gruppeId, modus: 'foto',
-               foto: new Blob([fotoBuf], { type: orig.foto.type }),
+               foto: fotos[0] || null, fotos,
                vorderseite: '', notiz, links,
                videoId, videoTitel, erstellt: new Date().toISOString() };
     }
@@ -2806,12 +2885,11 @@ document.getElementById('btn-karte-edit-save').addEventListener('click', async (
     studenten.push(newS);
     toast(tf('toast_karte_kopiert', name));
   } else {
-    const s       = studenten.find(x => x.id === editModalStudentId);
+    const s        = studenten.find(x => x.id === editModalStudentId);
     const newModus = document.getElementById('karte-edit-chip-foto').classList.contains('active') ? 'foto' : 'text';
-    const fotoFile = document.getElementById('karte-edit-foto-input').files[0];
 
-    // Moduswechsel text → foto: Foto erforderlich (oder noch kein Foto vorhanden)
-    if (newModus === 'foto' && !fotoFile && !s.foto) {
+    // Moduswechsel text → foto: mindestens ein Foto erforderlich
+    if (newModus === 'foto' && editFotosBuffer.length === 0) {
       toast(t('toast_foto_fehlt')); return;
     }
 
@@ -2822,30 +2900,17 @@ document.getElementById('btn-karte-edit-save').addEventListener('click', async (
     s.videoId    = videoId;
     s.videoTitel = videoTitel;
 
+    revokeUrl(s.id); // alte Objekt-URLs immer invalidieren
     if (newModus === 'text') {
       s.modus       = 'text';
       s.vorderseite = document.getElementById('karte-edit-vorderseite').value.trim();
       s.foto        = null;
-      if (urlCache.has(s.id)) { URL.revokeObjectURL(urlCache.get(s.id)); urlCache.delete(s.id); }
+      s.fotos       = [];
     } else {
       s.modus       = 'foto';
       s.vorderseite = '';
-      if (fotoFile) {
-        const blob = await new Promise(res => {
-          const r = new FileReader();
-          r.onload = ev => res(new Blob([ev.target.result], { type: fotoFile.type }));
-          r.readAsArrayBuffer(fotoFile);
-        });
-        if (urlCache.has(s.id)) { URL.revokeObjectURL(urlCache.get(s.id)); urlCache.delete(s.id); }
-        s.foto = blob;
-      } else {
-        // Kein neues Foto — frisches Blob aus DB lesen (iOS-Blob-Schutz)
-        revokeUrl(s.id); // stale URL immer invalidieren
-        try {
-          const dbRec = await dbGet('studenten', s.id);
-          if (dbRec?.foto) s.foto = dbRec.foto;
-        } catch (err) { console.warn('Foto DB-Fehler:', err); }
-      }
+      s.fotos       = editFotosBuffer.map(f => f.blob);
+      s.foto        = s.fotos[0] || null;
     }
 
     await dbPut('studenten', s);
@@ -3137,7 +3202,8 @@ document.getElementById('sammlungen-liste').addEventListener('change', async e =
   try {
     const blob = await compressPhoto(file);
     revokeUrl(id);
-    s.foto = blob;
+    s.fotos = [blob, ...(s.fotos || []).slice(1)];
+    s.foto  = blob;
     await dbPut('studenten', s);
     renderVerwaltung();
     toast(t('toast_foto_aktualisiert'));
@@ -3822,14 +3888,15 @@ document.getElementById('btn-export-start').addEventListener('click', async () =
 
   // Frische Blobs aus DB lesen (iOS-Schutz: in-memory Blobs können nach Suspend ungültig sein)
   const studExport = await Promise.all(exportStudentenRaw.map(async s => {
-    if (s.modus === 'text' || !s.foto) return { ...s, foto: null };
+    if (s.modus === 'text' || !s.foto) return { ...s, foto: null, fotos: [] };
     try {
-      const dbRec   = await dbGet('studenten', s.id);
-      const blob    = dbRec?.foto || s.foto;
-      return { ...s, foto: await blobToDataUrl(blob) };
+      const dbRec  = await dbGet('studenten', s.id);
+      const blobs  = (dbRec?.fotos && dbRec.fotos.length) ? dbRec.fotos : (dbRec?.foto ? [dbRec.foto] : [s.foto]);
+      const fotos  = await Promise.all(blobs.map(b => blobToDataUrl(b)));
+      return { ...s, foto: fotos[0] || null, fotos };
     } catch (err) {
       console.warn('Export Foto-Fehler für', s.name, err);
-      return { ...s, foto: null }; // Karte ohne Foto exportieren statt abbrechen
+      return { ...s, foto: null, fotos: [] }; // Karte ohne Foto exportieren statt abbrechen
     }
   }));
 
@@ -4116,7 +4183,7 @@ document.getElementById('btn-import-start').addEventListener('click', async () =
       for (const sam of (importDatenBuffer.sammlungen || [])) await dbPut('sammlungen', sam);
       for (const g of importDatenBuffer.gruppen) await dbPut('gruppen', g);
       for (const s of importDatenBuffer.studenten)
-        await dbPut('studenten', { ...s, foto: (s.modus === 'text' || !s.foto) ? null : dataUrlToBlob(s.foto) });
+        await dbPut('studenten', { ...s, ...importFotosFelder(s) });
     } else {
       // Hinzufügen: merge, bestehende unberührt
       for (const sam of (importDatenBuffer.sammlungen || [])) {
@@ -4136,7 +4203,7 @@ document.getElementById('btn-import-start').addEventListener('click', async () =
         let hinzugefuegt = 0;
         for (const s of importStudents) {
           if (vorhandeneNamen.has((s.name || '').trim().toLowerCase())) continue; // bereits vorhanden
-          await dbPut('studenten', { ...s, gruppeId: targetId, foto: (s.modus === 'text' || !s.foto) ? null : dataUrlToBlob(s.foto) });
+          await dbPut('studenten', { ...s, gruppeId: targetId, ...importFotosFelder(s) });
           hinzugefuegt++;
         }
       }
