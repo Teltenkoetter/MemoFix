@@ -2816,18 +2816,13 @@ function karteEditSetModus(isFoto) {
 }
 document.getElementById('karte-edit-chip-foto').addEventListener('click', () => karteEditSetModus(true));
 document.getElementById('karte-edit-chip-text').addEventListener('click', () => karteEditSetModus(false));
-document.getElementById('karte-edit-foto-input').addEventListener('change', e => {
+document.getElementById('karte-edit-foto-input').addEventListener('change', async e => {
   const files = [...e.target.files];
   if (!files.length) return;
-  Promise.all(files.map(file => new Promise(res => {
-    const r = new FileReader();
-    r.onload = ev => res(new Blob([ev.target.result], { type: file.type }));
-    r.readAsArrayBuffer(file);
-  }))).then(blobs => {
-    blobs.forEach(blob => editFotosBuffer.push({ blob, url: URL.createObjectURL(blob) }));
-    renderEditFotosListe();
-    e.target.value = '';
-  });
+  const blobs = await Promise.all(files.map(f => compressPhoto(f)));
+  blobs.forEach(blob => editFotosBuffer.push({ blob, url: URL.createObjectURL(blob) }));
+  renderEditFotosListe();
+  e.target.value = '';
 });
 document.getElementById('karte-edit-fotos-liste').addEventListener('click', e => {
   const btn = e.target.closest('.btn-foto-entfernen');
