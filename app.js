@@ -113,6 +113,9 @@ const TRANS = {
     exportieren_desc: 'Einzelne Gruppen oder alles als Backup speichern',
     importieren: 'Importieren',
     importieren_desc: 'Karten aus einer Backup-Datei laden',
+    fotos_komprimieren: 'Fotos komprimieren',
+    fotos_komprimieren_desc: 'Verkleinert große, unkomprimierte Fotos (z. B. über „Bearbeiten" hinzugefügt), spart Speicherplatz und macht Exporte zuverlässiger',
+    komprimieren: 'Komprimieren',
     datenspeicher_title: '⚠️ Datenspeicher',
     datenspeicher_text: 'Karten werden lokal im Browser gespeichert. Erstellen Sie regelmäßig Backups — z. B. wenn Sie Safari-Daten löschen, gehen die Karten verloren.',
     // ── Export-Modal ──────────────────────────────────────
@@ -168,6 +171,10 @@ const TRANS = {
     toast_sammlung_geloescht:   (g, k)    => g > 0 ? `Sammlung gelöscht (${g} Gruppe${g !== 1 ? 'n' : ''}, ${k} Karte${k !== 1 ? 'n' : ''} entfernt)` : 'Sammlung gelöscht',
     toast_verschoben:           (gN, sN)  => `„${gN}" → ${sN}`,
     toast_foto_aktualisiert:    'Foto aktualisiert',
+    confirm_fotos_komprimieren: 'Große Fotos in der Sammlung komprimieren? Das kann bei vielen Karten einen Moment dauern.',
+    toast_keine_fotos:          'Keine Foto-Karten vorhanden.',
+    toast_fotos_bereits_klein:  'Alle Fotos sind bereits klein genug — nichts zu tun.',
+    toast_fotos_komprimiert:    (n, mb)   => `${n} Karte${n !== 1 ? 'n' : ''} komprimiert — ${mb} MB gespart`,
     toast_fehler:               (msg)     => `Fehler: ${msg}`,
     toast_gruppe_umbenannt:     (name)    => `Gruppe umbenannt in „${name}"`,
     toast_gruppe_geloescht:     (n)       => n > 0 ? `Gruppe gelöscht (${n} Karte${n !== 1 ? 'n' : ''} entfernt)` : 'Gruppe gelöscht',
@@ -305,6 +312,9 @@ const TRANS = {
     exportieren_desc: 'Save individual groups or everything as a backup',
     importieren: 'Import',
     importieren_desc: 'Load cards from a backup file',
+    fotos_komprimieren: 'Compress photos',
+    fotos_komprimieren_desc: 'Shrinks large, uncompressed photos (e.g. added via "Edit"), saves storage space and makes exports more reliable',
+    komprimieren: 'Compress',
     datenspeicher_title: '⚠️ Data storage',
     datenspeicher_text: 'Cards are stored locally in the browser. Create regular backups — e.g. clearing Safari data will also delete all cards.',
     // ── Export-Modal ──────────────────────────────────────
@@ -360,6 +370,10 @@ const TRANS = {
     toast_sammlung_geloescht:   (g, k)    => g > 0 ? `Collection deleted (${g} group${g !== 1 ? 's' : ''}, ${k} card${k !== 1 ? 's' : ''} removed)` : 'Collection deleted',
     toast_verschoben:           (gN, sN)  => `"${gN}" → ${sN}`,
     toast_foto_aktualisiert:    'Photo updated',
+    confirm_fotos_komprimieren: 'Compress large photos in your collection? This may take a moment for many cards.',
+    toast_keine_fotos:          'No photo cards found.',
+    toast_fotos_bereits_klein:  'All photos are already small enough — nothing to do.',
+    toast_fotos_komprimiert:    (n, mb)   => `${n} card${n !== 1 ? 's' : ''} compressed — ${mb} MB saved`,
     toast_fehler:               (msg)     => `Error: ${msg}`,
     toast_gruppe_umbenannt:     (name)    => `Group renamed to "${name}"`,
     toast_gruppe_geloescht:     (n)       => n > 0 ? `Group deleted (${n} card${n !== 1 ? 's' : ''} removed)` : 'Group deleted',
@@ -579,6 +593,7 @@ function applyTranslations() {
   document.querySelectorAll('#view-sicherung .sicherung-info').forEach((el, i) => {
     if (i === 0) { el.querySelector('strong').textContent = t('exportieren'); el.querySelector('p').textContent = t('exportieren_desc'); }
     if (i === 1) { el.querySelector('strong').textContent = t('importieren'); el.querySelector('p').textContent = t('importieren_desc'); }
+    if (i === 2) { el.querySelector('strong').textContent = t('fotos_komprimieren'); el.querySelector('p').textContent = t('fotos_komprimieren_desc'); }
   });
   document.querySelector('#view-sicherung .info-card strong') &&
     (document.querySelector('#view-sicherung .info-card strong').textContent = t('datenspeicher_title'));
@@ -586,6 +601,7 @@ function applyTranslations() {
     (document.querySelector('#view-sicherung .info-card p').textContent = t('datenspeicher_text'));
   setTxt('btn-export', t('exportieren'));
   setTxt('btn-import-trigger', t('importieren'));
+  setTxt('btn-fotos-komprimieren', t('komprimieren'));
 
   // Karte-Detail
   const swipeHint = document.getElementById('karte-detail-swipe-hint');
@@ -612,6 +628,8 @@ function getHelpHtml() {
       ['⏱',  '<strong>Auto-timer</strong> — Choose 3 · 5 · 8 · 12 s: card flips automatically, then moves on · timer runs without scoring'],
       ['🔁', '<strong>Autorepeat</strong> — After the last card the round restarts automatically'],
       ['⭐', '<strong>Favourites</strong> — Tap the star to mark a card as favourite · export as Favourites group under BACKUP'],
+      ['🤏', '<strong>Zoom photos</strong> — Pinch with two fingers to zoom into a photo card · double-tap to reset'],
+      ['🗣️', '<strong>Discuss with Claude</strong> — Send the current card, or your whole selection, to Claude for a deeper conversation about the topic · copies to clipboard and opens claude.ai in a new tab'],
     ]},
     { title: '⚙️ Manage', rows: [
       ['📂', '<strong>3 levels:</strong> Collection → Group → Card — e.g. "University" → "Biology Ch. 3" → individual cards'],
@@ -619,18 +637,21 @@ function getHelpHtml() {
       ['2️⃣', '<strong>Create group</strong> — Within a collection · sort within collection with ▲▼'],
       ['3️⃣', '<strong>Add card</strong> — ＋ on the group header taps into that group · or choose group in the form below, enter name, pick 📷 Photo <em>or</em> 📖 Term'],
       ['📷', '<strong>Photo card</strong> — Photo as front, name as back · tap photo to replace'],
-      ['📖', '<strong>Term card</strong> — Term on front, info/definition on back · multi-line text shown as bullet list'],
+      ['🖼️', '<strong>Multiple photos</strong> — Add as many photos as you like to a card (when adding or editing) · shown as a swipeable gallery with dots in learning mode and full view'],
+      ['📖', '<strong>Term card</strong> — Term on front, info/definition on back · multi-line text shown as bullet list · wrap a line in <strong>**bold**</strong> to make it a section heading'],
       ['🔍', '<strong>Full view</strong> — Tap card name → image/text shown large · swipe left/right to browse'],
       ['📋', '<strong>Copy</strong> — Duplicate card into another group (✏️ opens Edit modal)'],
       ['🎨', '<strong>Collection colour</strong> — Tap the colour dot next to the collection name · appears as left stripe and card background in learning mode'],
       ['🔗', '<strong>Links</strong> — Add links when editing a card (e.g. Wikipedia, YouTube) · shown as tappable links when revealed'],
       ['💬', '<strong>Note</strong> — Short extra info per card (max. 250 chars) · shown when revealed'],
+      ['🔄', '<strong>Remembers your state</strong> — Expanded collections/groups and the last-used tab are restored the next time you open the app'],
     ]},
     { title: '💾 Storage & Backup', rows: [
       ['📱', 'Cards are stored <strong>locally in the browser</strong> — no server, no internet needed'],
       ['📤', '<strong>Export as file</strong> — Save and share individual groups or everything · <strong>iPhone:</strong> Share menu → "Save to Files"'],
       ['🖨', '<strong>Export as PDF</strong> — Under BACKUP choose groups, select "PDF" · opens print view · choose "Save as PDF" in print dialog'],
       ['📥', '<strong>Import</strong> — Add (keep existing) or Replace all · also imports collection structure'],
+      ['🗜️', '<strong>Compress photos</strong> — Under BACKUP: shrinks large, already-stored photos afterwards · use if exports feel slow or too large'],
       ['⚠️', '"Clear Safari data" in iPhone Settings also deletes all cards — export regularly!'],
     ]},
     { title: '🔧 Troubleshooting', rows: [
@@ -650,6 +671,8 @@ function getHelpHtml() {
       ['⏱',  '<strong>Auto-Timer</strong> — 3 · 5 · 8 · 12 s wählen: Karte dreht sich automatisch um, danach geht es zur nächsten · Timer-Durchläufe ohne Bewertung zählen nicht in die Statistik'],
       ['🔁', '<strong>Autorepeat</strong> — nach dem letzten Bild startet die Runde automatisch neu'],
       ['⭐', '<strong>Favoriten</strong> — Stern antippen markiert eine Karte als Favorit · unter SICHERUNG gezielt als Favoriten-Gruppe exportieren'],
+      ['🤏', '<strong>Fotos zoomen</strong> — mit zwei Fingern in ein Foto hineinzoomen · Doppeltipp setzt den Zoom zurück'],
+      ['🗣️', '<strong>Mit Claude besprechen</strong> — aktuelle Karte oder die ganze Auswahl an Claude übergeben, um das Thema im Gespräch zu vertiefen · kopiert in die Zwischenablage und öffnet claude.ai in neuem Tab'],
     ]},
     { title: '⚙️ Verwaltung', rows: [
       ['📂', '<strong>3 Ebenen:</strong> Sammlung → Gruppe → Karte — z.B. „Hochschule" → „Biologie Kap. 3" → einzelne Karten'],
@@ -657,18 +680,21 @@ function getHelpHtml() {
       ['2️⃣', '<strong>Gruppe erstellen</strong> — innerhalb einer Sammlung · per ▲▼ innerhalb der Sammlung sortieren'],
       ['3️⃣', '<strong>Karte hinzufügen</strong> — ＋ am Gruppen-Header tippt direkt in diese Gruppe · oder unten im Formular Gruppe wählen, Name eingeben, 📷 Foto <em>oder</em> 📖 Text wählen'],
       ['📷', '<strong>Foto-Karte</strong> — Foto als Vorderseite, Name als Rückseite · Foto antippen zum Austauschen'],
-      ['📖', '<strong>Begriff-Karte</strong> — Begriff vorne, Info/Definition hinten · mehrzeilige Texte werden als Aufzählung dargestellt'],
+      ['🖼️', '<strong>Mehrere Fotos</strong> — beim Anlegen oder Bearbeiten beliebig viele Fotos zu einer Karte hinzufügen · erscheinen im Lernmodus und in der Großansicht als Wisch-Galerie mit Punkte-Anzeige'],
+      ['📖', '<strong>Begriff-Karte</strong> — Begriff vorne, Info/Definition hinten · mehrzeilige Texte werden als Aufzählung dargestellt · eine Zeile in <strong>**fett**</strong> setzen macht sie zur Zwischenüberschrift'],
       ['🔍', '<strong>Großansicht</strong> — Kartennamen antippen → Bild/Text wird groß angezeigt · links/rechts wischen zum Durchblättern'],
       ['📋', '<strong>Kopieren</strong> — Karte in eine andere Gruppe duplizieren (✏️ öffnet Bearbeiten-Modal)'],
       ['🎨', '<strong>Sammlungsfarbe</strong> — Farbpunkt neben dem Sammlungsnamen antippen · Farbe erscheint als Streifen links und als Kartenhintergrund im Lernmodus'],
       ['🔗', '<strong>Links</strong> — beim Bearbeiten einer Karte Links hinzufügen (z.&nbsp;B. Wikipedia, YouTube) · erscheinen beim Aufdecken als tippbare Verweise'],
       ['💬', '<strong>Notiz</strong> — kurze Zusatzinfo pro Karte (max. 250 Zeichen) · wird beim Aufdecken angezeigt'],
+      ['🔄', '<strong>Merkt sich deinen Stand</strong> — aufgeklappte Sammlungen/Gruppen und der zuletzt genutzte Bereich sind beim nächsten Öffnen wieder da'],
     ]},
     { title: '💾 Datenspeicher & Backup', rows: [
       ['📱', 'Karten werden <strong>lokal im Browser</strong> gespeichert — kein Server, kein Internet nötig'],
       ['📤', '<strong>Exportieren als Datei</strong> — einzelne Gruppen oder alles sichern und teilen · <strong>iPhone:</strong> Teilen-Menü → „In Dateien sichern"'],
       ['🖨', '<strong>Exportieren als PDF</strong> — unter SICHERUNG Gruppen wählen, Format „PDF" wählen · öffnet Druckansicht mit allen Karten · im Druckdialog „Als PDF sichern" wählen'],
       ['📥', '<strong>Importieren</strong> — Hinzufügen (bestehende behalten) oder Alles ersetzen · importiert auch Sammlungsstruktur'],
+      ['🗜️', '<strong>Fotos komprimieren</strong> — unter SICHERUNG: verkleinert nachträglich große, bereits gespeicherte Fotos · hilfreich, wenn Exporte langsam oder groß werden'],
       ['⚠️', '„Safari-Daten löschen" in den iPhone-Einstellungen entfernt auch alle Karten — regelmäßig exportieren!'],
     ]},
     { title: '🔧 Probleme & Lösungen', rows: [
@@ -1435,6 +1461,73 @@ function compressPhoto(file) {
     img.src = tmp;
   });
 }
+
+// Einmaliger Aufräum-Durchlauf: komprimiert bereits gespeicherte, zu groß
+// geratene Fotos (z.B. über „Bearbeiten" unkomprimiert hinzugefügt) nachträglich
+const FOTO_KOMPRIMIEREN_SCHWELLE = 350 * 1024; // Fotos darunter gelten als bereits klein genug
+
+async function komprimiereBestehendeFotos() {
+  const kandidaten = studenten.filter(s => s.modus !== 'text');
+  if (!kandidaten.length) { toast(t('toast_keine_fotos')); return; }
+
+  const btn = document.getElementById('btn-fotos-komprimieren');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+
+  let geprueft = 0, geaendert = 0, bytesVorher = 0, bytesNachher = 0;
+  for (const s of kandidaten) {
+    geprueft++;
+    btn.textContent = `${geprueft} / ${kandidaten.length}…`;
+    try {
+      const dbRec = await dbGet('studenten', s.id);
+      if (!dbRec) continue;
+      const blobs = (dbRec.fotos && dbRec.fotos.length) ? dbRec.fotos : (dbRec.foto ? [dbRec.foto] : []);
+      if (!blobs.length) continue;
+
+      let hatAenderung = false;
+      const neueBlobs = [];
+      for (const blob of blobs) {
+        bytesVorher += blob.size;
+        if (blob.size > FOTO_KOMPRIMIEREN_SCHWELLE) {
+          const neuesBlob = await compressPhoto(blob);
+          neueBlobs.push(neuesBlob);
+          bytesNachher += neuesBlob.size;
+          hatAenderung = true;
+        } else {
+          neueBlobs.push(blob);
+          bytesNachher += blob.size;
+        }
+      }
+      if (hatAenderung) {
+        dbRec.fotos = neueBlobs;
+        dbRec.foto  = neueBlobs[0];
+        await dbPut('studenten', dbRec);
+        s.fotos = neueBlobs;
+        s.foto  = neueBlobs[0];
+        revokeUrl(s.id);
+        geaendert++;
+      }
+    } catch (err) {
+      console.warn('Komprimieren fehlgeschlagen für', s.name, err);
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = originalText;
+  renderVerwaltung();
+
+  if (geaendert === 0) {
+    toast(t('toast_fotos_bereits_klein'));
+  } else {
+    const gespartMb = ((bytesVorher - bytesNachher) / (1024 * 1024)).toFixed(1);
+    toast(tf('toast_fotos_komprimiert', geaendert, gespartMb));
+  }
+}
+
+document.getElementById('btn-fotos-komprimieren').addEventListener('click', async () => {
+  if (!confirm(t('confirm_fotos_komprimieren'))) return;
+  await komprimiereBestehendeFotos();
+});
 
 // ============================================================
 // DATA HELPERS
