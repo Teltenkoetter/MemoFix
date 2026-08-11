@@ -353,14 +353,15 @@
               <button type="button" class="karten-modus-chip" id="chip-text">📖 Begriff</button>
             </div>
             <div id="foto-bereich">
+              <div id="neue-karte-fotos-liste" class="karte-edit-fotos-liste hidden"></div>
               <div class="foto-upload" id="foto-upload">
-                <input type="file" id="input-foto" accept="image/*">
+                <input type="file" id="input-foto" accept="image/*" multiple>
                 <div id="upload-placeholder" class="upload-placeholder">
                   <span class="upload-icon">📷</span>
                   <span>Tippen zum Foto auswählen</span>
                 </div>
-                <img id="foto-vorschau" class="foto-vorschau hidden" alt="">
               </div>
+              <label for="input-foto" id="btn-neue-karte-foto-add" class="btn-datei-waehlen hidden">📷 Weiteres Foto hinzufügen</label>
             </div>
             <div id="text-bereich" class="hidden">
               <textarea id="input-vorderseite" class="input-vorderseite" placeholder="Text, Definition oder Erklärung… (max. 300 Zeichen)" maxlength="300"></textarea>
@@ -420,6 +421,8 @@
             </div>
           </div>
           <button id="btn-lernen-start" class="btn-primary btn-large" disabled>Lernen starten</button>
+          <!-- TEST-FEATURE: bei Bedarf komplett entfernbar (HTML/CSS/JS je 1 Block) -->
+          <button type="button" id="btn-claude-auswahl-besprechen" class="btn-claude-besprechen" disabled>🗣️ Auswahl mit Claude besprechen</button>
         </div>
       </div>
 
@@ -508,6 +511,8 @@
             <button id="btn-weiter" class="btn-nav">&#8594;</button>
           </div>
         </div>
+        <!-- TEST-FEATURE: bei Bedarf komplett entfernbar (HTML/CSS/JS je 1 Block) -->
+        <button type="button" id="btn-claude-besprechen" class="btn-claude-besprechen">🗣️ Mit Claude besprechen</button>
       </div>
 
       <div id="lernen-ende" class="hidden">

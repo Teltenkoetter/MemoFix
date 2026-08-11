@@ -3255,17 +3255,38 @@ document.getElementById('chip-text').addEventListener('click', () => {
   document.getElementById('label-input-name').textContent = t('begriff_label');
 });
 
-// Foto Vorschau (Karte hinzufügen)
-document.getElementById('input-foto').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    document.getElementById('foto-vorschau').src = ev.target.result;
-    document.getElementById('foto-vorschau').classList.remove('hidden');
-    document.getElementById('upload-placeholder').classList.add('hidden');
-  };
-  reader.readAsDataURL(file);
+// Fotos (Karte hinzufügen) — mehrere möglich, "weiteres Foto"-Option
+// erscheint direkt nach dem ersten Bild, ohne Speichern+Neuöffnen
+let neueKarteFotosBuffer = []; // { blob, url }
+
+function renderNeueKarteFotosListe() {
+  const liste = document.getElementById('neue-karte-fotos-liste');
+  liste.innerHTML = neueKarteFotosBuffer.map((f, i) => `
+    <div class="karte-edit-foto-thumb">
+      <img src="${f.url}" alt="">
+      <button type="button" class="btn-foto-entfernen" data-idx="${i}" title="Entfernen">✕</button>
+    </div>`).join('');
+  const hatFotos = neueKarteFotosBuffer.length > 0;
+  liste.classList.toggle('hidden', !hatFotos);
+  document.getElementById('foto-upload').classList.toggle('hidden', hatFotos);
+  document.getElementById('btn-neue-karte-foto-add').classList.toggle('hidden', !hatFotos);
+}
+
+document.getElementById('input-foto').addEventListener('change', async e => {
+  const files = [...e.target.files];
+  if (!files.length) return;
+  const blobs = await Promise.all(files.map(f => compressPhoto(f)));
+  blobs.forEach(blob => neueKarteFotosBuffer.push({ blob, url: URL.createObjectURL(blob) }));
+  renderNeueKarteFotosListe();
+  e.target.value = '';
+});
+document.getElementById('neue-karte-fotos-liste').addEventListener('click', e => {
+  const btn = e.target.closest('.btn-foto-entfernen');
+  if (!btn) return;
+  const idx = +btn.dataset.idx;
+  URL.revokeObjectURL(neueKarteFotosBuffer[idx].url);
+  neueKarteFotosBuffer.splice(idx, 1);
+  renderNeueKarteFotosListe();
 });
 
 // Karte speichern
@@ -3285,10 +3306,9 @@ document.getElementById('form-karte').addEventListener('submit', async e => {
     const videoTitel = videoId ? await ladeVideoTitel(videoId) : null;
     let s;
     if (modus === 'foto') {
-      const file = document.getElementById('input-foto').files[0];
-      if (!file) { toast(t('toast_foto_pflicht')); return; }
-      const blob = await compressPhoto(file);
-      s = { id: Date.now().toString(), name, gruppeId, modus: 'foto', foto: blob, vorderseite: '', notiz, links, videoId, videoTitel, erstellt: new Date().toISOString() };
+      if (!neueKarteFotosBuffer.length) { toast(t('toast_foto_pflicht')); return; }
+      const fotos = neueKarteFotosBuffer.map(f => f.blob);
+      s = { id: Date.now().toString(), name, gruppeId, modus: 'foto', foto: fotos[0], fotos, vorderseite: '', notiz, links, videoId, videoTitel, erstellt: new Date().toISOString() };
     } else {
       const vorderseite = document.getElementById('input-vorderseite').value.trim();
       if (!vorderseite) { toast(t('toast_text_pflicht')); return; }
@@ -3304,8 +3324,9 @@ document.getElementById('form-karte').addEventListener('submit', async e => {
     if (addVideoStatus) { addVideoStatus.textContent = ''; addVideoStatus.className = 'video-input-status'; }
     document.getElementById('input-foto').value       = '';
     document.getElementById('input-vorderseite').value = '';
-    document.getElementById('foto-vorschau').classList.add('hidden');
-    document.getElementById('upload-placeholder').classList.remove('hidden');
+    neueKarteFotosBuffer.forEach(f => URL.revokeObjectURL(f.url));
+    neueKarteFotosBuffer = [];
+    renderNeueKarteFotosListe();
     renderVerwaltung();
     toast(tf('toast_karte_gespeichert', name));
   } catch (err) {
@@ -4534,4 +4555,79 @@ document.addEventListener('visibilitychange', async () => {
   // Zoom zurücksetzen wenn eine neue Karte geladen wird (src-Wechsel)
   new MutationObserver(() => resetZoom())
     .observe(img, { attributes: true, attributeFilter: ['src'] });
+})();
+
+// ── TEST-FEATURE "Mit Claude besprechen" — bei Bedarf komplett entfernbar ──
+(function() {
+  const btn = document.getElementById('btn-claude-besprechen');
+  if (!btn) return;
+
+  function baueClaudePrompt(s) {
+    const gruppe = gruppen.find(g => g.id === s.gruppeId);
+    const zeilen = [`Ich lerne gerade mit Karteikarten zum Thema "${gruppe?.name || ''}".`, `Karte: ${s.name}`];
+    if (s.modus === 'text' && s.vorderseite) zeilen.push(`Inhalt: ${s.vorderseite}`);
+    if (s.notiz) zeilen.push(`Notiz: ${s.notiz}`);
+    zeilen.push('Kannst du mir das genauer erklären, mir dazu ein paar Verständnisfragen stellen und mich auch auf verwandte Themen hinweisen?');
+    return zeilen.join('\n');
+  }
+
+  btn.addEventListener('click', async () => {
+    const s = lernKarten[lernIndex];
+    if (!s) return;
+    const prompt = baueClaudePrompt(s);
+    try { await navigator.clipboard.writeText(prompt); } catch (err) { console.warn('Clipboard-Fehler:', err); }
+    window.open('https://claude.ai/new?q=' + encodeURIComponent(prompt), '_blank');
+    toast(currentLang === 'en'
+      ? 'Copied to clipboard – opening Claude…'
+      : 'In Zwischenablage kopiert – Claude öffnet sich…');
+  });
+})();
+
+// ── TEST-FEATURE "Auswahl mit Claude besprechen" — bei Bedarf komplett entfernbar ──
+(function() {
+  const btn2      = document.getElementById('btn-claude-auswahl-besprechen');
+  const btnStart  = document.getElementById('btn-lernen-start');
+  if (!btn2 || !btnStart) return;
+
+  // Deaktiviert-Status spiegelt "Lernen starten" — keine Änderung an updateLernStartBtn() nötig
+  const syncDisabled = () => { btn2.disabled = btnStart.disabled; };
+  syncDisabled();
+  new MutationObserver(syncDisabled).observe(btnStart, { attributes: true, attributeFilter: ['disabled'] });
+
+  const MAX_URL_TEXT = 1500; // Sicherheitsgrenze für Deep-Link-Länge
+
+  function baueClaudeAuswahlPrompt(gids) {
+    const seen   = new Set();
+    const karten = [];
+    gids.forEach(gid => getKartenFuerGid(gid).forEach(k => {
+      if (!seen.has(k.id)) { seen.add(k.id); karten.push(k); }
+    }));
+    const themen = gids
+      .filter(g => !g.startsWith('__favoriten__'))
+      .map(gid => gruppen.find(g => g.id === gid)?.name)
+      .filter(Boolean);
+    const zeilen = [
+      `Ich lerne gerade mit Karteikarten${themen.length ? ' zum Thema "' + themen.join(', ') + '"' : ''} (${karten.length} Karten).`,
+      'Begriffe/Karten: ' + karten.map(k => k.name).join(', '),
+      'Kannst du mir helfen, die Zusammenhänge zwischen diesen Themen zu verstehen, mir ein paar Verständnisfragen dazu zu stellen und mich auf Wissenslücken hinzuweisen?'
+    ];
+    return zeilen.join('\n');
+  }
+
+  btn2.addEventListener('click', async () => {
+    const gids = getSelectedGids();
+    if (!gids.length) return;
+    const prompt = baueClaudeAuswahlPrompt(gids);
+    try { await navigator.clipboard.writeText(prompt); } catch (err) { console.warn('Clipboard-Fehler:', err); }
+    if (prompt.length <= MAX_URL_TEXT) {
+      window.open('https://claude.ai/new?q=' + encodeURIComponent(prompt), '_blank');
+      toast(currentLang === 'en'
+        ? 'Copied to clipboard – opening Claude…'
+        : 'In Zwischenablage kopiert – Claude öffnet sich…');
+    } else {
+      toast(currentLang === 'en'
+        ? 'Selection too large for a direct link — copied to clipboard, please paste manually.'
+        : 'Auswahl zu groß für Direkt-Link — in Zwischenablage kopiert, bitte manuell bei Claude einfügen.');
+    }
+  });
 })();
