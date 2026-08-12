@@ -199,6 +199,10 @@ const TRANS = {
     toast_import_nichts:        'Alle Karten bereits vorhanden – nichts hinzugefügt',
     toast_import_fehler:        (msg)     => `Fehler beim Import: ${msg}`,
     toast_exportiert:           (n, fav)  => fav ? `${n} Favorit${n !== 1 ? 'en' : ''} exportiert` : `${n} Gruppe${n !== 1 ? 'n' : ''} exportiert`,
+    toast_export_dateien_ok:    (n)       => `✅ ${n} Dateien erfolgreich gespeichert`,
+    toast_export_datei_ok:      (name)    => `✅ Gespeichert: ${name}`,
+    toast_export_dateien_dl:    (n)       => `📥 ${n} Dateien heruntergeladen`,
+    toast_export_datei_dl:      (name)    => `📥 Download gestartet: ${name}`,
     // ── Confirm-Dialoge ───────────────────────────────────
     confirm_karte:       (name)       => `Karte „${name}" löschen?`,
     confirm_sammlung:    (name, g, k) => g > 0 ? `Sammlung „${name}" löschen?\n\nDabei werden auch ${g} Gruppe${g !== 1 ? 'n' : ''} und ${k} Karte${k !== 1 ? 'n' : ''} unwiderruflich gelöscht.` : `Sammlung „${name}" löschen?`,
@@ -398,6 +402,10 @@ const TRANS = {
     toast_import_nichts:        'All cards already present – nothing added',
     toast_import_fehler:        (msg)     => `Import error: ${msg}`,
     toast_exportiert:           (n, fav)  => fav ? `${n} favourite${n !== 1 ? 's' : ''} exported` : `${n} group${n !== 1 ? 's' : ''} exported`,
+    toast_export_dateien_ok:    (n)       => `✅ ${n} files saved successfully`,
+    toast_export_datei_ok:      (name)    => `✅ Saved: ${name}`,
+    toast_export_dateien_dl:    (n)       => `📥 ${n} files downloaded`,
+    toast_export_datei_dl:      (name)    => `📥 Download started: ${name}`,
     // ── Confirm-Dialoge ───────────────────────────────────
     confirm_karte:       (name)       => `Delete card "${name}"?`,
     confirm_sammlung:    (name, g, k) => g > 0 ? `Delete collection "${name}"?\n\nThis will also permanently delete ${g} group${g !== 1 ? 's' : ''} and ${k} card${k !== 1 ? 's' : ''}.` : `Delete collection "${name}"?`,
@@ -3947,6 +3955,37 @@ document.querySelectorAll('.export-fmt-btn').forEach(btn => {
   });
 });
 
+// Speichert einen Export-Teil. Gibt true zurück, wenn eine echte Erfolgsbestätigung
+// vom Betriebssystem vorliegt (File System Access API), sonst false (reiner Download-Anstoß).
+async function speichereExportDatei(blob, filename, dirHandle) {
+  if (dirHandle) {
+    const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(blob);
+    await writable.close();
+    return true;
+  }
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{ description: 'MemoFix Backup', accept: { 'application/json': ['.json'] } }]
+      });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      return true;
+    } catch (err) {
+      if (err.name === 'AbortError') throw err;
+      // sonst: unten auf Standard-Download zurückfallen
+    }
+  }
+  const url = URL.createObjectURL(blob);
+  Object.assign(document.createElement('a'), { href: url, download: filename }).click();
+  URL.revokeObjectURL(url);
+  return false;
+}
+
 document.getElementById('btn-export-start').addEventListener('click', async () => {
   const selectedGids = [...document.querySelectorAll('#export-gruppen-liste .gruppe-check-item.selected')]
     .map(el => el.dataset.gid);
@@ -3995,34 +4034,28 @@ document.getElementById('btn-export-start').addEventListener('click', async () =
   const exportGruppenIds = new Set(exportStudentenRaw.map(s => s.gruppeId));
   const exportGruppen    = gruppen.filter(g => exportGruppenIds.has(g.id));
 
-  // Frische Blobs aus DB lesen (iOS-Schutz: in-memory Blobs können nach Suspend ungültig sein)
-  const studExport = await Promise.all(exportStudentenRaw.map(async s => {
-    if (s.modus === 'text' || !s.foto) return { ...s, foto: null, fotos: [] };
-    try {
-      const dbRec  = await dbGet('studenten', s.id);
-      const blobs  = (dbRec?.fotos && dbRec.fotos.length) ? dbRec.fotos : (dbRec?.foto ? [dbRec.foto] : [s.foto]);
-      const fotos  = await Promise.all(blobs.map(b => blobToDataUrl(b)));
-      return { ...s, foto: fotos[0] || null, fotos };
-    } catch (err) {
-      console.warn('Export Foto-Fehler für', s.name, err);
-      return { ...s, foto: null, fotos: [] }; // Karte ohne Foto exportieren statt abbrechen
-    }
-  }));
-
   const exportSammlIds   = new Set(exportGruppen.map(g => g.sammlungId).filter(Boolean));
   const exportSammlungen = sammlungen.filter(s => exportSammlIds.has(s.id));
 
-  // PDF-Modus?
+  // PDF-Modus: alle Karten auf einmal aufbereiten (Auswahl dafür üblicherweise klein)
   if (fmt === 'pdf') {
+    const studExport = await Promise.all(exportStudentenRaw.map(async s => {
+      if (s.modus === 'text' || !s.foto) return { ...s, foto: null, fotos: [] };
+      try {
+        const dbRec  = await dbGet('studenten', s.id);
+        const blobs  = (dbRec?.fotos && dbRec.fotos.length) ? dbRec.fotos : (dbRec?.foto ? [dbRec.foto] : [s.foto]);
+        const fotos  = await Promise.all(blobs.map(b => blobToDataUrl(b)));
+        return { ...s, foto: fotos[0] || null, fotos };
+      } catch (err) {
+        console.warn('Export Foto-Fehler für', s.name, err);
+        return { ...s, foto: null, fotos: [] };
+      }
+    }));
     document.getElementById('export-modal').classList.add('hidden');
     await exportAlsPDF(studExport, exportGruppen, exportSammlungen, pdfWin);
     return;
   }
 
-  const payload = {
-    version: 2, exportiert: new Date().toISOString(),
-    sammlungen: exportSammlungen, gruppen: exportGruppen, studenten: studExport
-  };
   // Dateiname
   function sanitize(str) {
     return str
@@ -4038,35 +4071,74 @@ document.getElementById('btn-export-start').addEventListener('click', async () =
   } else {
     gruppenTeil = `${exportGruppen.length}-gruppen`;
   }
+  const basisname = `memofix-${gruppenTeil}-${datum}`;
 
-  const filename = `memofix-${gruppenTeil}-${datum}.json`;
-  const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-
-  if (window.showSaveFilePicker) {
-    try {
-      const handle = await window.showSaveFilePicker({
-        suggestedName: filename,
-        types: [{ description: 'MemoFix Backup', accept: { 'application/json': ['.json'] } }]
-      });
-      const writable = await handle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-    } catch (err) {
-      if (err.name === 'AbortError') return; // Nutzer hat abgebrochen
-      // Fallback bei unerwartetem Fehler
-      const url = URL.createObjectURL(blob);
-      Object.assign(document.createElement('a'), { href: url, download: filename }).click();
-      URL.revokeObjectURL(url);
+  // Fotos NACHEINANDER (nicht alle gleichzeitig) in Blöcke von max. ~35 MB aufteilen —
+  // hält den Speicherverbrauch bei großen Sammlungen (100+ Karten) beschränkt und
+  // vermeidet Abstürze; Ergebnis sind bei Bedarf mehrere Backup-Dateien.
+  const CHUNK_BYTES = 35 * 1024 * 1024;
+  const chunks = [[]];
+  let chunkBytes = 0;
+  for (const s of exportStudentenRaw) {
+    let fotoData;
+    if (s.modus === 'text' || !s.foto) {
+      fotoData = { foto: null, fotos: [] };
+    } else {
+      try {
+        const dbRec = await dbGet('studenten', s.id);
+        const blobs = (dbRec?.fotos && dbRec.fotos.length) ? dbRec.fotos : (dbRec?.foto ? [dbRec.foto] : [s.foto]);
+        const fotos = await Promise.all(blobs.map(b => blobToDataUrl(b)));
+        fotoData = { foto: fotos[0] || null, fotos };
+      } catch (err) {
+        console.warn('Export Foto-Fehler für', s.name, err);
+        fotoData = { foto: null, fotos: [] };
+      }
     }
-  } else {
-    // Fallback: Standard-Download (Safari, iOS, Firefox)
-    const url = URL.createObjectURL(blob);
-    Object.assign(document.createElement('a'), { href: url, download: filename }).click();
-    URL.revokeObjectURL(url);
+    const groesse = fotoData.fotos.reduce((sum, f) => sum + f.length, 0);
+    if (chunkBytes > 0 && chunkBytes + groesse > CHUNK_BYTES) {
+      chunks.push([]);
+      chunkBytes = 0;
+    }
+    chunks[chunks.length - 1].push({ ...s, ...fotoData });
+    chunkBytes += groesse;
+  }
+
+  // Bei mehreren Dateien: wenn möglich EINMAL einen Zielordner wählen,
+  // statt bei jeder Teil-Datei erneut zu fragen
+  let dirHandle = null;
+  if (chunks.length > 1 && window.showDirectoryPicker) {
+    try { dirHandle = await window.showDirectoryPicker(); }
+    catch (err) {
+      if (err.name === 'AbortError') { document.getElementById('export-modal').classList.add('hidden'); return; }
+    }
+  }
+
+  const gespeichert = [];
+  for (let i = 0; i < chunks.length; i++) {
+    const teilSuffix = chunks.length > 1 ? `-teil${i + 1}-von${chunks.length}` : '';
+    const filename   = `${basisname}${teilSuffix}.json`;
+    const payload = {
+      version: 2, exportiert: new Date().toISOString(),
+      sammlungen: exportSammlungen, gruppen: exportGruppen, studenten: chunks[i]
+    };
+    const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+    try {
+      const bestaetigt = await speichereExportDatei(blob, filename, dirHandle);
+      gespeichert.push({ filename, bestaetigt });
+    } catch (err) {
+      if (err.name === 'AbortError') break; // Nutzer hat abgebrochen
+      toast(tf('toast_fehler', err.message));
+    }
   }
 
   document.getElementById('export-modal').classList.add('hidden');
-  toast(tf('toast_exportiert', hasFavoriten && !normalGids.length ? exportStudentenRaw.length : exportGruppen.length, hasFavoriten && !normalGids.length));
+  if (!gespeichert.length) return;
+  const alleBestaetigt = gespeichert.every(g => g.bestaetigt);
+  if (gespeichert.length > 1) {
+    toast(alleBestaetigt ? tf('toast_export_dateien_ok', gespeichert.length) : tf('toast_export_dateien_dl', gespeichert.length));
+  } else {
+    toast(alleBestaetigt ? tf('toast_export_datei_ok', gespeichert[0].filename) : tf('toast_export_datei_dl', gespeichert[0].filename));
+  }
 });
 
 // ── PDF EXPORT ─────────────────────────────────────────────
