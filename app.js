@@ -118,6 +118,9 @@ const TRANS = {
     fotos_komprimieren: 'Fotos komprimieren',
     fotos_komprimieren_desc: 'Verkleinert große, unkomprimierte Fotos (z. B. über „Bearbeiten" hinzugefügt), spart Speicherplatz und macht Exporte zuverlässiger',
     komprimieren: 'Komprimieren',
+    ki_briefing: 'KI-Briefing für neue Karten',
+    ki_briefing_desc: 'Fertiger Prompt für ChatGPT, Gemini, Claude & Co. — erklärt der KI das MemoFix-Datenformat, damit sie direkt passende Karten-Sets zum Import erzeugen kann',
+    herunterladen: 'Herunterladen',
     datenspeicher_title: '⚠️ Datenspeicher',
     datenspeicher_text: 'Karten werden lokal im Browser gespeichert. Erstellen Sie regelmäßig Backups — z. B. wenn Sie Safari-Daten löschen, gehen die Karten verloren.',
     // ── Export-Modal ──────────────────────────────────────
@@ -323,6 +326,9 @@ const TRANS = {
     fotos_komprimieren: 'Compress photos',
     fotos_komprimieren_desc: 'Shrinks large, uncompressed photos (e.g. added via "Edit"), saves storage space and makes exports more reliable',
     komprimieren: 'Compress',
+    ki_briefing: 'AI briefing for new cards',
+    ki_briefing_desc: 'Ready-made prompt for ChatGPT, Gemini, Claude & co. — explains the MemoFix data format to the AI so it can generate ready-to-import card sets',
+    herunterladen: 'Download',
     datenspeicher_title: '⚠️ Data storage',
     datenspeicher_text: 'Cards are stored locally in the browser. Create regular backups — e.g. clearing Safari data will also delete all cards.',
     // ── Export-Modal ──────────────────────────────────────
@@ -606,6 +612,7 @@ function applyTranslations() {
     if (i === 0) { el.querySelector('strong').textContent = t('exportieren'); el.querySelector('p').textContent = t('exportieren_desc'); }
     if (i === 1) { el.querySelector('strong').textContent = t('importieren'); el.querySelector('p').textContent = t('importieren_desc'); }
     if (i === 2) { el.querySelector('strong').textContent = t('fotos_komprimieren'); el.querySelector('p').textContent = t('fotos_komprimieren_desc'); }
+    if (i === 3) { el.querySelector('strong').textContent = t('ki_briefing'); el.querySelector('p').textContent = t('ki_briefing_desc'); }
   });
   document.querySelector('#view-sicherung .info-card strong') &&
     (document.querySelector('#view-sicherung .info-card strong').textContent = t('datenspeicher_title'));
@@ -614,6 +621,7 @@ function applyTranslations() {
   setTxt('btn-export', t('exportieren'));
   setTxt('btn-import-trigger', t('importieren'));
   setTxt('btn-fotos-komprimieren', t('komprimieren'));
+  setTxt('btn-ki-briefing', t('herunterladen'));
 
   // Karte-Detail
   const swipeHint = document.getElementById('karte-detail-swipe-hint');

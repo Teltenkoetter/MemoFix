@@ -299,6 +299,7 @@ select option { background: var(--surface2); color: var(--text); }
 }
 .btn-secondary:active { background: rgba(255,255,255,0.1); }
 .btn-secondary.btn-inline { font-size: 0.9rem; }
+#btn-ki-briefing { text-decoration: none; display: inline-block; text-align: center; }
 
 .btn-danger {
   background: none; color: var(--danger);
