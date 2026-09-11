@@ -194,7 +194,7 @@
           </div>
         </div>
         <div class="form-group hidden" id="karte-edit-foto-gruppe">
-          <label>Fotos <span class="label-optional">(optional, mehrere möglich)</span></label>
+          <label id="karte-edit-foto-label">Fotos <span class="label-optional">(mehrere möglich)</span></label>
           <div id="karte-edit-fotos-liste" class="karte-edit-fotos-liste hidden"></div>
           <label for="karte-edit-foto-input" class="btn-datei-waehlen">📷 Foto hinzufügen</label>
           <input type="file" id="karte-edit-foto-input" accept="image/*" multiple style="display:none">
@@ -353,6 +353,7 @@
               <button type="button" class="karten-modus-chip" id="chip-text">📖 Begriff</button>
             </div>
             <div id="foto-bereich">
+              <label id="foto-bereich-label" class="hidden"></label>
               <div id="neue-karte-fotos-liste" class="karte-edit-fotos-liste hidden"></div>
               <div class="foto-upload" id="foto-upload">
                 <input type="file" id="input-foto" accept="image/*" multiple>
@@ -456,6 +457,10 @@
               <div id="lernkarte-text-vorderseite" class="lernkarte-text-vorderseite">
                 <p id="lern-vorderseite-text"></p>
                 <p id="lern-notiz-text-rueck" class="lern-notiz hidden"></p>
+                <div id="lern-text-fotos" class="lern-text-fotos hidden">
+                  <div id="lern-text-fotos-slides" class="lern-text-fotos-slides"></div>
+                  <div id="lern-text-fotos-dots" class="lern-text-fotos-dots"></div>
+                </div>
               </div>
               <div class="scroll-ind scroll-ind-top hidden" id="scroll-ind-top">▲</div>
               <div class="scroll-ind scroll-ind-bottom hidden" id="scroll-ind-bottom">▼</div>
@@ -668,6 +673,10 @@
       </div>
       <div id="karte-detail-text-wrap" class="karte-detail-text-wrap hidden">
         <div id="karte-detail-text"></div>
+        <div id="karte-detail-text-fotos" class="lern-text-fotos hidden">
+          <div id="karte-detail-text-fotos-slides" class="lern-text-fotos-slides"></div>
+          <div id="karte-detail-text-fotos-dots" class="lern-text-fotos-dots"></div>
+        </div>
       </div>
       <div class="karte-detail-meta">
         <span id="karte-detail-name" class="karte-detail-name"></span>

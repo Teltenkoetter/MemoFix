@@ -62,6 +62,8 @@ const TRANS = {
     optional_url: '(optional, eine URL pro Zeile)',
     optional_video: '(optional — Video-ID oder URL)',
     foto_wechseln: 'Foto wechseln',
+    fotos_label_foto: 'Fotos <span class="label-optional">(mehrere möglich)</span>',
+    fotos_label_begriff: 'Fotos für Rückseite <span class="label-optional">(optional, mehrere möglich)</span>',
     typ_label: 'Typ',
     chip_foto: '📷 Foto',
     chip_text: '📖 Begriff',
@@ -265,6 +267,8 @@ const TRANS = {
     optional_url: '(optional, one URL per line)',
     optional_video: '(optional — Video ID or URL)',
     foto_wechseln: 'Change photo',
+    fotos_label_foto: 'Photos <span class="label-optional">(multiple allowed)</span>',
+    fotos_label_begriff: 'Photos for back <span class="label-optional">(optional, multiple allowed)</span>',
     typ_label: 'Type',
     chip_foto: '📷 Photo',
     chip_text: '📖 Term',
@@ -1063,6 +1067,36 @@ function renderFotoSlideshow(imgId, wrapId, s) {
   }
 }
 
+// Optionale Fotos auf der Rückseite von Begriff-Karten (neben dem Info-Text).
+// prefix + '-slides' / '-dots' müssen im HTML vorhanden sein.
+function renderTextFotos(prefix, s) {
+  const wrap   = document.getElementById(prefix);
+  const slides = document.getElementById(prefix + '-slides');
+  const dots   = document.getElementById(prefix + '-dots');
+  if (!wrap) return;
+  const urls = getFotoUrls(s);
+  if (!urls.length) {
+    wrap.classList.add('hidden');
+    slides.innerHTML = '';
+    dots.innerHTML = '';
+    slides.onscroll = null;
+    return;
+  }
+  wrap.classList.remove('hidden');
+  slides.innerHTML = urls.map(u => `<div class="foto-slide"><img src="${u}" alt=""></div>`).join('');
+  slides.scrollLeft = 0;
+  if (urls.length > 1) {
+    dots.innerHTML = urls.map((_, i) => `<span class="foto-dot${i === 0 ? ' active' : ''}"></span>`).join('');
+    slides.onscroll = () => {
+      const idx = Math.round(slides.scrollLeft / (slides.clientWidth || 1));
+      [...dots.children].forEach((d, i) => d.classList.toggle('active', i === idx));
+    };
+  } else {
+    dots.innerHTML = '';
+    slides.onscroll = null;
+  }
+}
+
 // learning
 let lernKarten         = [];
 let lernIndex          = 0;
@@ -1228,6 +1262,7 @@ function zeigeNameAuto() {
   } else if (kartenModus === 'text') {
     document.getElementById('lern-name-karte').classList.add('hidden');
     document.getElementById('lern-vorderseite-text').innerHTML = renderVorderseiteHtml(s.vorderseite || '');
+    renderTextFotos('lern-text-fotos', s);
     document.getElementById('lernkarte-text-scroll-wrap').classList.remove('hidden');
     resetScrollIndikatoren();
     const nr = document.getElementById('lern-notiz-text-rueck');
@@ -1630,6 +1665,7 @@ function fillKarteDetail(s) {
   if (!isText && s.foto) renderFotoSlideshow('karte-detail-foto', 'karte-detail-foto-wrap', s);
   else document.getElementById('karte-detail-foto').src = '';
   document.getElementById('karte-detail-text').innerHTML = isText ? renderVorderseiteHtml(s.vorderseite || '') : '';
+  if (isText) renderTextFotos('karte-detail-text-fotos', s);
   fotoWrap.classList.toggle('hidden', isText);
   textWrap.classList.toggle('hidden', !isText);
   document.getElementById('karte-detail-name').textContent   = s.name;
@@ -2506,8 +2542,9 @@ function zeigeKarte() {
   aufdeckBtn.style.visibility = '';
 
   if (kartenModus === 'text' && lernModus === 'name') {
-    // Begriff-Karte UMGEKEHRT: Info/Definition vorne → Begriff aufdecken
+    // Begriff-Karte UMGEKEHRT: Info/Definition (+ Fotos) vorne → Begriff aufdecken
     document.getElementById('lern-vorderseite-text').innerHTML = renderVorderseiteHtml(s.vorderseite || '');
+    renderTextFotos('lern-text-fotos', s);
     document.getElementById('lernkarte-text-scroll-wrap').classList.remove('hidden');
     resetScrollIndikatoren();
     aufdeckBtn.textContent = t('begriff_zeigen');
@@ -2547,9 +2584,10 @@ function zeigeName(wertung) {
     showLinks('lern-card-links', s.links || []);
     showVideo('lern-card-video', s);
   } else if (kartenModus === 'text') {
-    // Begriff-Karte normal aufdecken: Info/Definition anzeigen (Begriff war vorne)
+    // Begriff-Karte normal aufdecken: Info/Definition (+ Fotos) anzeigen (Begriff war vorne)
     document.getElementById('lern-name-karte').classList.add('hidden');
     document.getElementById('lern-vorderseite-text').innerHTML = renderVorderseiteHtml(s.vorderseite || '');
+    renderTextFotos('lern-text-fotos', s);
     document.getElementById('lernkarte-text-scroll-wrap').classList.remove('hidden');
     resetScrollIndikatoren();
     const notizRueck = document.getElementById('lern-notiz-text-rueck');
@@ -2753,21 +2791,21 @@ async function openKarteEditModal(studentId, mode) {
   document.getElementById('karte-edit-chip-text').classList.toggle('active', !isFoto);
   document.getElementById('karte-edit-name-label').textContent = isFoto ? t('name_label') : t('begriff_label');
 
-  // Felder ein-/ausblenden
-  document.getElementById('karte-edit-foto-gruppe').classList.toggle('hidden', !isFoto);
+  // Felder ein-/ausblenden — Fotos sind jetzt bei Foto- UND Begriff-Karten relevant
+  // (bei Begriff optional, erscheinen auf der Rückseite zusätzlich zum Info-Text)
+  document.getElementById('karte-edit-foto-gruppe').classList.remove('hidden');
+  document.getElementById('karte-edit-foto-label').innerHTML = isFoto ? t('fotos_label_foto') : t('fotos_label_begriff');
   document.getElementById('karte-edit-vorderseite-gruppe').classList.toggle('hidden', isFoto);
 
-  // Foto-Puffer zurücksetzen und mit aktuellen (frischen) Bildern befüllen
+  // Foto-Puffer zurücksetzen und mit aktuellen (frischen) Bildern befüllen — unabhängig vom Modus
   document.getElementById('karte-edit-foto-input').value = '';
   editFotosBuffer.forEach(f => URL.revokeObjectURL(f.url));
   editFotosBuffer = [];
-  if (isFoto) {
-    try {
-      const dbRec = await dbGet('studenten', s.id);
-      const blobs = (dbRec?.fotos && dbRec.fotos.length) ? dbRec.fotos : (dbRec?.foto ? [dbRec.foto] : []);
-      editFotosBuffer = blobs.map(blob => ({ blob, url: URL.createObjectURL(blob) }));
-    } catch (err) { console.warn('Foto DB-Fehler:', err); }
-  }
+  try {
+    const dbRec = await dbGet('studenten', s.id);
+    const blobs = (dbRec?.fotos && dbRec.fotos.length) ? dbRec.fotos : (dbRec?.foto ? [dbRec.foto] : []);
+    editFotosBuffer = blobs.map(blob => ({ blob, url: URL.createObjectURL(blob) }));
+  } catch (err) { console.warn('Foto DB-Fehler:', err); }
   renderEditFotosListe();
   if (s.modus === 'text') {
     document.getElementById('karte-edit-vorderseite').value = s.vorderseite || '';
@@ -2839,8 +2877,8 @@ function dataUrlToBlob(dataUrl) {
 }
 
 // Konvertiert importierte foto/fotos-Felder (dataURLs) zurück in Blobs
+// (Begriff-Karten können optional ebenfalls Fotos auf der Rückseite haben)
 function importFotosFelder(s) {
-  if (s.modus === 'text') return { foto: null, fotos: [] };
   const list  = (s.fotos && s.fotos.length) ? s.fotos : (s.foto ? [s.foto] : []);
   const fotos = list.map(dataUrlToBlob);
   return { foto: fotos[0] || null, fotos };
@@ -2912,7 +2950,8 @@ function karteEditSetModus(isFoto) {
   document.getElementById('karte-edit-chip-foto').classList.toggle('active', isFoto);
   document.getElementById('karte-edit-chip-text').classList.toggle('active', !isFoto);
   document.getElementById('karte-edit-name-label').textContent = isFoto ? t('name_label') : t('begriff_label');
-  document.getElementById('karte-edit-foto-gruppe').classList.toggle('hidden', !isFoto);
+  document.getElementById('karte-edit-foto-gruppe').classList.remove('hidden');
+  document.getElementById('karte-edit-foto-label').innerHTML = isFoto ? t('fotos_label_foto') : t('fotos_label_begriff');
   document.getElementById('karte-edit-vorderseite-gruppe').classList.toggle('hidden', isFoto);
 }
 document.getElementById('karte-edit-chip-foto').addEventListener('click', () => karteEditSetModus(true));
@@ -2964,19 +3003,15 @@ document.getElementById('btn-karte-edit-save').addEventListener('click', async (
 
   if (editModalMode === 'copy') {
     const orig = studenten.find(x => x.id === editModalStudentId);
-    let newS;
-    if (orig.modus === 'text') {
-      newS = { id: Date.now().toString(), name, gruppeId, modus: 'text',
-               foto: null, fotos: [], vorderseite: orig.vorderseite || '', notiz, links,
-               videoId, videoTitel, erstellt: new Date().toISOString() };
-    } else {
-      const fotos = await Promise.all(editFotosBuffer.map(async f =>
-        new Blob([await f.blob.arrayBuffer()], { type: f.blob.type })));
-      newS = { id: Date.now().toString(), name, gruppeId, modus: 'foto',
-               foto: fotos[0] || null, fotos,
-               vorderseite: '', notiz, links,
-               videoId, videoTitel, erstellt: new Date().toISOString() };
-    }
+    const fotos = await Promise.all(editFotosBuffer.map(async f =>
+      new Blob([await f.blob.arrayBuffer()], { type: f.blob.type })));
+    const newS = orig.modus === 'text'
+      ? { id: Date.now().toString(), name, gruppeId, modus: 'text',
+          foto: fotos[0] || null, fotos, vorderseite: orig.vorderseite || '', notiz, links,
+          videoId, videoTitel, erstellt: new Date().toISOString() }
+      : { id: Date.now().toString(), name, gruppeId, modus: 'foto',
+          foto: fotos[0] || null, fotos, vorderseite: '', notiz, links,
+          videoId, videoTitel, erstellt: new Date().toISOString() };
     await dbPut('studenten', newS);
     studenten.push(newS);
     toast(tf('toast_karte_kopiert', name));
@@ -2997,16 +3032,14 @@ document.getElementById('btn-karte-edit-save').addEventListener('click', async (
     s.videoTitel = videoTitel;
 
     revokeUrl(s.id); // alte Objekt-URLs immer invalidieren
+    s.fotos = editFotosBuffer.map(f => f.blob); // bei Begriff optional, bei Foto erforderlich
+    s.foto  = s.fotos[0] || null;
     if (newModus === 'text') {
       s.modus       = 'text';
       s.vorderseite = document.getElementById('karte-edit-vorderseite').value.trim();
-      s.foto        = null;
-      s.fotos       = [];
     } else {
       s.modus       = 'foto';
       s.vorderseite = '';
-      s.fotos       = editFotosBuffer.map(f => f.blob);
-      s.foto        = s.fotos[0] || null;
     }
 
     await dbPut('studenten', s);
@@ -3335,19 +3368,24 @@ document.getElementById('select-gruppe').addEventListener('change', e => {
   if (e.target.value) localStorage.setItem('lastGruppeId', e.target.value);
 });
 
-// Modus-Chips (Foto / Begriff)
+// Modus-Chips (Foto / Begriff) — Foto-Bereich bleibt in beiden Modi sichtbar:
+// bei Foto erforderlich (Vorderseite), bei Begriff optional (zusätzlich zur Rückseite)
 document.getElementById('chip-foto').addEventListener('click', () => {
   document.getElementById('chip-foto').classList.add('active');
   document.getElementById('chip-text').classList.remove('active');
   document.getElementById('foto-bereich').classList.remove('hidden');
   document.getElementById('text-bereich').classList.add('hidden');
+  document.getElementById('foto-bereich-label').classList.add('hidden');
   document.getElementById('label-input-name').textContent = t('name_label');
 });
 document.getElementById('chip-text').addEventListener('click', () => {
   document.getElementById('chip-text').classList.add('active');
   document.getElementById('chip-foto').classList.remove('active');
   document.getElementById('text-bereich').classList.remove('hidden');
-  document.getElementById('foto-bereich').classList.add('hidden');
+  document.getElementById('foto-bereich').classList.remove('hidden');
+  const lbl = document.getElementById('foto-bereich-label');
+  lbl.innerHTML = t('fotos_label_begriff');
+  lbl.classList.remove('hidden');
   document.getElementById('label-input-name').textContent = t('begriff_label');
 });
 
@@ -3408,7 +3446,9 @@ document.getElementById('form-karte').addEventListener('submit', async e => {
     } else {
       const vorderseite = document.getElementById('input-vorderseite').value.trim();
       if (!vorderseite) { toast(t('toast_text_pflicht')); return; }
-      s = { id: Date.now().toString(), name, gruppeId, modus: 'text', foto: null, vorderseite, notiz, links, videoId, videoTitel, erstellt: new Date().toISOString() };
+      // Fotos für die Rückseite sind bei Begriff-Karten optional
+      const fotos = neueKarteFotosBuffer.map(f => f.blob);
+      s = { id: Date.now().toString(), name, gruppeId, modus: 'text', foto: fotos[0] || null, fotos, vorderseite, notiz, links, videoId, videoTitel, erstellt: new Date().toISOString() };
     }
     await dbPut('studenten', s);
     studenten.push(s);
@@ -4040,7 +4080,7 @@ document.getElementById('btn-export-start').addEventListener('click', async () =
   // PDF-Modus: alle Karten auf einmal aufbereiten (Auswahl dafür üblicherweise klein)
   if (fmt === 'pdf') {
     const studExport = await Promise.all(exportStudentenRaw.map(async s => {
-      if (s.modus === 'text' || !s.foto) return { ...s, foto: null, fotos: [] };
+      if (!s.foto) return { ...s, foto: null, fotos: [] };
       try {
         const dbRec  = await dbGet('studenten', s.id);
         const blobs  = (dbRec?.fotos && dbRec.fotos.length) ? dbRec.fotos : (dbRec?.foto ? [dbRec.foto] : [s.foto]);
@@ -4081,7 +4121,7 @@ document.getElementById('btn-export-start').addEventListener('click', async () =
   let chunkBytes = 0;
   for (const s of exportStudentenRaw) {
     let fotoData;
-    if (s.modus === 'text' || !s.foto) {
+    if (!s.foto) {
       fotoData = { foto: null, fotos: [] };
     } else {
       try {

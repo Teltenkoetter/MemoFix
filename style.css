@@ -505,6 +505,7 @@ textarea.input-notiz::placeholder { color: var(--muted); }
   line-height: 1.55;
   font-style: normal;
   max-width: 100%;
+  white-space: pre-line;
 }
 /* Notiz im Text-Rückseiten-Bereich */
 #lern-notiz-text-rueck {
@@ -1371,6 +1372,7 @@ textarea.input-notiz::placeholder { color: var(--muted); }
   padding-top: 0.4rem;
   border-top: 1px solid var(--border);
   width: 100%;
+  white-space: pre-line;
 }
 .karte-detail-swipe-hint {
   position: absolute; bottom: calc(2rem + max(env(safe-area-inset-bottom), 12px));
@@ -1839,6 +1841,32 @@ textarea.input-notiz::placeholder { color: var(--muted); }
   transition: background 0.2s, transform 0.2s;
 }
 .foto-dot.active { background: #fff; transform: scale(1.3); }
+
+/* ── FOTOS AUF DER RÜCKSEITE VON BEGRIFF-KARTEN (Lernmodus + Detail) ── */
+.lern-text-fotos {
+  margin-top: 0.875rem;
+}
+.lern-text-fotos-slides {
+  display: flex; overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  height: 190px;
+  border-radius: 12px;
+}
+.lern-text-fotos-slides .foto-slide {
+  flex: 0 0 100%; scroll-snap-align: center;
+  height: 190px;
+  display: flex; align-items: center; justify-content: center;
+}
+.lern-text-fotos-slides .foto-slide img {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 12px; display: block;
+}
+.lern-text-fotos-dots {
+  display: flex; justify-content: center; gap: 6px;
+  margin-top: 8px;
+}
+.lern-text-fotos-dots .foto-dot { background: rgba(255,255,255,0.25); }
+.lern-text-fotos-dots .foto-dot.active { background: var(--muted); transform: scale(1.3); }
 
 /* ── MEHRERE FOTOS: Thumbnail-Liste im Bearbeiten-Formular ── */
 .karte-edit-fotos-liste {
