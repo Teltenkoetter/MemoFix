@@ -1,4 +1,4 @@
-const CACHE = 'memofix-v144';
+const CACHE = 'memofix-v145';
 const SHELL = ['./index.html', './style.css', './app.js', './manifest.json', './icon.svg', './ki-briefing.md'];
 
 self.addEventListener('install', e => {
