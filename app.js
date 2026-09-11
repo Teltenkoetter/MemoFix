@@ -4765,6 +4765,69 @@ document.addEventListener('visibilitychange', async () => {
     .observe(img, { attributes: true, attributeFilter: ['src'] });
 })();
 
+// ── Pinch-Zoom auf Rückseiten-Fotos von Begriff-Karten (Lernmodus + Detail) ──
+['lern-text-fotos', 'karte-detail-text-fotos'].forEach(prefix => {
+  const wrap   = document.getElementById(prefix);
+  const slides = document.getElementById(prefix + '-slides');
+  if (!wrap || !slides) return;
+
+  let scale = 1, baseScale = 1;
+  let tx = 0, ty = 0, baseTx = 0, baseTy = 0;
+  let startDist = 0, startMidX = 0, startMidY = 0;
+  let lastTap = 0;
+
+  function setTransform(s, x, y, animate) {
+    scale = s; tx = x; ty = y;
+    slides.style.transition = animate ? 'transform 0.2s ease' : '';
+    slides.style.transform  = `translate(${tx}px,${ty}px) scale(${scale})`;
+    wrap.classList.toggle('zoomed', scale > 1.01);
+  }
+
+  function resetZoom() {
+    scale = 1; tx = 0; ty = 0; baseScale = 1; baseTx = 0; baseTy = 0;
+    slides.style.transition = 'transform 0.2s ease';
+    slides.style.transform  = '';
+    wrap.classList.remove('zoomed');
+  }
+
+  function touchDist(t) {
+    return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  }
+
+  slides.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      startDist = touchDist(e.touches);
+      startMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      startMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      baseScale = scale; baseTx = tx; baseTy = ty;
+      slides.style.transition = '';
+    } else if (e.touches.length === 1) {
+      const now = Date.now();
+      if (now - lastTap < 300 && scale > 1) { resetZoom(); e.preventDefault(); }
+      lastTap = now;
+    }
+  }, { passive: false });
+
+  slides.addEventListener('touchmove', e => {
+    if (e.touches.length !== 2) return;
+    e.preventDefault();
+    const newDist = touchDist(e.touches);
+    const newMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    const newMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    const s = Math.min(Math.max(baseScale * (newDist / startDist), 1), 5);
+    setTransform(s, baseTx + (newMidX - startMidX), baseTy + (newMidY - startMidY), false);
+  }, { passive: false });
+
+  slides.addEventListener('touchend', () => {
+    if (scale < 1.05) resetZoom();
+    else { baseScale = scale; baseTx = tx; baseTy = ty; }
+  });
+
+  // Zoom zurücksetzen, sobald die Galerie neu befüllt wird (Kartenwechsel)
+  new MutationObserver(() => resetZoom()).observe(slides, { childList: true });
+});
+
 // ── TEST-FEATURE "Mit Claude besprechen" — bei Bedarf komplett entfernbar ──
 (function() {
   const btn = document.getElementById('btn-claude-besprechen');

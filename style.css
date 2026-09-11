@@ -1849,11 +1849,16 @@ textarea.input-notiz::placeholder { color: var(--muted); }
   margin-top: 0.875rem;
 }
 .lern-text-fotos-slides {
-  display: flex; overflow-x: auto;
+  display: flex; overflow-x: auto; overflow-y: hidden;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   height: 190px;
   border-radius: 12px;
+  transform-origin: center center;
+}
+.lern-text-fotos.zoomed .lern-text-fotos-slides {
+  touch-action: none;
+  overflow: hidden;
 }
 .lern-text-fotos-slides .foto-slide {
   flex: 0 0 100%; scroll-snap-align: center;
