@@ -1047,6 +1047,34 @@ function revokeUrl(id) {
   });
 }
 
+// Automatischer Foto-Wechsel (alle 3s) für Slideshows mit mehreren Bildern.
+// Stoppt dauerhaft, sobald der Nutzer selbst wischt; pausiert während des Zoomens.
+const fotoAutoAdvance = new Map(); // slidesEl -> { timer, onUserTouch }
+const FOTO_AUTO_ADVANCE_MS = 3000;
+
+function stopFotoAutoAdvance(slidesEl) {
+  const state = fotoAutoAdvance.get(slidesEl);
+  if (!state) return;
+  clearInterval(state.timer);
+  slidesEl.removeEventListener('touchstart', state.onUserTouch);
+  fotoAutoAdvance.delete(slidesEl);
+}
+
+function startFotoAutoAdvance(slidesEl, zoomWrapEl, count) {
+  stopFotoAutoAdvance(slidesEl);
+  if (count <= 1) return;
+  const onUserTouch = () => stopFotoAutoAdvance(slidesEl);
+  slidesEl.addEventListener('touchstart', onUserTouch, { once: true, passive: true });
+  const timer = setInterval(() => {
+    if (zoomWrapEl && zoomWrapEl.classList.contains('zoomed')) return; // während Zoom pausieren
+    const w    = slidesEl.clientWidth || 1;
+    const cur  = Math.round(slidesEl.scrollLeft / w);
+    const next = (cur + 1) % count;
+    slidesEl.scrollTo({ left: next * w, behavior: 'smooth' });
+  }, FOTO_AUTO_ADVANCE_MS);
+  fotoAutoAdvance.set(slidesEl, { timer, onUserTouch });
+}
+
 // Zeigt ein Einzelbild (#imgId) oder — bei mehreren Fotos — eine Wisch-Slideshow
 // (#imgId-slideshow / -slides / -dots müssen im HTML vorhanden sein)
 function renderFotoSlideshow(imgId, wrapId, s) {
@@ -1068,10 +1096,12 @@ function renderFotoSlideshow(imgId, wrapId, s) {
       const idx = Math.round(slidesEl.scrollLeft / (slidesEl.clientWidth || 1));
       [...dotsEl.children].forEach((d, i) => d.classList.toggle('active', i === idx));
     };
+    startFotoAutoAdvance(slidesEl, slideshow, urls.length);
   } else {
     if (slideshow) slideshow.classList.add('hidden');
     img.classList.remove('hidden');
     img.src = urls[0] || '';
+    stopFotoAutoAdvance(slidesEl);
   }
 }
 
@@ -1088,6 +1118,7 @@ function renderTextFotos(prefix, s) {
     slides.innerHTML = '';
     dots.innerHTML = '';
     slides.onscroll = null;
+    stopFotoAutoAdvance(slides);
     return;
   }
   wrap.classList.remove('hidden');
@@ -1099,9 +1130,11 @@ function renderTextFotos(prefix, s) {
       const idx = Math.round(slides.scrollLeft / (slides.clientWidth || 1));
       [...dots.children].forEach((d, i) => d.classList.toggle('active', i === idx));
     };
+    startFotoAutoAdvance(slides, wrap, urls.length);
   } else {
     dots.innerHTML = '';
     slides.onscroll = null;
+    stopFotoAutoAdvance(slides);
   }
 }
 
@@ -3711,16 +3744,19 @@ document.getElementById('btn-lernen-start').addEventListener('click', () => {
 // Swipe-Navigation auf der Lernkarte (vor/zurück wie Pfeile)
 (function() {
   const card = document.getElementById('lernkarte');
-  let tx = 0, ty = 0, swiped = false;
+  let tx = 0, ty = 0, swiped = false, inGalerie = false;
 
   card.addEventListener('touchstart', e => {
     tx = e.touches[0].clientX;
     ty = e.touches[0].clientY;
     swiped = false;
+    // Geste beginnt in einer Foto-Galerie? Dann Kartenwechsel/Drag komplett
+    // der Galerie überlassen (eigenes Wischen zwischen Fotos, kein Kartenwechsel)
+    inGalerie = !!e.target.closest('.foto-slideshow, .lern-text-fotos');
   }, { passive: true });
 
   card.addEventListener('touchmove', e => {
-    if (swiped || isAnimating) return;
+    if (swiped || isAnimating || inGalerie) return;
     const dx = e.touches[0].clientX - tx;
     const dy = e.touches[0].clientY - ty;
     if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.5) {
@@ -3730,6 +3766,7 @@ document.getElementById('btn-lernen-start').addEventListener('click', () => {
   }, { passive: true });
 
   card.addEventListener('touchend', e => {
+    if (inGalerie) return;
     const dx = e.changedTouches[0].clientX - tx;
     const dy = e.changedTouches[0].clientY - ty;
     card.style.transition = '';
