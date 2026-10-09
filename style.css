@@ -507,8 +507,29 @@ textarea.input-notiz::placeholder { color: var(--muted); }
   line-height: 1.55;
   font-style: normal;
   max-width: 100%;
-  white-space: pre-line;
 }
+/* Notiz-Rendering (Markdown-Light): Absätze moderat, Listeneinträge enger */
+.notiz-absatz + .notiz-absatz,
+.notiz-absatz + .notiz-liste,
+.notiz-liste + .notiz-absatz,
+.notiz-liste + .notiz-liste { margin-top: 0.55em; }
+.notiz-liste { list-style: disc; padding-left: 1.15em; margin: 0; }
+.notiz-liste li { margin: 0; padding: 0; line-height: 1.4; }
+.notiz-liste li + li { margin-top: 0.12em; }
+.notiz-liste li::marker { color: currentColor; }
+.lern-notiz > * + *,
+#lern-notiz-text-rueck > * + *,
+.karte-detail-notiz > * + * { margin-top: 0.55em; }
+.lern-notiz > .notiz-liste + .notiz-liste,
+.lern-notiz .notiz-liste li + li { margin-top: 0.12em; }
+
+/* Text-Karten: Titel linksbündig (fluchtet mit Notiz-/Textblock), Foto-Karten unverändert */
+.lern-name-karte.text-modus {
+  align-items: flex-start; justify-content: center;
+}
+.lern-name-karte.text-modus span:first-child,
+.lern-name-karte.text-modus .lern-name-karte-gruppe { text-align: left; }
+
 /* Notiz im Text-Rückseiten-Bereich */
 #lern-notiz-text-rueck {
   margin-top: 0.875rem;
@@ -1374,7 +1395,6 @@ textarea.input-notiz::placeholder { color: var(--muted); }
   padding-top: 0.4rem;
   border-top: 1px solid var(--border);
   width: 100%;
-  white-space: pre-line;
 }
 .karte-detail-swipe-hint {
   position: absolute; bottom: calc(2rem + max(env(safe-area-inset-bottom), 12px));

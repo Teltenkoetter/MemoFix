@@ -1297,7 +1297,7 @@ function zeigeNameAuto() {
     document.getElementById('lernkarte-text-scroll-wrap').classList.add('hidden');
     document.getElementById('lern-name-overlay').classList.remove('hidden');
     const n = document.getElementById('lern-notiz-text');
-    if (s.notiz) { n.textContent = s.notiz; n.classList.remove('hidden'); } else n.classList.add('hidden');
+    if (s.notiz) { n.innerHTML = renderNotizHtml(s.notiz); n.classList.remove('hidden'); } else n.classList.add('hidden');
     showLinks('lern-card-links', s.links || []);
     showVideo('lern-card-video', s);
   } else if (kartenModus === 'text') {
@@ -1307,7 +1307,7 @@ function zeigeNameAuto() {
     document.getElementById('lernkarte-text-scroll-wrap').classList.remove('hidden');
     resetScrollIndikatoren();
     const nr = document.getElementById('lern-notiz-text-rueck');
-    if (s.notiz) { nr.textContent = s.notiz; nr.classList.remove('hidden'); } else nr.classList.add('hidden');
+    if (s.notiz) { nr.innerHTML = renderNotizHtml(s.notiz); nr.classList.remove('hidden'); } else nr.classList.add('hidden');
     showLinks('lern-card-links', s.links || []);
     showVideo('lern-card-video', s);
   } else if (lernModus === 'name') {
@@ -1315,13 +1315,13 @@ function zeigeNameAuto() {
     document.getElementById('lernkarte-foto-wrapper').classList.remove('hidden');
     document.getElementById('lern-name-karte').classList.add('hidden');
     const n = document.getElementById('lern-notiz-text');
-    if (s.notiz) { n.textContent = s.notiz; n.classList.remove('hidden'); } else n.classList.add('hidden');
+    if (s.notiz) { n.innerHTML = renderNotizHtml(s.notiz); n.classList.remove('hidden'); } else n.classList.add('hidden');
     showLinks('lern-card-links', s.links || []);
     showVideo('lern-card-video', s);
   } else {
     document.getElementById('lern-name-overlay').classList.remove('hidden');
     const n = document.getElementById('lern-notiz-text');
-    if (s.notiz) { n.textContent = s.notiz; n.classList.remove('hidden'); } else n.classList.add('hidden');
+    if (s.notiz) { n.innerHTML = renderNotizHtml(s.notiz); n.classList.remove('hidden'); } else n.classList.add('hidden');
     showLinks('lern-card-links', s.links || []);
     showVideo('lern-card-video', s);
   }
@@ -1695,6 +1695,33 @@ function renderVorderseiteHtml(text) {
   return `<ul class="lern-vorderseite-liste">${items.join('')}</ul>`;
 }
 
+// Notiz: Markdown-Light (**fett**, Absätze, Zeilenumbruch, "- "-Listen). HTML wird zuerst escaped.
+function renderNotizHtml(text) {
+  if (!text) return '';
+  const inline = z => esc(z).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  const absaetze = String(text).replace(/\r\n?/g, '\n').trim().split(/\n{2,}/);
+  return absaetze.map(abs => {
+    const zeilen = abs.split('\n');
+    const bloecke = [];
+    let liste = null, text = null;
+    for (const z of zeilen) {
+      if (/^\s*-\s+/.test(z)) {
+        text = null;
+        if (!liste) { liste = []; bloecke.push({ liste }); }
+        liste.push(z.replace(/^\s*-\s+/, ''));
+      } else {
+        liste = null;
+        if (!text) { text = []; bloecke.push({ text }); }
+        text.push(z);
+      }
+    }
+    return bloecke.map(b => b.liste
+      ? `<ul class="notiz-liste">${b.liste.map(i => `<li>${inline(i)}</li>`).join('')}</ul>`
+      : `<div class="notiz-absatz">${b.text.map(inline).join('<br>')}</div>`
+    ).join('');
+  }).join('');
+}
+
 // ── Karte Detail Overlay ──────────────────────────────
 let detailIds   = [];   // sichtbare Karten-IDs in aktueller Reihenfolge
 let detailIndex = 0;    // aktuelle Position
@@ -1712,7 +1739,7 @@ function fillKarteDetail(s) {
   document.getElementById('karte-detail-name').textContent   = s.name;
   document.getElementById('karte-detail-gruppe').textContent = gruppen.find(g => g.id === s.gruppeId)?.name || '';
   const notizEl = document.getElementById('karte-detail-notiz');
-  if (s.notiz) { notizEl.textContent = s.notiz; notizEl.classList.remove('hidden'); }
+  if (s.notiz) { notizEl.innerHTML = renderNotizHtml(s.notiz); notizEl.classList.remove('hidden'); }
   else { notizEl.classList.add('hidden'); }
   showLinks('karte-detail-links', s.links || []);
   showVideo('karte-detail-video', s);
@@ -2540,6 +2567,7 @@ function zeigeKarte() {
   const gruppe      = gruppen.find(g => g.id === s.gruppeId);
   const gName       = gruppe ? gruppe.name : '';
   const kartenModus = s.modus || 'foto';
+  document.getElementById('lern-name-karte').classList.toggle('text-modus', kartenModus === 'text');
   const total       = lernKarten.length;
 
   // Sammlungsfarbe auf Lernkarte anwenden
@@ -2620,7 +2648,7 @@ function zeigeName(wertung) {
     document.getElementById('lernkarte-text-scroll-wrap').classList.add('hidden');
     document.getElementById('lern-name-overlay').classList.remove('hidden');
     const notizEl = document.getElementById('lern-notiz-text');
-    if (s.notiz) { notizEl.textContent = s.notiz; notizEl.classList.remove('hidden'); }
+    if (s.notiz) { notizEl.innerHTML = renderNotizHtml(s.notiz); notizEl.classList.remove('hidden'); }
     else { notizEl.classList.add('hidden'); }
     showLinks('lern-card-links', s.links || []);
     showVideo('lern-card-video', s);
@@ -2632,7 +2660,7 @@ function zeigeName(wertung) {
     document.getElementById('lernkarte-text-scroll-wrap').classList.remove('hidden');
     resetScrollIndikatoren();
     const notizRueck = document.getElementById('lern-notiz-text-rueck');
-    if (s.notiz) { notizRueck.textContent = s.notiz; notizRueck.classList.remove('hidden'); }
+    if (s.notiz) { notizRueck.innerHTML = renderNotizHtml(s.notiz); notizRueck.classList.remove('hidden'); }
     else { notizRueck.classList.add('hidden'); }
     showLinks('lern-card-links', s.links || []);
     showVideo('lern-card-video', s);
@@ -2642,7 +2670,7 @@ function zeigeName(wertung) {
     document.getElementById('lernkarte-foto-wrapper').classList.remove('hidden');
     document.getElementById('lern-name-karte').classList.add('hidden');
     const notizEl = document.getElementById('lern-notiz-text');
-    if (s.notiz) { notizEl.textContent = s.notiz; notizEl.classList.remove('hidden'); }
+    if (s.notiz) { notizEl.innerHTML = renderNotizHtml(s.notiz); notizEl.classList.remove('hidden'); }
     else { notizEl.classList.add('hidden'); }
     showLinks('lern-card-links', s.links || []);
     showVideo('lern-card-video', s);
@@ -2650,7 +2678,7 @@ function zeigeName(wertung) {
     // Foto-Karte normal aufdecken: Begriff im Overlay
     document.getElementById('lern-name-overlay').classList.remove('hidden');
     const notizEl = document.getElementById('lern-notiz-text');
-    if (s.notiz) { notizEl.textContent = s.notiz; notizEl.classList.remove('hidden'); }
+    if (s.notiz) { notizEl.innerHTML = renderNotizHtml(s.notiz); notizEl.classList.remove('hidden'); }
     else { notizEl.classList.add('hidden'); }
     showLinks('lern-card-links', s.links || []);
     showVideo('lern-card-video', s);
