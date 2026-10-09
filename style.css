@@ -1953,3 +1953,44 @@ textarea.input-notiz::placeholder { color: var(--muted); }
   padding: 1px 5px; border-radius: 10px;
   pointer-events: none;
 }
+
+/* ── START-ZEILE: Lernen starten (2/3) + Fullscreen 16:9 (1/3) ── */
+.lern-start-row { display: flex; gap: 0.5rem; align-items: stretch; margin-top: 0.75rem; }
+.lern-start-row .btn-primary.btn-large { flex: 2; margin-top: 0; }
+.btn-large-sec {
+  flex: 1; margin-top: 0; padding: 0.5rem 0.4rem;
+  font-size: 0.85rem; line-height: 1.25; text-align: center;
+}
+.btn-large-sec:disabled { opacity: 0.25; cursor: not-allowed; }
+
+/* ── FULLSCREEN 16:9 (Präsentationsansicht) ───────────── */
+body.praesi header,
+body.praesi .bottom-nav { display: none !important; }
+body.praesi #lernen-flashcard {
+  position: fixed; inset: 0; z-index: 800;
+  height: 100dvh; min-height: 0;
+  background: #000;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 0;
+}
+body.praesi .lern-karte-area {
+  flex: none; position: relative;
+  width: min(100vw, calc(100dvh * 16 / 9));
+  aspect-ratio: 16 / 9;
+}
+body.praesi .stack-card,
+body.praesi .session-timer-row,
+body.praesi .lern-steuerung,
+body.praesi .lern-hint-pill,
+body.praesi #lern-swipe-hint,
+body.praesi #lern-card-links,
+body.praesi #lern-card-video,
+body.praesi #btn-claude-besprechen,
+body.praesi #btn-mischen,
+body.praesi #btn-lern-favorit,
+body.praesi .lern-progress-track { display: none !important; }
+body.praesi .lernkarte { border-radius: 0; box-shadow: none; }
+body.praesi .lern-header {
+  position: absolute; top: 0.25rem; left: 0.5rem; right: 0.5rem; z-index: 30;
+  opacity: 0.45; padding: 0; background: none;
+}

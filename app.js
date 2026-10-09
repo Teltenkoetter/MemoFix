@@ -648,7 +648,8 @@ function getHelpHtml() {
       ['⏱',  '<strong>Auto-timer</strong> — Choose 3 · 5 · 8 · 12 s: card flips automatically, then moves on · timer runs without scoring'],
       ['🔁', '<strong>Autorepeat</strong> — After the last card the round restarts automatically'],
       ['⭐', '<strong>Favourites</strong> — Tap the star to mark a card as favourite · export as Favourites group under BACKUP'],
-      ['🤏', '<strong>Zoom photos</strong> — Pinch with two fingers to zoom into a photo card · double-tap to reset'],
+      ['🤏', '<strong>Zoom photos</strong> — Pinch with two fingers to zoom into a photo (also photos on the back of term cards) · drag with two fingers to pan · double-tap to reset'],
+      ['⛶', '<strong>Fullscreen 16:9</strong> — Button next to "Start learning": runs your selection full-screen on a 16:9 stage with large type, no menus · ideal for projectors and oral exams · tap = reveal / next, swipe = back · ✕ ends it · iPhone: no browser fullscreen, but bars are hidden (best as home-screen app, rotate to landscape)'],
       ['🗣️', '<strong>Discuss with Claude</strong> — Send the current card, or your whole selection, to Claude for a deeper conversation about the topic · copies to clipboard and opens claude.ai in a new tab'],
     ]},
     { title: '⚙️ Manage', rows: [
@@ -657,21 +658,22 @@ function getHelpHtml() {
       ['2️⃣', '<strong>Create group</strong> — Within a collection · sort within collection with ▲▼'],
       ['3️⃣', '<strong>Add card</strong> — ＋ on the group header taps into that group · or choose group in the form below, enter name, pick 📷 Photo <em>or</em> 📖 Term'],
       ['📷', '<strong>Photo card</strong> — Photo as front, name as back · tap photo to replace'],
-      ['🖼️', '<strong>Multiple photos</strong> — Add as many photos as you like to a card (when adding or editing) · shown as a swipeable gallery with dots in learning mode and full view'],
-      ['📖', '<strong>Term card</strong> — Term on front, info/definition on back · multi-line text shown as bullet list · wrap a line in <strong>**bold**</strong> to make it a section heading'],
+      ['🖼️', '<strong>Multiple photos</strong> — Add as many photos as you like to a card (when adding or editing) · shown as a swipeable gallery with dots in learning mode and full view · switches automatically every 3 s until you swipe yourself'],
+      ['📖', '<strong>Term card</strong> — Term on front, info/definition on back · multi-line text shown as bullet list · wrap a line in <strong>**bold**</strong> to make it a section heading · optionally add <strong>photos on the back</strong> (shown below the text)'],
       ['🔍', '<strong>Full view</strong> — Tap card name → image/text shown large · swipe left/right to browse'],
       ['📋', '<strong>Copy</strong> — Duplicate card into another group (✏️ opens Edit modal)'],
       ['🎨', '<strong>Collection colour</strong> — Tap the colour dot next to the collection name · appears as left stripe and card background in learning mode'],
       ['🔗', '<strong>Links</strong> — Add links when editing a card (e.g. Wikipedia, YouTube) · shown as tappable links when revealed'],
-      ['💬', '<strong>Note</strong> — Short extra info per card (max. 250 chars) · shown when revealed'],
+      ['💬', '<strong>Note</strong> — Short extra info per card (max. 250 chars) · shown when revealed · formatting: <strong>**bold**</strong>, blank line = new paragraph, lines starting with <strong>- </strong> = bullet list, a paragraph starting with <strong>&gt; </strong> = highlighted call-out box'],
       ['🔄', '<strong>Remembers your state</strong> — Expanded collections/groups and the last-used tab are restored the next time you open the app'],
     ]},
     { title: '💾 Storage & Backup', rows: [
       ['📱', 'Cards are stored <strong>locally in the browser</strong> — no server, no internet needed'],
-      ['📤', '<strong>Export as file</strong> — Save and share individual groups or everything · <strong>iPhone:</strong> Share menu → "Save to Files"'],
+      ['📤', '<strong>Export as file</strong> — Save and share individual groups or everything · <strong>iPhone:</strong> Share menu → "Save to Files" · large selections are split automatically into several files (part 1 of 3 …) · the app confirms how many files were saved'],
       ['🖨', '<strong>Export as PDF</strong> — Under BACKUP choose groups, select "PDF" · opens print view · choose "Save as PDF" in print dialog'],
       ['📥', '<strong>Import</strong> — Add (keep existing) or Replace all · also imports collection structure'],
       ['🗜️', '<strong>Compress photos</strong> — Under BACKUP: shrinks large, already-stored photos afterwards · use if exports feel slow or too large'],
+      ['🤖', '<strong>AI briefing</strong> — Under BACKUP: download a ready-made prompt for ChatGPT, Gemini, Claude &amp; co. that explains the MemoFix data format, so an AI can build card sets you import directly'],
       ['⚠️', '"Clear Safari data" in iPhone Settings also deletes all cards — export regularly!'],
     ]},
     { title: '🔧 Troubleshooting', rows: [
@@ -691,7 +693,8 @@ function getHelpHtml() {
       ['⏱',  '<strong>Auto-Timer</strong> — 3 · 5 · 8 · 12 s wählen: Karte dreht sich automatisch um, danach geht es zur nächsten · Timer-Durchläufe ohne Bewertung zählen nicht in die Statistik'],
       ['🔁', '<strong>Autorepeat</strong> — nach dem letzten Bild startet die Runde automatisch neu'],
       ['⭐', '<strong>Favoriten</strong> — Stern antippen markiert eine Karte als Favorit · unter SICHERUNG gezielt als Favoriten-Gruppe exportieren'],
-      ['🤏', '<strong>Fotos zoomen</strong> — mit zwei Fingern in ein Foto hineinzoomen · Doppeltipp setzt den Zoom zurück'],
+      ['🤏', '<strong>Fotos zoomen</strong> — mit zwei Fingern in ein Foto hineinzoomen (auch bei Fotos auf der Rückseite von Begriff-Karten) · mit zwei Fingern verschieben · Doppeltipp setzt den Zoom zurück'],
+      ['⛶', '<strong>Fullscreen 16:9</strong> — Button neben „Lernen starten": zeigt deine Auswahl im Vollbild auf einer 16:9-Bühne mit großer Schrift, ohne Menüs · ideal für Beamer und Prüfungsgespräche · Tippen = aufdecken / weiter, Wischen = zurück · ✕ beendet · iPhone: kein Browser-Vollbild, aber alle Leisten sind ausgeblendet (am besten als Home-Bildschirm-App, Handy quer halten)'],
       ['🗣️', '<strong>Mit Claude besprechen</strong> — aktuelle Karte oder die ganze Auswahl an Claude übergeben, um das Thema im Gespräch zu vertiefen · kopiert in die Zwischenablage und öffnet claude.ai in neuem Tab'],
     ]},
     { title: '⚙️ Verwaltung', rows: [
@@ -700,21 +703,22 @@ function getHelpHtml() {
       ['2️⃣', '<strong>Gruppe erstellen</strong> — innerhalb einer Sammlung · per ▲▼ innerhalb der Sammlung sortieren'],
       ['3️⃣', '<strong>Karte hinzufügen</strong> — ＋ am Gruppen-Header tippt direkt in diese Gruppe · oder unten im Formular Gruppe wählen, Name eingeben, 📷 Foto <em>oder</em> 📖 Text wählen'],
       ['📷', '<strong>Foto-Karte</strong> — Foto als Vorderseite, Name als Rückseite · Foto antippen zum Austauschen'],
-      ['🖼️', '<strong>Mehrere Fotos</strong> — beim Anlegen oder Bearbeiten beliebig viele Fotos zu einer Karte hinzufügen · erscheinen im Lernmodus und in der Großansicht als Wisch-Galerie mit Punkte-Anzeige'],
-      ['📖', '<strong>Begriff-Karte</strong> — Begriff vorne, Info/Definition hinten · mehrzeilige Texte werden als Aufzählung dargestellt · eine Zeile in <strong>**fett**</strong> setzen macht sie zur Zwischenüberschrift'],
+      ['🖼️', '<strong>Mehrere Fotos</strong> — beim Anlegen oder Bearbeiten beliebig viele Fotos zu einer Karte hinzufügen · erscheinen im Lernmodus und in der Großansicht als Wisch-Galerie mit Punkte-Anzeige · wechselt automatisch alle 3 s, bis du selbst wischst'],
+      ['📖', '<strong>Begriff-Karte</strong> — Begriff vorne, Info/Definition hinten · mehrzeilige Texte werden als Aufzählung dargestellt · eine Zeile in <strong>**fett**</strong> setzen macht sie zur Zwischenüberschrift · optional <strong>Fotos auf der Rückseite</strong> (erscheinen unter dem Text)'],
       ['🔍', '<strong>Großansicht</strong> — Kartennamen antippen → Bild/Text wird groß angezeigt · links/rechts wischen zum Durchblättern'],
       ['📋', '<strong>Kopieren</strong> — Karte in eine andere Gruppe duplizieren (✏️ öffnet Bearbeiten-Modal)'],
       ['🎨', '<strong>Sammlungsfarbe</strong> — Farbpunkt neben dem Sammlungsnamen antippen · Farbe erscheint als Streifen links und als Kartenhintergrund im Lernmodus'],
       ['🔗', '<strong>Links</strong> — beim Bearbeiten einer Karte Links hinzufügen (z.&nbsp;B. Wikipedia, YouTube) · erscheinen beim Aufdecken als tippbare Verweise'],
-      ['💬', '<strong>Notiz</strong> — kurze Zusatzinfo pro Karte (max. 250 Zeichen) · wird beim Aufdecken angezeigt'],
+      ['💬', '<strong>Notiz</strong> — kurze Zusatzinfo pro Karte (max. 250 Zeichen) · wird beim Aufdecken angezeigt · Formatierung: <strong>**fett**</strong>, Leerzeile = neuer Absatz, Zeilen mit <strong>- </strong> = Aufzählung, Absatz mit <strong>&gt; </strong> = hervorgehobener Kasten (Callout)'],
       ['🔄', '<strong>Merkt sich deinen Stand</strong> — aufgeklappte Sammlungen/Gruppen und der zuletzt genutzte Bereich sind beim nächsten Öffnen wieder da'],
     ]},
     { title: '💾 Datenspeicher & Backup', rows: [
       ['📱', 'Karten werden <strong>lokal im Browser</strong> gespeichert — kein Server, kein Internet nötig'],
-      ['📤', '<strong>Exportieren als Datei</strong> — einzelne Gruppen oder alles sichern und teilen · <strong>iPhone:</strong> Teilen-Menü → „In Dateien sichern"'],
+      ['📤', '<strong>Exportieren als Datei</strong> — einzelne Gruppen oder alles sichern und teilen · <strong>iPhone:</strong> Teilen-Menü → „In Dateien sichern" · große Auswahlen werden automatisch auf mehrere Dateien aufgeteilt (Teil 1 von 3 …) · die App meldet, wie viele Dateien gespeichert wurden'],
       ['🖨', '<strong>Exportieren als PDF</strong> — unter SICHERUNG Gruppen wählen, Format „PDF" wählen · öffnet Druckansicht mit allen Karten · im Druckdialog „Als PDF sichern" wählen'],
       ['📥', '<strong>Importieren</strong> — Hinzufügen (bestehende behalten) oder Alles ersetzen · importiert auch Sammlungsstruktur'],
       ['🗜️', '<strong>Fotos komprimieren</strong> — unter SICHERUNG: verkleinert nachträglich große, bereits gespeicherte Fotos · hilfreich, wenn Exporte langsam oder groß werden'],
+      ['🤖', '<strong>KI-Briefing</strong> — unter SICHERUNG: fertigen Prompt für ChatGPT, Gemini, Claude &amp; Co. herunterladen, der das MemoFix-Datenformat erklärt · so kann eine KI Kartensets bauen, die du direkt importierst'],
       ['⚠️', '„Safari-Daten löschen" in den iPhone-Einstellungen entfernt auch alle Karten — regelmäßig exportieren!'],
     ]},
     { title: '🔧 Probleme & Lösungen', rows: [
@@ -2405,6 +2409,8 @@ function updateLernStartBtn() {
   const btn = document.getElementById('btn-lernen-start');
   btn.disabled = total === 0;
   btn.textContent = total > 0 ? tf('lernen_starten_n', total) : t('lernen_starten');
+  const fs = document.getElementById('btn-fullscreen169');
+  if (fs) fs.disabled = total === 0;
 }
 
 // ============================================================
@@ -2727,6 +2733,7 @@ function naechsteKarteOderEnde() {
 async function zeigeEnde() {
   stoppeAutoTimer();
   gebeWakeLockFrei();
+  if (!autoRepeat) beendePraesentation();
   await speichereSitzung();
   if (autoRepeat) {
     const pause = timerSekunden ? 600 : 1800;
@@ -3763,20 +3770,62 @@ document.getElementById('btn-schwaeche-waehlen').addEventListener('click', async
   toast(tf('toast_schwaechste', schwacheKarten.length, label));
 });
 
-document.getElementById('btn-lernen-start').addEventListener('click', () => {
+function starteAusAuswahl() {
   const selectedGids = getSelectedGids();
   const seen = new Set();
   const karten = [];
   selectedGids.forEach(gid => {
     getKartenFuerGid(gid).forEach(s => { if (!seen.has(s.id)) { seen.add(s.id); karten.push(s); } });
   });
-  if (!karten.length) return;
+  if (!karten.length) return false;
   // Tutorial-Gruppen immer in Reihenfolge (nicht mischen)
   const isTutorial = selectedGids.length === 1 &&
     gruppen.find(g => g.id === selectedGids[0])?.id.startsWith('tutorial-');
   document.getElementById('lernen-auswahl').classList.add('hidden');
   starteSession(karten, !isTutorial);
+  return true;
+}
+document.getElementById('btn-lernen-start').addEventListener('click', starteAusAuswahl);
+
+// ── Fullscreen 16:9 (Präsentationsansicht für Beamer/Prüfungsgespräche) ──
+let praesentationAktiv = false;
+
+function praesiSkalieren() {
+  if (!praesentationAktiv) return;
+  const stageH = Math.min(window.innerHeight, window.innerWidth * 9 / 16);
+  document.documentElement.style.fontSize = Math.max(16, stageH / 18) + 'px';
+}
+
+function betretePraesentation() {
+  const el = document.documentElement;
+  try { (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el)?.catch?.(() => {}); } catch (_) {}
+  praesentationAktiv = true;
+  document.body.classList.add('praesi');
+  praesiSkalieren();
+  erwerbeWakeLock();
+}
+
+function beendePraesentation() {
+  if (!praesentationAktiv) return;
+  praesentationAktiv = false;
+  document.body.classList.remove('praesi');
+  document.documentElement.style.fontSize = '';
+  try {
+    if (document.fullscreenElement || document.webkitFullscreenElement)
+      (document.exitFullscreen || document.webkitExitFullscreen)?.call(document)?.catch?.(() => {});
+  } catch (_) {}
+}
+
+document.getElementById('btn-fullscreen169').addEventListener('click', () => {
+  if (starteAusAuswahl()) betretePraesentation();
 });
+window.addEventListener('resize', praesiSkalieren);
+window.addEventListener('orientationchange', praesiSkalieren);
+['fullscreenchange', 'webkitfullscreenchange'].forEach(ev =>
+  document.addEventListener(ev, () => {
+    // Vollbild per Esc verlassen -> auch Präsentationsansicht beenden
+    if (praesentationAktiv && !document.fullscreenElement && !document.webkitFullscreenElement) beendePraesentation();
+  }));
 
 // Karte antippen: 1. Klick = 3D-Flip + ✓ (gewusst), 2. Klick = Fly-out + weiter
 // Swipe-Navigation auf der Lernkarte (vor/zurück wie Pfeile)
@@ -3901,6 +3950,7 @@ document.getElementById('btn-lern-favorit').addEventListener('click', async e =>
 });
 
 document.getElementById('btn-beenden').addEventListener('click', () => {
+  beendePraesentation();
   stoppeAutoTimer();
   document.getElementById('lernen-flashcard').classList.add('hidden');
   document.getElementById('lernen-auswahl').classList.remove('hidden');
