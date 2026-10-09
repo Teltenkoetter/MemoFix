@@ -523,12 +523,25 @@ textarea.input-notiz::placeholder { color: var(--muted); }
 .lern-notiz > .notiz-liste + .notiz-liste,
 .lern-notiz .notiz-liste li + li { margin-top: 0.12em; }
 
-/* Text-Karten: Titel linksbündig (fluchtet mit Notiz-/Textblock), Foto-Karten unverändert */
-.lern-name-karte.text-modus {
-  align-items: flex-start; justify-content: center;
+/* Callout-Kasten in der Notiz ("> Text") */
+.notiz-callout {
+  padding: 0.5em 0.75em;
+  border-left: 3px solid var(--sam-farbe, var(--accent, #6a8fff));
+  border-radius: 8px;
+  background: var(--sam-farbe-tint, rgba(255,255,255,0.08));
+  background: color-mix(in srgb, var(--sam-farbe, #ffffff) 11%, transparent);
+  line-height: 1.45;
 }
-.lern-name-karte.text-modus span:first-child,
-.lern-name-karte.text-modus .lern-name-karte-gruppe { text-align: left; }
+.lern-notiz > .notiz-callout,
+#lern-notiz-text-rueck > .notiz-callout,
+.karte-detail-notiz > .notiz-callout { margin-top: 0.8em; margin-bottom: 0.8em; }
+
+/* Rückseite von Text-Karten: Titel/Text linksbündig, fluchtend mit dem Notiz-Block */
+.lernkarte-text-vorderseite { align-items: stretch; }
+.lernkarte-text-vorderseite p { text-align: left; }
+.lernkarte-text-vorderseite .lern-vorderseite-liste { max-width: none; }
+.lernkarte-text-vorderseite .header-zeile { margin-left: 0; }
+.lernkarte-text-vorderseite #lern-notiz-text-rueck { max-width: 100%; }
 
 /* Notiz im Text-Rückseiten-Bereich */
 #lern-notiz-text-rueck {

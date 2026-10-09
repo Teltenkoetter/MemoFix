@@ -1695,12 +1695,16 @@ function renderVorderseiteHtml(text) {
   return `<ul class="lern-vorderseite-liste">${items.join('')}</ul>`;
 }
 
-// Notiz: Markdown-Light (**fett**, Absätze, Zeilenumbruch, "- "-Listen). HTML wird zuerst escaped.
+// Notiz: Markdown-Light (**fett**, Absätze, Zeilenumbruch, "- "-Listen, "> "-Callout). HTML wird zuerst escaped.
 function renderNotizHtml(text) {
   if (!text) return '';
   const inline = z => esc(z).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   const absaetze = String(text).replace(/\r\n?/g, '\n').trim().split(/\n{2,}/);
   return absaetze.map(abs => {
+    if (/^\s*>\s?/.test(abs)) {
+      const inhalt = abs.split('\n').map(z => z.replace(/^\s*>\s?/, '')).map(inline).join('<br>');
+      return `<div class="notiz-callout">${inhalt}</div>`;
+    }
     const zeilen = abs.split('\n');
     const bloecke = [];
     let liste = null, text = null;
@@ -2567,7 +2571,6 @@ function zeigeKarte() {
   const gruppe      = gruppen.find(g => g.id === s.gruppeId);
   const gName       = gruppe ? gruppe.name : '';
   const kartenModus = s.modus || 'foto';
-  document.getElementById('lern-name-karte').classList.toggle('text-modus', kartenModus === 'text');
   const total       = lernKarten.length;
 
   // Sammlungsfarbe auf Lernkarte anwenden
