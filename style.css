@@ -1991,6 +1991,17 @@ body.praesi #btn-lern-favorit,
 body.praesi .lern-progress-track { display: none !important; }
 body.praesi .lernkarte { border-radius: 0; box-shadow: none; }
 body.praesi .lern-header {
-  position: absolute; top: 0.25rem; left: 0.5rem; right: 0.5rem; z-index: 30;
-  opacity: 0.45; padding: 0; background: none;
+  position: absolute; top: 0; left: 0; right: auto; z-index: 30;
+  opacity: 0.55; padding: 0; background: none;
 }
+/* Nur ein ✕ mit großem Touchbereich (48 px) */
+body.praesi #btn-beenden {
+  font-size: 0; width: 48px; height: 48px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+body.praesi #btn-beenden::before { content: '✕'; font-size: 22px; color: var(--text); }
+/* Fortschritt dezent unten rechts */
+body.praesi .lern-progress-wrap {
+  position: fixed; right: 0.75rem; bottom: 0.4rem; margin: 0; padding: 0;
+}
+body.praesi .lern-position-counter { font-size: 14px; }

@@ -3790,10 +3790,35 @@ document.getElementById('btn-lernen-start').addEventListener('click', starteAusA
 // ── Fullscreen 16:9 (Präsentationsansicht für Beamer/Prüfungsgespräche) ──
 let praesentationAktiv = false;
 
+let praesiFaktor = 1;   // Auto-Verkleinerung für lange Rückseiten (1 = volle Größe)
+let praesiBasis  = 16;
+
 function praesiSkalieren() {
   if (!praesentationAktiv) return;
   const stageH = Math.min(window.innerHeight, window.innerWidth * 9 / 16);
-  document.documentElement.style.fontSize = Math.max(16, stageH / 18) + 'px';
+  praesiBasis = Math.max(14, stageH / 18);
+  document.documentElement.style.fontSize = (praesiBasis * praesiFaktor) + 'px';
+}
+
+// Schrift schrittweise verkleinern (bis 65 %), bis die Rückseite ohne Scrollen passt
+function praesiAutofit() {
+  if (!praesentationAktiv) return;
+  const wrap = document.getElementById('lernkarte-text-scroll-wrap');
+  const box  = document.getElementById('lernkarte-text-vorderseite');
+  praesiFaktor = 1;
+  praesiSkalieren();
+  if (!wrap || !box || wrap.classList.contains('hidden')) return;
+  let n = 0;
+  while (box.scrollHeight > box.clientHeight + 1 && praesiFaktor > 0.65 && n++ < 10) {
+    praesiFaktor = Math.round((praesiFaktor - 0.05) * 100) / 100;
+    praesiSkalieren();
+  }
+}
+
+let praesiAutofitFrame = 0, praesiObserver = null;
+function praesiAutofitPlanen() {
+  cancelAnimationFrame(praesiAutofitFrame);
+  praesiAutofitFrame = requestAnimationFrame(praesiAutofit);
 }
 
 function betretePraesentation() {
@@ -3801,7 +3826,14 @@ function betretePraesentation() {
   try { (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el)?.catch?.(() => {}); } catch (_) {}
   praesentationAktiv = true;
   document.body.classList.add('praesi');
+  praesiFaktor = 1;
   praesiSkalieren();
+  if (!praesiObserver) {
+    praesiObserver = new MutationObserver(praesiAutofitPlanen);
+    praesiObserver.observe(document.getElementById('lernkarte-text-vorderseite'), { childList: true, subtree: true });
+    praesiObserver.observe(document.getElementById('lernkarte-text-scroll-wrap'), { attributes: true, attributeFilter: ['class'] });
+  }
+  praesiAutofitPlanen();
   erwerbeWakeLock();
 }
 
@@ -3809,6 +3841,7 @@ function beendePraesentation() {
   if (!praesentationAktiv) return;
   praesentationAktiv = false;
   document.body.classList.remove('praesi');
+  praesiFaktor = 1;
   document.documentElement.style.fontSize = '';
   try {
     if (document.fullscreenElement || document.webkitFullscreenElement)
@@ -3819,8 +3852,8 @@ function beendePraesentation() {
 document.getElementById('btn-fullscreen169').addEventListener('click', () => {
   if (starteAusAuswahl()) betretePraesentation();
 });
-window.addEventListener('resize', praesiSkalieren);
-window.addEventListener('orientationchange', praesiSkalieren);
+window.addEventListener('resize', praesiAutofitPlanen);
+window.addEventListener('orientationchange', praesiAutofitPlanen);
 ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev =>
   document.addEventListener(ev, () => {
     // Vollbild per Esc verlassen -> auch Präsentationsansicht beenden
