@@ -3813,6 +3813,7 @@ function praesiAutofit() {
     praesiFaktor = Math.round((praesiFaktor - 0.05) * 100) / 100;
     praesiSkalieren();
   }
+  updateScrollIndikatoren(); // Pfeile nach der Größenanpassung neu bewerten
 }
 
 let praesiAutofitFrame = 0, praesiObserver = null;
