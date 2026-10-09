@@ -2546,11 +2546,17 @@ async function speichereSitzung() {
 // FLASHCARD LOGIC
 // ============================================================
 
+// Null-sicher: ein fehlendes (neues) Element darf nie die ganze Kartenanzeige abbrechen
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
 function zeigeKarte() {
   nameVisible     = false;
   aktuelleWertung = null;
   isAnimating     = false;
-  document.getElementById('lern-repeat-pause').classList.add('hidden');
+  document.getElementById('lern-repeat-pause')?.classList.add('hidden');
 
   // Karte zurücksetzen (Flip + Fly-out entfernen, ohne sichtbare Transition)
   const card = document.getElementById('lernkarte');
@@ -2581,10 +2587,10 @@ function zeigeKarte() {
   lernkarte.style.setProperty('--sam-farbe', kartefarbe);
   lernkarte.style.setProperty('--sam-farbe-tint', hexToRgba(kartefarbe, 0.13));
 
-  document.getElementById('lern-name-text').textContent         = s.name;
-  document.getElementById('lern-gruppe-text').textContent       = gName;
-  document.getElementById('lern-name-karte-gruppe').textContent = gName;
-  document.getElementById('lern-text-gruppe').textContent = gName;
+  setText('lern-name-text', s.name);
+  setText('lern-gruppe-text', gName);
+  setText('lern-name-karte-gruppe', gName);
+  setText('lern-text-gruppe', gName);
   document.getElementById('lern-favorit-stern').classList.toggle('hidden', !s.favorit);
   // Favorit-Button im Header: immer sichtbar, Zustand sofort aktualisieren
   const favHdrBtn = document.getElementById('btn-lern-favorit');
