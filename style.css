@@ -2019,3 +2019,17 @@ body.praesi .lern-position-counter .counter-total { font-size: 14px; letter-spac
 /* "Lernen starten" + Kartenanzahl in zwei Zeilen */
 .lern-start-row .btn-primary.btn-large { line-height: 1.25; }
 .btn-primary .start-n { display: block; font-size: 0.85em; font-weight: 600; opacity: 0.8; }
+
+/* ── KURSSETS ─────────────────────────────────────────── */
+#kursset-titel { font-size: 1rem; }
+.kursset-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; margin: 0.3rem 0 0.6rem; }
+.kursset-liste { display: flex; flex-direction: column; gap: 0.5rem; }
+.kursset-zeile {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+  padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+}
+.kursset-info { display: flex; flex-direction: column; min-width: 0; }
+.kursset-info span { font-size: 0.78rem; color: var(--muted); }
+.kursset-hinweis { font-size: 0.82rem; color: var(--muted); }
+.anleitung-text a { color: var(--accent, #6a8fff); text-decoration: underline; }

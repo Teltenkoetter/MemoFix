@@ -118,6 +118,16 @@ const TRANS = {
     fotos_komprimieren: 'Fotos komprimieren',
     fotos_komprimieren_desc: 'Verkleinert große, unkomprimierte Fotos (z. B. über „Bearbeiten" hinzugefügt), spart Speicherplatz und macht Exporte zuverlässiger',
     komprimieren: 'Komprimieren',
+    kursset_titel: 'Kurssets laden',
+    kursset_desc: 'Fertige Kartensets zum Kurs — ein Tipp lädt sie direkt in die App. Ein erneutes Laden aktualisiert die Karten des Sets.',
+    kursset_laden: 'Laden',
+    kursset_aktualisieren: 'Aktualisieren',
+    kursset_keine: 'Derzeit sind keine Kurssets hinterlegt.',
+    kursset_offline: 'Kurssets können nur mit Internetverbindung geladen werden.',
+    kursset_format: 'Ungültiges Set-Format',
+    confirm_kursset: (name) => `Set „${name}" laden?\n\nKarten dieses Sets werden ersetzt bzw. aktualisiert. Eigene Karten bleiben unberührt.`,
+    toast_kursset_ok: (name, n, a, e) => `„${name}": ${n} neu, ${a} aktualisiert${e ? `, ${e} entfernt` : ''}`,
+    toast_kursset_fehler: (msg) => `Set konnte nicht geladen werden: ${msg}`,
     ki_briefing: 'KI-Briefing für neue Karten',
     ki_briefing_desc: 'Fertiger Prompt für ChatGPT, Gemini, Claude & Co. — erklärt der KI das MemoFix-Datenformat, damit sie direkt passende Karten-Sets zum Import erzeugen kann',
     herunterladen: 'Herunterladen',
@@ -326,6 +336,16 @@ const TRANS = {
     fotos_komprimieren: 'Compress photos',
     fotos_komprimieren_desc: 'Shrinks large, uncompressed photos (e.g. added via "Edit"), saves storage space and makes exports more reliable',
     komprimieren: 'Compress',
+    kursset_titel: 'Load course sets',
+    kursset_desc: 'Ready-made card sets for your course — one tap loads them into the app. Loading again updates the cards of the set.',
+    kursset_laden: 'Load',
+    kursset_aktualisieren: 'Update',
+    kursset_keine: 'No course sets available right now.',
+    kursset_offline: 'Course sets can only be loaded with an internet connection.',
+    kursset_format: 'Invalid set format',
+    confirm_kursset: (name) => `Load set "${name}"?\n\nCards of this set are replaced or updated. Your own cards stay untouched.`,
+    toast_kursset_ok: (name, n, a, e) => `"${name}": ${n} new, ${a} updated${e ? `, ${e} removed` : ''}`,
+    toast_kursset_fehler: (msg) => `Could not load set: ${msg}`,
     ki_briefing: 'AI briefing for new cards',
     ki_briefing_desc: 'Ready-made prompt for ChatGPT, Gemini, Claude & co. — explains the MemoFix data format to the AI so it can generate ready-to-import card sets',
     herunterladen: 'Download',
@@ -622,6 +642,8 @@ function applyTranslations() {
   setTxt('btn-import-trigger', t('importieren'));
   setTxt('btn-fotos-komprimieren', t('komprimieren'));
   setTxt('btn-ki-briefing', t('herunterladen'));
+  setTxt('kursset-titel', t('kursset_titel'));
+  setTxt('kursset-desc', t('kursset_desc'));
 
   // Karte-Detail
   const swipeHint = document.getElementById('karte-detail-swipe-hint');
@@ -635,6 +657,13 @@ function applyTranslations() {
 // ── Help-Modal HTML generieren ─────────────────────────────
 function getHelpHtml() {
   const sections = currentLang === 'en' ? [
+    { title: '🚀 Getting started', rows: [
+      ['📲', '<strong>Add to Home Screen first</strong> — iPhone: Safari → Share → "Add to Home Screen" · Android (Chrome): ⋮ menu → "Install app" · Without this, Safari can delete your cards after about 7 days without use'],
+      ['📚', '<strong>Load course sets</strong> — BACKUP → "Load course sets" → tap "Load" (internet required) · loading again updates the cards of the set, your own cards stay untouched'],
+      ['💾', '<strong>Back up regularly</strong> — Cards live only on this device (no sync between devices) · BACKUP → Export · "Clear Safari data" deletes everything'],
+      ['🔄', '<strong>After an update</strong> — close the app completely and open it again, otherwise you may still see the old version'],
+      ['🎬', '<strong>Intro video</strong> — <a href="https://www.designstrategies.org/memofix-einfuhrung/" target="_blank" rel="noopener">Watch the short tutorial</a>'],
+    ]},
     { title: '🎴 Learning mode', rows: [
       ['🖼️', '<strong>Photo card: Image → Term</strong> — See the image, recall the term · Tap the card → it flips → term appears'],
       ['📖', '<strong>Term card: Term → Info</strong> — See the term, recall the info/definition · Tap to flip'],
@@ -680,6 +709,13 @@ function getHelpHtml() {
       ['🖼️', '<strong>Images missing or export stuck?</strong> — Close and reopen the app · images reload immediately · no data is lost'],
     ]},
   ] : [
+    { title: '🚀 Erste Schritte', rows: [
+      ['📲', '<strong>Zuerst zum Home-Bildschirm hinzufügen</strong> — iPhone: Safari → Teilen → „Zum Home-Bildschirm" · Android (Chrome): ⋮-Menü → „App installieren" · Ohne das kann Safari deine Karten nach etwa 7 Tagen ohne Nutzung löschen'],
+      ['📚', '<strong>Kurssets laden</strong> — SICHERUNG → „Kurssets laden" → „Laden" antippen (Internet nötig) · erneutes Laden aktualisiert die Karten des Sets, eigene Karten bleiben unberührt'],
+      ['💾', '<strong>Regelmäßig sichern</strong> — Karten liegen nur auf diesem Gerät (kein Abgleich zwischen Geräten) · SICHERUNG → Exportieren · „Safari-Daten löschen" entfernt alles'],
+      ['🔄', '<strong>Nach einem Update</strong> — App komplett schließen und neu öffnen, sonst siehst du eventuell noch die alte Version'],
+      ['🎬', '<strong>Einführungsvideo</strong> — <a href="https://www.designstrategies.org/memofix-einfuhrung/" target="_blank" rel="noopener">Kurzes Tutorial ansehen</a>'],
+    ]},
     { title: '🎴 Lernmodus', rows: [
       ['🖼️', '<strong>Foto-Karte: Bild → Begriff</strong> — Bild sehen, Begriff erinnern · Karte antippen → dreht sich um → Begriff erscheint'],
       ['📖', '<strong>Begriff-Karte: Begriff → Info</strong> — Begriff sehen, Info/Definition erinnern · Karte antippen → dreht sich um'],
@@ -2941,6 +2977,7 @@ function showView(name) {
     renderLernAuswahl();
   }
   if (name === 'statistik') renderStatistik();
+  if (name === 'sicherung') ladeKurssetListe();
 }
 
 // ============================================================
@@ -2964,6 +3001,77 @@ function dataUrlToBlob(dataUrl) {
   for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
   return new Blob([arr], { type: mime });
 }
+
+// ── KURSSETS: Sets von der eigenen Domain laden (kurssets/index.json) ──
+async function ladeKurssetListe() {
+  const box = document.getElementById('kursset-liste');
+  if (!box) return;
+  try {
+    const r = await fetch('kurssets/index.json?cb=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const idx  = await r.json();
+    const sets = Array.isArray(idx.sets) ? idx.sets : [];
+    box._sets = sets;
+    if (!sets.length) { box.innerHTML = `<p class="kursset-hinweis">${esc(t('kursset_keine'))}</p>`; return; }
+    box.innerHTML = sets.map(set => {
+      const geladen = studenten.some(k => k.kurssetId === set.id);
+      return `<div class="kursset-zeile">
+        <div class="kursset-info"><strong>${esc(set.titel || set.id)}</strong>${set.beschreibung ? `<span>${esc(set.beschreibung)}</span>` : ''}</div>
+        <button class="btn-secondary btn-inline" data-kursset="${esc(set.id)}">${esc(t(geladen ? 'kursset_aktualisieren' : 'kursset_laden'))}</button>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    box._sets = [];
+    box.innerHTML = `<p class="kursset-hinweis">${esc(t('kursset_offline'))}</p>`;
+  }
+}
+
+// Karten dieses Sets werden über ihre ID ersetzt; vom Set entfernte Karten verschwinden,
+// eigene Karten der Studierenden (ohne kurssetId) bleiben unberührt.
+async function ladeKursset(set) {
+  if (!confirm(tf('confirm_kursset', set.titel || set.id))) return;
+  try {
+    const r = await fetch('kurssets/' + encodeURIComponent(set.datei) + '?cb=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const daten = await r.json();
+    if (!Array.isArray(daten.studenten) || !Array.isArray(daten.gruppen)) throw new Error(t('kursset_format'));
+
+    for (const sam of (daten.sammlungen || [])) {
+      const vorh = sammlungen.find(x => x.id === sam.id);
+      await dbPut('sammlungen', vorh ? { ...vorh, name: sam.name } : sam);
+    }
+    for (const g of daten.gruppen) {
+      const vorh = gruppen.find(x => x.id === g.id);
+      await dbPut('gruppen', vorh ? { ...vorh, name: g.name, sammlungId: g.sammlungId } : g);
+    }
+    const neueIds = new Set();
+    let neu = 0, aktualisiert = 0, entfernt = 0;
+    for (const k of daten.studenten) {
+      const vorh = studenten.find(x => x.id === k.id);
+      neueIds.add(k.id);
+      const rec = { ...k, ...importFotosFelder(k), kurssetId: set.id };
+      if (vorh?.favorit) rec.favorit = true;
+      revokeUrl(k.id);
+      await dbPut('studenten', rec);
+      vorh ? aktualisiert++ : neu++;
+    }
+    for (const k of studenten.filter(x => x.kurssetId === set.id && !neueIds.has(x.id))) {
+      await dbDelete('studenten', k.id); revokeUrl(k.id); entfernt++;
+    }
+    await ladeAlles();
+    renderVerwaltung(); renderLernAuswahl(); ladeKurssetListe();
+    toast(tf('toast_kursset_ok', set.titel || set.id, neu, aktualisiert, entfernt));
+  } catch (err) {
+    toast(tf('toast_kursset_fehler', err.message));
+  }
+}
+
+document.getElementById('kursset-liste')?.addEventListener('click', e => {
+  const btn = e.target.closest('[data-kursset]');
+  if (!btn) return;
+  const set = (document.getElementById('kursset-liste')._sets || []).find(x => x.id === btn.dataset.kursset);
+  if (set) ladeKursset(set);
+});
 
 // Konvertiert importierte foto/fotos-Felder (dataURLs) zurück in Blobs
 // (Begriff-Karten können optional ebenfalls Fotos auf der Rückseite haben)
