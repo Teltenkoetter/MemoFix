@@ -1990,26 +1990,32 @@ body.praesi #btn-mischen,
 body.praesi #btn-lern-favorit,
 body.praesi .lern-progress-track { display: none !important; }
 body.praesi .lernkarte { border-radius: 0; box-shadow: none; }
-body.praesi .lern-header {
-  position: absolute; top: 0; left: 0; right: auto; z-index: 30;
-  opacity: 0.55; padding: 0; background: none;
-  /* iPhone-Querformat: Abstand zur abgerundeten Ecke / Notch */
-  margin-left: calc(env(safe-area-inset-left, 0px) + 10px);
-  margin-top: calc(env(safe-area-inset-top, 0px) + 6px);
-}
-/* Nur ein ✕ mit großem Touchbereich (48 px) */
+body.praesi .lern-header { position: static; height: 0; padding: 0; background: none; opacity: 1; }
+/* Bedienelemente sitzen INNERHALB der 16:9-Bühne mit festem Abstand zu deren Kanten
+   (nicht zum Bildschirmrand) — so werden sie nie von den runden iPhone-Ecken abgeschnitten.
+   Bühne: Breite W = min(100vw, 100dvh*16/9), Höhe = min(100dvh, 100vw*9/16) */
 body.praesi #btn-beenden {
-  font-size: 0; width: 48px; height: 48px; padding: 0;
+  position: fixed; z-index: 40;
+  top: calc(50% - min(50dvh, 50vw * 9 / 16) + 14px);
+  right: calc(50% - min(50vw, 50dvh * 16 / 9) + 14px);
+  width: 44px; height: 44px; padding: 0; border-radius: 50%;
+  font-size: 0;
   display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.28);
+  opacity: 0.75;
 }
-body.praesi #btn-beenden::before { content: '✕'; font-size: 22px; color: var(--text); }
+body.praesi #btn-beenden::before { content: '✕'; font-size: 18px; color: var(--text); }
 /* Fortschritt dezent unten rechts — feste px-Werte, damit die Position bei
    Schriftanpassung (Vorder-/Rückseite) nicht springt */
 body.praesi .lern-progress-wrap {
-  position: fixed; margin: 0; padding: 0; gap: 0;
-  right: calc(env(safe-area-inset-right, 0px) + 18px);
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
-  font-size: 14px;
+  position: fixed; z-index: 40; margin: 0; padding: 0; gap: 0;
+  bottom: calc(50% - min(50dvh, 50vw * 9 / 16) + 14px);
+  right: calc(50% - min(50vw, 50dvh * 16 / 9) + 18px);
+  font-size: 14px; opacity: 0.6;
 }
 body.praesi .lern-position-counter,
 body.praesi .lern-position-counter .counter-total { font-size: 14px; letter-spacing: 0.3px; }
+
+/* "Lernen starten" + Kartenanzahl in zwei Zeilen */
+.lern-start-row .btn-primary.btn-large { line-height: 1.25; }
+.btn-primary .start-n { display: block; font-size: 0.85em; font-weight: 600; opacity: 0.8; }

@@ -2408,7 +2408,10 @@ function updateLernStartBtn() {
   const total = getSelectedGids().reduce((s, gid) => s + gruppeKartenAnzahl(gid), 0);
   const btn = document.getElementById('btn-lernen-start');
   btn.disabled = total === 0;
-  btn.textContent = total > 0 ? tf('lernen_starten_n', total) : t('lernen_starten');
+  const label = total > 0 ? tf('lernen_starten_n', total) : t('lernen_starten');
+  const m = label.match(/^(.*?)\s*(\(.*\))$/);
+  if (m) btn.innerHTML = `${esc(m[1])}<span class="start-n">${esc(m[2])}</span>`;
+  else btn.textContent = label;
   const fs = document.getElementById('btn-fullscreen169');
   if (fs) fs.disabled = total === 0;
 }
