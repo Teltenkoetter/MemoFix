@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=49">
+  <link rel="stylesheet" href="style.css?v=50">
 </head>
 <body>
 
@@ -598,9 +598,20 @@
     <section id="view-sicherung" class="view hidden">
 
       <div class="card" id="kursset-card">
-        <strong id="kursset-titel">Kurssets laden</strong>
-        <p id="kursset-desc" class="kursset-desc">Fertige Kartensets zum Kurs — ein Tipp lädt sie direkt in die App. Ein erneutes Laden aktualisiert die Karten des Sets.</p>
+        <strong id="kursset-titel">Kursset importieren</strong>
+        <p id="kursset-desc" class="kursset-desc">Fertige Kartensets zum Kurs — ein Tipp importiert sie direkt in die App. Erneutes Importieren aktualisiert die Karten des Sets.</p>
         <div id="kursset-liste" class="kursset-liste"></div>
+      </div>
+
+      <div class="card">
+        <div class="sicherung-zeile">
+          <div class="sicherung-info">
+            <strong>Aus Datei importieren</strong>
+            <p>Karten aus einer Backup-Datei laden</p>
+          </div>
+          <button id="btn-import-trigger" class="btn-secondary btn-inline">Importieren</button>
+          <input type="file" id="input-import" accept=".json" class="hidden">
+        </div>
       </div>
 
       <div class="card">
@@ -610,17 +621,6 @@
             <p>Einzelne Gruppen oder alles als Backup speichern</p>
           </div>
           <button id="btn-export" class="btn-primary btn-inline">Exportieren</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="sicherung-zeile">
-          <div class="sicherung-info">
-            <strong>Importieren</strong>
-            <p>Karten aus einer Backup-Datei laden</p>
-          </div>
-          <button id="btn-import-trigger" class="btn-secondary btn-inline">Importieren</button>
-          <input type="file" id="input-import" accept=".json" class="hidden">
         </div>
       </div>
 
@@ -645,8 +645,8 @@
       </div>
 
       <div class="card info-card">
-        <strong>⚠️ Datenspeicher</strong>
-        <p style="font-size:0.82rem;color:var(--muted);line-height:1.6;margin-top:0.4rem">Karten werden lokal im Browser gespeichert. Erstellen Sie regelmäßig Backups — z.&nbsp;B. wenn Sie Safari-Daten löschen, gehen die Karten verloren.</p>
+        <strong>💾 Nur auf diesem Gerät gespeichert</strong>
+        <p style="font-size:0.82rem;color:var(--muted);line-height:1.6;margin-top:0.4rem">Deine Karten liegen nur auf diesem Gerät. Exportiere sie ab und zu als Backup — z.&nbsp;B. bevor du Safari-Daten löschst oder das Gerät wechselst.</p>
       </div>
 
     </section>
@@ -730,6 +730,6 @@
     <div id="video-overlay-title" class="video-overlay-title"></div>
   </div>
 
-  <script src="app.js?v=67"></script>
+  <script src="app.js?v=68"></script>
 </body>
 </html>

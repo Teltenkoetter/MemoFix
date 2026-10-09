@@ -114,25 +114,26 @@ const TRANS = {
     exportieren: 'Exportieren',
     exportieren_desc: 'Einzelne Gruppen oder alles als Backup speichern',
     importieren: 'Importieren',
+    importieren_datei: 'Aus Datei importieren',
     importieren_desc: 'Karten aus einer Backup-Datei laden',
     fotos_komprimieren: 'Fotos komprimieren',
     fotos_komprimieren_desc: 'Verkleinert große, unkomprimierte Fotos (z. B. über „Bearbeiten" hinzugefügt), spart Speicherplatz und macht Exporte zuverlässiger',
     komprimieren: 'Komprimieren',
-    kursset_titel: 'Kurssets laden',
-    kursset_desc: 'Fertige Kartensets zum Kurs — ein Tipp lädt sie direkt in die App. Ein erneutes Laden aktualisiert die Karten des Sets.',
-    kursset_laden: 'Laden',
+    kursset_titel: 'Kursset importieren',
+    kursset_desc: 'Fertige Kartensets zum Kurs — ein Tipp importiert sie direkt in die App. Erneutes Importieren aktualisiert die Karten des Sets.',
+    kursset_laden: 'Importieren',
     kursset_aktualisieren: 'Aktualisieren',
     kursset_keine: 'Derzeit sind keine Kurssets hinterlegt.',
     kursset_offline: 'Kurssets können nur mit Internetverbindung geladen werden.',
     kursset_format: 'Ungültiges Set-Format',
-    confirm_kursset: (name) => `Set „${name}" laden?\n\nKarten dieses Sets werden ersetzt bzw. aktualisiert. Eigene Karten bleiben unberührt.`,
+    confirm_kursset: (name) => `Set „${name}" importieren?\n\nKarten dieses Sets werden ersetzt bzw. aktualisiert. Eigene Karten bleiben unberührt.`,
     toast_kursset_ok: (name, n, a, e) => `„${name}": ${n} neu, ${a} aktualisiert${e ? `, ${e} entfernt` : ''}`,
-    toast_kursset_fehler: (msg) => `Set konnte nicht geladen werden: ${msg}`,
+    toast_kursset_fehler: (msg) => `Set konnte nicht importiert werden: ${msg}`,
     ki_briefing: 'KI-Briefing für neue Karten',
     ki_briefing_desc: 'Fertiger Prompt für ChatGPT, Gemini, Claude & Co. — erklärt der KI das MemoFix-Datenformat, damit sie direkt passende Karten-Sets zum Import erzeugen kann',
     herunterladen: 'Herunterladen',
-    datenspeicher_title: '⚠️ Datenspeicher',
-    datenspeicher_text: 'Karten werden lokal im Browser gespeichert. Erstellen Sie regelmäßig Backups — z. B. wenn Sie Safari-Daten löschen, gehen die Karten verloren.',
+    datenspeicher_title: '💾 Nur auf diesem Gerät gespeichert',
+    datenspeicher_text: 'Deine Karten liegen nur auf diesem Gerät. Exportiere sie ab und zu als Backup — z. B. bevor du Safari-Daten löschst oder das Gerät wechselst.',
     // ── Export-Modal ──────────────────────────────────────
     gruppen_exportieren: 'Gruppen exportieren',
     welche_gruppen: 'Welche Gruppen sollen exportiert werden?',
@@ -332,25 +333,26 @@ const TRANS = {
     exportieren: 'Export',
     exportieren_desc: 'Save individual groups or everything as a backup',
     importieren: 'Import',
+    importieren_datei: 'Import from file',
     importieren_desc: 'Load cards from a backup file',
     fotos_komprimieren: 'Compress photos',
     fotos_komprimieren_desc: 'Shrinks large, uncompressed photos (e.g. added via "Edit"), saves storage space and makes exports more reliable',
     komprimieren: 'Compress',
-    kursset_titel: 'Load course sets',
-    kursset_desc: 'Ready-made card sets for your course — one tap loads them into the app. Loading again updates the cards of the set.',
-    kursset_laden: 'Load',
+    kursset_titel: 'Import course set',
+    kursset_desc: 'Ready-made card sets for your course — one tap imports them into the app. Importing again updates the cards of the set.',
+    kursset_laden: 'Import',
     kursset_aktualisieren: 'Update',
     kursset_keine: 'No course sets available right now.',
     kursset_offline: 'Course sets can only be loaded with an internet connection.',
     kursset_format: 'Invalid set format',
-    confirm_kursset: (name) => `Load set "${name}"?\n\nCards of this set are replaced or updated. Your own cards stay untouched.`,
+    confirm_kursset: (name) => `Import set "${name}"?\n\nCards of this set are replaced or updated. Your own cards stay untouched.`,
     toast_kursset_ok: (name, n, a, e) => `"${name}": ${n} new, ${a} updated${e ? `, ${e} removed` : ''}`,
-    toast_kursset_fehler: (msg) => `Could not load set: ${msg}`,
+    toast_kursset_fehler: (msg) => `Could not import set: ${msg}`,
     ki_briefing: 'AI briefing for new cards',
     ki_briefing_desc: 'Ready-made prompt for ChatGPT, Gemini, Claude & co. — explains the MemoFix data format to the AI so it can generate ready-to-import card sets',
     herunterladen: 'Download',
-    datenspeicher_title: '⚠️ Data storage',
-    datenspeicher_text: 'Cards are stored locally in the browser. Create regular backups — e.g. clearing Safari data will also delete all cards.',
+    datenspeicher_title: '💾 Stored on this device only',
+    datenspeicher_text: 'Your cards are stored only on this device. Export a backup now and then — e.g. before clearing Safari data or switching devices.',
     // ── Export-Modal ──────────────────────────────────────
     gruppen_exportieren: 'Export groups',
     welche_gruppen: 'Which groups should be exported?',
@@ -629,8 +631,8 @@ function applyTranslations() {
 
   // Sicherung
   document.querySelectorAll('#view-sicherung .sicherung-info').forEach((el, i) => {
-    if (i === 0) { el.querySelector('strong').textContent = t('exportieren'); el.querySelector('p').textContent = t('exportieren_desc'); }
-    if (i === 1) { el.querySelector('strong').textContent = t('importieren'); el.querySelector('p').textContent = t('importieren_desc'); }
+    if (i === 0) { el.querySelector('strong').textContent = t('importieren_datei'); el.querySelector('p').textContent = t('importieren_desc'); }
+    if (i === 1) { el.querySelector('strong').textContent = t('exportieren'); el.querySelector('p').textContent = t('exportieren_desc'); }
     if (i === 2) { el.querySelector('strong').textContent = t('fotos_komprimieren'); el.querySelector('p').textContent = t('fotos_komprimieren_desc'); }
     if (i === 3) { el.querySelector('strong').textContent = t('ki_briefing'); el.querySelector('p').textContent = t('ki_briefing_desc'); }
   });
@@ -659,7 +661,7 @@ function getHelpHtml() {
   const sections = currentLang === 'en' ? [
     { title: '🚀 Getting started', rows: [
       ['📲', '<strong>Add to Home Screen first</strong> — iPhone: Safari → Share → "Add to Home Screen" · Android (Chrome): ⋮ menu → "Install app" · Without this, Safari can delete your cards after about 7 days without use'],
-      ['📚', '<strong>Load course sets</strong> — BACKUP → "Load course sets" → tap "Load" (internet required) · loading again updates the cards of the set, your own cards stay untouched'],
+      ['📚', '<strong>Import course set</strong> — BACKUP → "Import course set" → tap "Import" (internet required) · importing again updates the cards of the set, your own cards stay untouched'],
       ['💾', '<strong>Back up regularly</strong> — Cards live only on this device (no sync between devices) · BACKUP → Export · "Clear Safari data" deletes everything'],
       ['🔄', '<strong>After an update</strong> — close the app completely and open it again, otherwise you may still see the old version'],
       ['🎬', '<strong>Intro video</strong> — <a href="https://www.designstrategies.org/memofix-einfuhrung/" target="_blank" rel="noopener">Watch the short tutorial</a>'],
@@ -693,7 +695,7 @@ function getHelpHtml() {
       ['📋', '<strong>Copy</strong> — Duplicate card into another group (✏️ opens Edit modal)'],
       ['🎨', '<strong>Collection colour</strong> — Tap the colour dot next to the collection name · appears as left stripe and card background in learning mode'],
       ['🔗', '<strong>Links</strong> — Add links when editing a card (e.g. Wikipedia, YouTube) · shown as tappable links when revealed'],
-      ['💬', '<strong>Note</strong> — Short extra info per card (max. 250 chars) · shown when revealed · formatting: <strong>**bold**</strong>, blank line = new paragraph, lines starting with <strong>- </strong> = bullet list, a paragraph starting with <strong>&gt; </strong> = highlighted call-out box'],
+      ['💬', '<strong>Note</strong> — Short extra info per card (max. 250 chars) · shown when revealed · formatting: <strong>**bold**</strong> · blank line = new paragraph · lines starting with <strong>- </strong> = bullet list · a paragraph starting with <strong>&gt; </strong> = highlighted call-out box'],
       ['🔄', '<strong>Remembers your state</strong> — Expanded collections/groups and the last-used tab are restored the next time you open the app'],
     ]},
     { title: '💾 Storage & Backup', rows: [
@@ -711,7 +713,7 @@ function getHelpHtml() {
   ] : [
     { title: '🚀 Erste Schritte', rows: [
       ['📲', '<strong>Zuerst zum Home-Bildschirm hinzufügen</strong> — iPhone: Safari → Teilen → „Zum Home-Bildschirm" · Android (Chrome): ⋮-Menü → „App installieren" · Ohne das kann Safari deine Karten nach etwa 7 Tagen ohne Nutzung löschen'],
-      ['📚', '<strong>Kurssets laden</strong> — SICHERUNG → „Kurssets laden" → „Laden" antippen (Internet nötig) · erneutes Laden aktualisiert die Karten des Sets, eigene Karten bleiben unberührt'],
+      ['📚', '<strong>Kursset importieren</strong> — SICHERUNG → „Kursset importieren" → „Importieren" antippen (Internet nötig) · erneutes Importieren aktualisiert die Karten des Sets, eigene Karten bleiben unberührt'],
       ['💾', '<strong>Regelmäßig sichern</strong> — Karten liegen nur auf diesem Gerät (kein Abgleich zwischen Geräten) · SICHERUNG → Exportieren · „Safari-Daten löschen" entfernt alles'],
       ['🔄', '<strong>Nach einem Update</strong> — App komplett schließen und neu öffnen, sonst siehst du eventuell noch die alte Version'],
       ['🎬', '<strong>Einführungsvideo</strong> — <a href="https://www.designstrategies.org/memofix-einfuhrung/" target="_blank" rel="noopener">Kurzes Tutorial ansehen</a>'],
@@ -745,7 +747,7 @@ function getHelpHtml() {
       ['📋', '<strong>Kopieren</strong> — Karte in eine andere Gruppe duplizieren (✏️ öffnet Bearbeiten-Modal)'],
       ['🎨', '<strong>Sammlungsfarbe</strong> — Farbpunkt neben dem Sammlungsnamen antippen · Farbe erscheint als Streifen links und als Kartenhintergrund im Lernmodus'],
       ['🔗', '<strong>Links</strong> — beim Bearbeiten einer Karte Links hinzufügen (z.&nbsp;B. Wikipedia, YouTube) · erscheinen beim Aufdecken als tippbare Verweise'],
-      ['💬', '<strong>Notiz</strong> — kurze Zusatzinfo pro Karte (max. 250 Zeichen) · wird beim Aufdecken angezeigt · Formatierung: <strong>**fett**</strong>, Leerzeile = neuer Absatz, Zeilen mit <strong>- </strong> = Aufzählung, Absatz mit <strong>&gt; </strong> = hervorgehobener Kasten (Callout)'],
+      ['💬', '<strong>Notiz</strong> — kurze Zusatzinfo pro Karte (max. 250 Zeichen) · wird beim Aufdecken angezeigt · Formatierung: <strong>**fett**</strong> · Leerzeile = neuer Absatz · Zeilen mit <strong>- </strong> = Aufzählung · Absatz mit <strong>&gt; </strong> = hervorgehobener Kasten (Callout)'],
       ['🔄', '<strong>Merkt sich deinen Stand</strong> — aufgeklappte Sammlungen/Gruppen und der zuletzt genutzte Bereich sind beim nächsten Öffnen wieder da'],
     ]},
     { title: '💾 Datenspeicher & Backup', rows: [
@@ -767,11 +769,15 @@ function getHelpHtml() {
     <div class="modal-section">
       <div class="modal-section-title">${sec.title}</div>
       <div class="anleitung-zeilen">
-        ${sec.rows.map(([icon, text]) => `
+        ${sec.rows.map(([icon, text]) => {
+          // " · " trennt Teilpunkte: erster Teil bleibt Fließtext, die weiteren werden Aufzählung
+          const teile = text.split(/ · (?!\d)/);
+          const liste = teile.length > 1 ? `<ul class="anleitung-liste">${teile.slice(1).map(x => `<li>${x}</li>`).join('')}</ul>` : '';
+          return `
           <div class="anleitung-zeile">
             <span class="anleitung-icon">${icon}</span>
-            <div class="anleitung-text">${text}</div>
-          </div>`).join('')}
+            <div class="anleitung-text">${teile[0]}${liste}</div>
+          </div>`; }).join('')}
       </div>
     </div>`).join('') +
     `<p class="modal-meta-device">📱 ${currentLang === 'en' ? 'Optimised for iPhone portrait' : 'Optimiert für iPhone im Hochformat'}</p>

@@ -2033,3 +2033,7 @@ body.praesi .lern-position-counter .counter-total { font-size: 14px; letter-spac
 .kursset-info span { font-size: 0.78rem; color: var(--muted); }
 .kursset-hinweis { font-size: 0.82rem; color: var(--muted); }
 .anleitung-text a { color: var(--accent, #6a8fff); text-decoration: underline; }
+
+/* Hilfe: Teilpunkte als Aufzählung auf neuer Zeile */
+.anleitung-liste { margin: 0.35rem 0 0; padding-left: 1.1rem; list-style: disc; }
+.anleitung-liste li { margin: 0.15rem 0; padding: 0; }
