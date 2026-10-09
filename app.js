@@ -2584,6 +2584,7 @@ function zeigeKarte() {
   document.getElementById('lern-name-text').textContent         = s.name;
   document.getElementById('lern-gruppe-text').textContent       = gName;
   document.getElementById('lern-name-karte-gruppe').textContent = gName;
+  document.getElementById('lern-text-gruppe').textContent = gName;
   document.getElementById('lern-favorit-stern').classList.toggle('hidden', !s.favorit);
   // Favorit-Button im Header: immer sichtbar, Zustand sofort aktualisieren
   const favHdrBtn = document.getElementById('btn-lern-favorit');

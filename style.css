@@ -536,12 +536,27 @@ textarea.input-notiz::placeholder { color: var(--muted); }
 #lern-notiz-text-rueck > .notiz-callout,
 .karte-detail-notiz > .notiz-callout { margin-top: 0.8em; margin-bottom: 0.8em; }
 
-/* Rückseite von Text-Karten: Titel/Text linksbündig, fluchtend mit dem Notiz-Block */
-.lernkarte-text-vorderseite { align-items: stretch; }
+/* Rückseite von Text-Karten: ein oben verankerter Block (Gruppenlabel, Titel, Notiz),
+   linksbündig und bei allen Karten auf gleicher Höhe */
+.lernkarte-text-vorderseite { align-items: stretch; justify-content: flex-start; }
+.lernkarte-text-vorderseite > * { margin-top: 0; margin-bottom: 0; }
+.lernkarte-text-vorderseite > *:first-child { margin-top: 0; }
+.lernkarte-text-vorderseite > *:last-child  { margin-bottom: 0; }
+.lern-text-gruppe {
+  font-size: 0.7rem; font-weight: 600; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.6px;
+  font-family: 'Inter', sans-serif; text-align: left;
+  margin-bottom: 0.5rem;
+}
+.lern-text-gruppe:empty { display: none; }
 .lernkarte-text-vorderseite p { text-align: left; }
+.lernkarte-text-vorderseite #lern-vorderseite-text > p {
+  font-size: 1.4rem; font-weight: 700; line-height: 1.25; color: var(--text);
+}
 .lernkarte-text-vorderseite .lern-vorderseite-liste { max-width: none; }
 .lernkarte-text-vorderseite .header-zeile { margin-left: 0; }
-.lernkarte-text-vorderseite #lern-notiz-text-rueck { max-width: 100%; }
+.lernkarte-text-vorderseite #lern-notiz-text-rueck { max-width: 100%; margin-top: 28px; }
+.lernkarte-text-vorderseite .lern-text-fotos { margin-top: 24px; }
 
 /* Notiz im Text-Rückseiten-Bereich */
 #lern-notiz-text-rueck {
