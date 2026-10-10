@@ -1555,6 +1555,8 @@ function speichereKartenReihenfolge(gruppeId, ids) {
 }
 function getSortierteKartenInGruppe(gruppeId) {
   const karten = studenten.filter(s => s.gruppeId === gruppeId);
+  // Tutorial: immer in inhaltlicher Reihenfolge (ID 01…08), unabhängig von der Sortierauswahl
+  if (gruppeId.startsWith('tutorial-')) return [...karten].sort((a, b) => a.id < b.id ? -1 : 1);
   const sort   = document.getElementById('select-karten-sort')?.value || 'manuell';
 
   const loc = istEn() ? 'en' : 'de';
@@ -2280,7 +2282,7 @@ function karteItemHtml(s, idx, total) {
        <input type="file" accept="image/*" class="karte-foto-input" data-id="${s.id}">`;
   }
   const sortVal  = document.getElementById('select-karten-sort')?.value || 'manuell';
-  const showMove = (total > 1) && (sortVal === 'manuell');
+  const showMove = (total > 1) && (sortVal === 'manuell') && !String(s.gruppeId).startsWith('tutorial-');
   return `
     <div class="karte-item">
       <div class="karte-foto-wrapper">
