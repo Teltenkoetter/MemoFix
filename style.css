@@ -2079,3 +2079,10 @@ body.praesi .lern-position-counter .counter-total { font-size: 14px; letter-spac
 .ks-ordner[open] > summary::before { transform: rotate(90deg); }
 .ks-ordner > :not(summary) { margin-left: 0.9rem; }
 .ks-ebene-2 > summary { font-weight: 500; }
+
+/* ── EXPORT: Sammlungen einklappbar, keine Vorauswahl ──── */
+.export-sammlung-header { cursor: pointer; }
+.export-sammlung-pfeil { display: inline-block; font-size: 0.8rem; transition: transform 0.15s; }
+.export-sammlung-header.offen .export-sammlung-pfeil { transform: rotate(90deg); }
+.export-sam-count { font-size: 0.7rem; font-weight: 700; color: var(--accent); margin-right: 0.3rem; }
+.export-sam-body.hidden { display: none; }

@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=54">
+  <link rel="stylesheet" href="style.css?v=55">
 </head>
 <body>
 
@@ -309,6 +309,9 @@
           <button class="export-fmt-btn active" data-fmt="datei">📦 Datei</button>
           <button class="export-fmt-btn" data-fmt="pdf">🖨 PDF</button>
         </div>
+        <label class="modal-hint" style="display:flex;align-items:center;gap:0.5rem;margin-top:0.6rem;cursor:pointer">
+          <input type="checkbox" id="export-ohne-bilder"> <span id="export-ohne-bilder-txt">Ohne Bilder (nur Text, Links, Struktur)</span>
+        </label>
         <button id="btn-export-start" class="btn-primary" style="margin-top:0.75rem">Exportieren</button>
         <p id="export-ios-hinweis" class="modal-hint hidden" style="margin-top:0.75rem;font-size:0.78rem;line-height:1.5">
           📱 <strong>iPhone / iPad:</strong> Die Datei wird über das Teilen-Menü geöffnet. Tippe dort auf <em>„In Dateien sichern"</em>, um den Speicherort selbst zu wählen.
@@ -788,6 +791,6 @@
     <div id="video-overlay-title" class="video-overlay-title"></div>
   </div>
 
-  <script src="app.js?v=76"></script>
+  <script src="app.js?v=79"></script>
 </body>
 </html>

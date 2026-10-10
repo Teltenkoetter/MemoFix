@@ -155,6 +155,7 @@ const TRANS = {
     gruppen_exportieren: 'Gruppen exportieren',
     welche_gruppen: 'Welche Gruppen sollen exportiert werden?',
     exportieren_start: 'Exportieren',
+    export_ohne_bilder: 'Ohne Bilder (nur Text, Links, Struktur)',
     pdf_drucken: '🖨 PDF drucken',
     ios_hinweis: '📱 <strong>iPhone / iPad:</strong> Die Datei wird über das Teilen-Menü geöffnet. Tippe dort auf <em>„In Dateien sichern"</em>, um den Speicherort selbst zu wählen.',
     pdf_hinweis: '🖨 Im Druckdialog <em>„Als PDF sichern"</em> wählen · <strong>iPhone:</strong> Teilen-Symbol → „In Dateien sichern"',
@@ -391,6 +392,7 @@ const TRANS = {
     gruppen_exportieren: 'Export groups',
     welche_gruppen: 'Which groups should be exported?',
     exportieren_start: 'Export',
+    export_ohne_bilder: 'Without images (text, links, structure only)',
     pdf_drucken: '🖨 Print PDF',
     ios_hinweis: '📱 <strong>iPhone / iPad:</strong> The file opens via the share menu. Tap <em>"Save to Files"</em> to choose the location.',
     pdf_hinweis: '🖨 In the print dialog choose <em>"Save as PDF"</em> · <strong>iPhone:</strong> Share icon → "Save to Files"',
@@ -558,6 +560,7 @@ function applyTranslations() {
   setTxt('btn-export-alle',  t('alle'));
   setTxt('btn-export-keine', t('keine'));
   setTxt('btn-export-start', t('exportieren_start'));
+  setTxt('export-ohne-bilder-txt', t('export_ohne_bilder'));
   const iosHint = document.getElementById('export-ios-hinweis');
   if (iosHint) iosHint.innerHTML = t('ios_hinweis');
   const pdfHint = document.getElementById('export-pdf-hinweis');
@@ -4441,6 +4444,17 @@ document.getElementById('btn-statistik-loeschen').addEventListener('click', asyn
 // EVENTS – SICHERUNG (Export- und Import-Modals)
 // ============================================================
 
+// Anzahl gewählter Gruppen pro Sammlung im Kopf anzeigen (Sammlungen sind eingeklappt)
+function aktualisiereExportZaehler() {
+  document.querySelectorAll('#export-gruppen-liste .export-sammlung-header').forEach(h => {
+    const sid = h.dataset.samToggle;
+    const items = [...document.querySelectorAll(`#export-gruppen-liste .gruppe-check-item[data-export-sam="${sid}"]`)];
+    const n = items.filter(i => i.classList.contains('selected')).length;
+    const el = h.querySelector('.export-sam-count');
+    if (el) { el.textContent = n ? `${n} ✓` : ''; el.classList.toggle('aktiv', n > 0); }
+  });
+}
+
 // Export Modal öffnen
 document.getElementById('btn-export').addEventListener('click', () => {
   if (!gruppen.length) { toast(t('toast_keine_gruppen')); return; }
@@ -4452,15 +4466,15 @@ document.getElementById('btn-export').addEventListener('click', () => {
     if (sel) Object.assign(cb.style, { background: 'var(--accent)', borderColor: 'var(--accent)', color: '#000' });
     else      Object.assign(cb.style, { background: '', borderColor: '', color: 'transparent' });
   }
-  function checkBoxHtml(selected = true) {
+  function checkBoxHtml(selected = false) {
     return selected
       ? `<div class="check-box" style="background:var(--accent);border-color:var(--accent);color:#000">✓</div>`
       : `<div class="check-box" style="color:transparent">✓</div>`;
   }
   function gruppeItemHtml(g, samId) {
     const n = gruppeKartenAnzahl(g.id);
-    return `<div class="gruppe-check-item selected" data-gid="${g.id}" data-export-sam="${samId}">
-      ${checkBoxHtml(true)}
+    return `<div class="gruppe-check-item" data-gid="${g.id}" data-export-sam="${samId}">
+      ${checkBoxHtml(false)}
       <div class="check-label">
         <strong>${esc(gruppeName(g))}</strong>
         <span>${n} Karte${n !== 1 ? 'n' : ''}</span>
@@ -4475,10 +4489,12 @@ document.getElementById('btn-export').addEventListener('click', () => {
     const gs = getSortierteGruppenInSammlung(sam.id);
     if (!gs.length) return;
     const samFavs = studenten.filter(s => s.favorit && gs.some(g => g.id === s.gruppeId));
-    html += `<div class="export-sammlung-header">
+    html += `<div class="export-sammlung-header" data-sam-toggle="${sam.id}">
+      <span class="export-sammlung-pfeil">▸</span>
       <span class="export-sammlung-name">${esc(sammlungName(sam))}</span>
+      <span class="export-sam-count"></span>
       <button class="btn-export-sam-alle" data-sam-id="${sam.id}">${t('alle')}</button>
-    </div>`;
+    </div><div class="export-sam-body hidden" data-body-sam="${sam.id}">`;
     if (samFavs.length) {
       html += `<div class="gruppe-check-item fav-gruppe-item" data-gid="__favoriten__:${sam.id}" data-export-sam="${sam.id}">
         ${checkBoxHtml(false)}
@@ -4488,22 +4504,33 @@ document.getElementById('btn-export').addEventListener('click', () => {
         </div>
       </div>`;
     }
-    html += gs.map(g => gruppeItemHtml(g, sam.id)).join('');
+    html += gs.map(g => gruppeItemHtml(g, sam.id)).join('') + '</div>';
   });
   // Orphan-Gruppen
   const orphans = gruppen.filter(g => !g.sammlungId || !sammlungen.find(s => s.id === g.sammlungId));
   if (orphans.length) {
-    html += `<div class="export-sammlung-header">
+    html += `<div class="export-sammlung-header" data-sam-toggle="__orphan__">
+      <span class="export-sammlung-pfeil">▸</span>
       <span class="export-sammlung-name" style="opacity:.65">${t('ohne_sammlung')}</span>
+      <span class="export-sam-count"></span>
       <button class="btn-export-sam-alle" data-sam-id="__orphan__">${t('alle')}</button>
-    </div>`;
-    html += orphans.map(g => gruppeItemHtml(g, '__orphan__')).join('');
+    </div><div class="export-sam-body hidden" data-body-sam="__orphan__">`;
+    html += orphans.map(g => gruppeItemHtml(g, '__orphan__')).join('') + '</div>';
   }
   container.innerHTML = html;
 
   // Einzelne Gruppen toggeln
   container.querySelectorAll('.gruppe-check-item').forEach(item => {
-    item.addEventListener('click', () => setExportSel(item, !item.classList.contains('selected')));
+    item.addEventListener('click', () => { setExportSel(item, !item.classList.contains('selected')); aktualisiereExportZaehler(); });
+  });
+  // Sammlung auf-/zuklappen (Klick auf Kopfzeile)
+  container.querySelectorAll('.export-sammlung-header').forEach(h => {
+    h.addEventListener('click', e => {
+      if (e.target.closest('.btn-export-sam-alle')) return;
+      const body = container.querySelector(`.export-sam-body[data-body-sam="${h.dataset.samToggle}"]`);
+      const zu = body.classList.toggle('hidden');
+      h.classList.toggle('offen', !zu);
+    });
   });
   // Alle-Button pro Sammlung
   container.querySelectorAll('.btn-export-sam-alle').forEach(btn => {
@@ -4513,8 +4540,10 @@ document.getElementById('btn-export').addEventListener('click', () => {
       const items = container.querySelectorAll(`.gruppe-check-item[data-export-sam="${sid}"]`);
       const allSel = [...items].every(el => el.classList.contains('selected'));
       items.forEach(item => setExportSel(item, !allSel));
+      aktualisiereExportZaehler();
     });
   });
+  aktualisiereExportZaehler();
   document.getElementById('export-modal').classList.remove('hidden');
   document.getElementById('export-ios-hinweis').classList.toggle('hidden', !!window.showSaveFilePicker);
 });
@@ -4531,6 +4560,7 @@ document.getElementById('btn-export-alle').addEventListener('click', () => {
     const cb = item.querySelector('.check-box');
     Object.assign(cb.style, { background: 'var(--accent)', borderColor: 'var(--accent)', color: '#000' });
   });
+  aktualisiereExportZaehler();
 });
 document.getElementById('btn-export-keine').addEventListener('click', () => {
   document.querySelectorAll('#export-gruppen-liste .gruppe-check-item').forEach(item => {
@@ -4538,6 +4568,7 @@ document.getElementById('btn-export-keine').addEventListener('click', () => {
     const cb = item.querySelector('.check-box');
     Object.assign(cb.style, { background: '', borderColor: '', color: 'transparent' });
   });
+  aktualisiereExportZaehler();
 });
 
 // Format-Toggle (Datei / PDF)
@@ -4671,73 +4702,140 @@ document.getElementById('btn-export-start').addEventListener('click', async () =
   }
   const basisname = `memofix-${gruppenTeil}-${datum}`;
 
-  // Fotos NACHEINANDER (nicht alle gleichzeitig) in Blöcke von max. ~35 MB aufteilen —
-  // hält den Speicherverbrauch bei großen Sammlungen (100+ Karten) beschränkt und
-  // vermeidet Abstürze; Ergebnis sind bei Bedarf mehrere Backup-Dateien.
+  // Fotos NACHEINANDER (nicht alle gleichzeitig) einlesen; jeder Teil (max. ~35 MB) wird sofort
+  // zum Blob und freigegeben, damit nie alle Bilder gleichzeitig im Speicher liegen.
+  // Zählt mit: gewählt / geschrieben / Bildfehler — Abweichungen werden sichtbar gemeldet.
+  const ohneBilder = !!document.getElementById('export-ohne-bilder')?.checked;
+  const startBtn = document.getElementById('btn-export-start');
+  const startLabel = startBtn.textContent;
+  startBtn.disabled = true;
   const CHUNK_BYTES = 35 * 1024 * 1024;
-  const chunks = [[]];
-  let chunkBytes = 0;
-  for (const s of exportStudentenRaw) {
-    let fotoData;
-    if (!s.foto) {
-      fotoData = { foto: null, fotos: [] };
-    } else {
-      try {
-        const dbRec = await dbGet('studenten', s.id);
-        const blobs = (dbRec?.fotos && dbRec.fotos.length) ? dbRec.fotos : (dbRec?.foto ? [dbRec.foto] : [s.foto]);
-        const fotos = await Promise.all(blobs.map(b => blobToDataUrl(b)));
-        fotoData = { foto: fotos[0] || null, fotos };
-      } catch (err) {
-        console.warn('Export Foto-Fehler für', s.name, err);
-        fotoData = { foto: null, fotos: [] };
-      }
-    }
-    const groesse = fotoData.fotos.reduce((sum, f) => sum + f.length, 0);
-    if (chunkBytes > 0 && chunkBytes + groesse > CHUNK_BYTES) {
-      chunks.push([]);
-      chunkBytes = 0;
-    }
-    chunks[chunks.length - 1].push({ ...s, ...fotoData });
-    chunkBytes += groesse;
-  }
-
-  // Bei mehreren Dateien: wenn möglich EINMAL einen Zielordner wählen,
-  // statt bei jeder Teil-Datei erneut zu fragen
-  let dirHandle = null;
-  if (chunks.length > 1 && window.showDirectoryPicker) {
-    try { dirHandle = await window.showDirectoryPicker(); }
-    catch (err) {
-      if (err.name === 'AbortError') { document.getElementById('export-modal').classList.add('hidden'); return; }
-    }
-  }
-
-  const gespeichert = [];
-  for (let i = 0; i < chunks.length; i++) {
-    const teilSuffix = chunks.length > 1 ? `-teil${i + 1}-von${chunks.length}` : '';
-    const filename   = `${basisname}${teilSuffix}.json`;
+  const teile = [];            // { blob, anzahl }
+  const bildFehler = [];       // Kartennamen mit Bildproblem
+  let aktuell = [], aktuellBytes = 0, geschrieben = 0, gesamtBytes = 0;
+  const schliesseTeil = () => {
+    if (!aktuell.length) return;
     const payload = {
       version: 2, exportiert: new Date().toISOString(),
-      sammlungen: exportSammlungen, gruppen: exportGruppen, studenten: chunks[i]
+      sammlungen: exportSammlungen, gruppen: exportGruppen, studenten: aktuell
     };
     const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-    try {
-      const bestaetigt = await speichereExportDatei(blob, filename, dirHandle);
-      gespeichert.push({ filename, bestaetigt });
-    } catch (err) {
-      if (err.name === 'AbortError') break; // Nutzer hat abgebrochen
-      toast(tf('toast_fehler', err.message));
+    teile.push({ blob, anzahl: aktuell.length });
+    geschrieben += aktuell.length; gesamtBytes += blob.size;
+    aktuell = []; aktuellBytes = 0;
+  };
+  try {
+    for (let i = 0; i < exportStudentenRaw.length; i++) {
+      const s = exportStudentenRaw[i];
+      startBtn.textContent = `${i + 1} / ${exportStudentenRaw.length}`;
+      let fotoData = { foto: null, fotos: [] };
+      const hatBild = !!(s.foto || (s.fotos && s.fotos.length));
+      if (!ohneBilder && hatBild) {
+        try {
+          const dbRec = await dbGet('studenten', s.id);
+          const blobs = (dbRec?.fotos && dbRec.fotos.length) ? dbRec.fotos : (dbRec?.foto ? [dbRec.foto] : [s.foto].filter(Boolean));
+          const fotos = await Promise.all(blobs.map(b => blobToDataUrl(b)));
+          if (fotos.some(f => !f)) throw new Error('Bild leer');
+          fotoData = { foto: fotos[0] || null, fotos };
+        } catch (err) {
+          console.warn('Export Foto-Fehler für', s.name, err);
+          bildFehler.push(s.name || s.id);
+        }
+      }
+      // foto steht zusätzlich als fotos[0] in der Datei -> erstes Bild zählt doppelt
+      const groesse = fotoData.fotos.reduce((sum, f) => sum + f.length, 0) + (fotoData.fotos[0]?.length || 0);
+      if (aktuellBytes > 0 && aktuellBytes + groesse > CHUNK_BYTES) schliesseTeil();
+      aktuell.push({ ...s, ...fotoData });
+      aktuellBytes += groesse;
     }
+    schliesseTeil();
+  } catch (err) {
+    console.error('Export fehlgeschlagen', err);
+    toast(tf('toast_fehler', err.message));
+    return;
+  } finally {
+    startBtn.disabled = false;
+    startBtn.textContent = startLabel;
   }
+  console.info(`Export: ${exportStudentenRaw.length} gewählt, ${geschrieben} geschrieben, ${teile.length} Teil(e), ${(gesamtBytes / 1048576).toFixed(1)} MB, ${bildFehler.length} Bildfehler`);
 
   document.getElementById('export-modal').classList.add('hidden');
-  if (!gespeichert.length) return;
-  const alleBestaetigt = gespeichert.every(g => g.bestaetigt);
-  if (gespeichert.length > 1) {
-    toast(alleBestaetigt ? tf('toast_export_dateien_ok', gespeichert.length) : tf('toast_export_dateien_dl', gespeichert.length));
-  } else {
-    toast(alleBestaetigt ? tf('toast_export_datei_ok', gespeichert[0].filename) : tf('toast_export_datei_dl', gespeichert[0].filename));
+  const teilName = i => `${basisname}${teile.length > 1 ? `-teil${i + 1}-von${teile.length}` : ''}.json`;
+  const problem = geschrieben !== exportStudentenRaw.length || bildFehler.length > 0;
+
+  // Ein Teil ohne Auffälligkeit: direkt speichern wie bisher
+  if (teile.length === 1 && !problem) {
+    try {
+      const bestaetigt = await speichereExportDatei(teile[0].blob, teilName(0), null);
+      toast(bestaetigt ? tf('toast_export_datei_ok', teilName(0)) : tf('toast_export_datei_dl', teilName(0)));
+    } catch (err) {
+      if (err.name !== 'AbortError') toast(tf('toast_fehler', err.message));
+    }
+    return;
   }
+
+  // Mehrere Teile oder Auffälligkeit: Ergebnis-Dialog, jeder Teil mit eigenem Button
+  // (jeder Klick ist eine echte Nutzeraktion – automatische Mehrfach-Downloads werden von Browsern blockiert)
+  zeigeExportErgebnis({
+    teile, teilName, gewaehlt: exportStudentenRaw.length, geschrieben, gesamtBytes, bildFehler, ohneBilder
+  });
 });
+
+function zeigeExportErgebnis({ teile, teilName, gewaehlt, geschrieben, gesamtBytes, bildFehler, ohneBilder }) {
+  const en = currentLang === 'en';
+  const L = en ? {
+    titel: 'Export result', summary: (g, w, n, mb) => `${g} selected · ${w} exported · ${n} file${n !== 1 ? 's' : ''} · ${mb} MB`,
+    abw: (g, w) => `⚠️ ${g} selected, only ${w} exported. Please do not rely on this backup.`,
+    bild: (n) => `⚠️ ${n} card${n !== 1 ? 's' : ''} without images (image could not be read): `,
+    ohne: 'Exported without images.', teil: (i, n) => `Part ${i} of ${n}`, karten: n => `${n} cards`,
+    alle: '📁 Save all to one folder', hinweis: 'Tap each part to save it. Keep all parts together.', zu: 'Close'
+  } : {
+    titel: 'Export-Ergebnis', summary: (g, w, n, mb) => `${g} gewählt · ${w} exportiert · ${n} Datei${n !== 1 ? 'en' : ''} · ${mb} MB`,
+    abw: (g, w) => `⚠️ ${g} gewählt, aber nur ${w} exportiert. Bitte verlasse dich nicht auf dieses Backup.`,
+    bild: (n) => `⚠️ ${n} Karte${n !== 1 ? 'n' : ''} ohne Bild (Bild konnte nicht gelesen werden): `,
+    ohne: 'Ohne Bilder exportiert.', teil: (i, n) => `Teil ${i} von ${n}`, karten: n => `${n} Karten`,
+    alle: '📁 Alle in einen Ordner speichern', hinweis: 'Tippe jeden Teil einzeln an, um ihn zu speichern. Alle Teile zusammen aufbewahren.', zu: 'Schließen'
+  };
+  const mb = b => (b / 1048576).toFixed(1);
+  const abweichung = geschrieben !== gewaehlt;
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  const fehlerStil = 'margin:0.5rem 0;padding:0.5rem 0.7rem;border-radius:10px;border:1px solid rgba(255,122,122,0.5);background:rgba(255,122,122,0.1);color:#ff7a7a;font-size:0.85rem';
+  modal.innerHTML = `<div class="modal"><div class="modal-header"><h2>${L.titel}</h2>
+      <button class="btn-modal-close" data-aktion="zu">✕</button></div>
+    <div class="modal-body">
+      <p class="modal-hint"><strong>${L.summary(gewaehlt, geschrieben, teile.length, mb(gesamtBytes))}</strong></p>
+      ${abweichung ? `<div style="${fehlerStil}">${L.abw(gewaehlt, geschrieben)}</div>` : ''}
+      ${bildFehler.length ? `<div style="${fehlerStil}">${L.bild(bildFehler.length)}${esc(bildFehler.slice(0, 8).join(', '))}${bildFehler.length > 8 ? ' …' : ''}</div>` : ''}
+      ${ohneBilder ? `<p class="modal-hint">${L.ohne}</p>` : ''}
+      ${teile.length > 1 ? `<p class="modal-hint">${L.hinweis}</p>` : ''}
+      <div class="export-teile">${teile.map((tl, i) => `
+        <button class="btn-secondary" style="display:block;width:100%;margin:0.3rem 0;text-align:left" data-teil="${i}">
+          <span class="teil-marke">⬇</span> ${teile.length > 1 ? L.teil(i + 1, teile.length) : esc(teilName(i))}
+          <span style="opacity:0.7"> · ${L.karten(tl.anzahl)} · ${mb(tl.blob.size)} MB</span>
+        </button>`).join('')}</div>
+      ${teile.length > 1 && window.showDirectoryPicker ? `<button class="btn-secondary" style="margin-top:0.5rem;width:100%" data-aktion="ordner">${L.alle}</button>` : ''}
+      <button class="btn-primary" style="margin-top:0.75rem" data-aktion="zu">${L.zu}</button>
+    </div></div>`;
+  document.body.appendChild(modal);
+  const markiere = i => { const m = modal.querySelector(`[data-teil="${i}"] .teil-marke`); if (m) m.textContent = '✓'; };
+  modal.addEventListener('click', async e => {
+    const teilBtn = e.target.closest('[data-teil]');
+    const aktion  = e.target.closest('[data-aktion]')?.dataset.aktion;
+    if (e.target === modal || aktion === 'zu') { modal.remove(); return; }
+    if (teilBtn) {
+      const i = +teilBtn.dataset.teil;
+      try { await speichereExportDatei(teile[i].blob, teilName(i), null); markiere(i); }
+      catch (err) { if (err.name !== 'AbortError') toast(tf('toast_fehler', err.message)); }
+    } else if (aktion === 'ordner') {
+      try {
+        const dir = await window.showDirectoryPicker();
+        for (let i = 0; i < teile.length; i++) { await speichereExportDatei(teile[i].blob, teilName(i), dir); markiere(i); }
+        toast(tf('toast_export_dateien_ok', teile.length));
+      } catch (err) { if (err.name !== 'AbortError') toast(tf('toast_fehler', err.message)); }
+    }
+  });
+}
 
 // ── PDF EXPORT ─────────────────────────────────────────────
 
