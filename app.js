@@ -150,6 +150,9 @@ const TRANS = {
     confirm_kursset_entfallen: (n) => `${n} Karte${n !== 1 ? 'n entfallen' : ' entfällt'} im neuen Set.\n\nOK = entfernen\nAbbrechen = behalten`,
     toast_kursset_fehler: (msg) => `Set konnte nicht importiert werden: ${msg}`,
     ki_briefing: 'KI-Briefing für neue Karten',
+    ki_briefing_btn: 'Anzeigen',
+    ki_kopieren: '📋 Kopieren', ki_kopiert: '✓ Kopiert', ki_schliessen: 'Schließen',
+    ki_hinweis: 'Kopieren und in einen neuen Chat bei ChatGPT, Gemini oder Claude einfügen. Danach dein Thema ergänzen.',
     ki_briefing_desc: 'Fertiger Prompt für ChatGPT, Gemini, Claude & Co. — erklärt der KI das MemoFix-Datenformat, damit sie direkt passende Karten-Sets zum Import erzeugen kann',
     herunterladen: 'Herunterladen',
     tutorial_titel: '🎓 Tutorial wiederherstellen',
@@ -394,6 +397,9 @@ const TRANS = {
     confirm_kursset_entfallen: (n) => `${n} card${n !== 1 ? 's are' : ' is'} no longer part of the new set.\n\nOK = remove\nCancel = keep`,
     toast_kursset_fehler: (msg) => `Could not import set: ${msg}`,
     ki_briefing: 'AI briefing for new cards',
+    ki_briefing_btn: 'Show',
+    ki_kopieren: '📋 Copy', ki_kopiert: '✓ Copied', ki_schliessen: 'Close',
+    ki_hinweis: 'Copy it and paste it into a new chat with ChatGPT, Gemini or Claude. Then add your topic.',
     ki_briefing_desc: 'Ready-made prompt for ChatGPT, Gemini, Claude & co. — explains the MemoFix data format to the AI so it can generate ready-to-import card sets',
     herunterladen: 'Download',
     tutorial_titel: '🎓 Restore tutorial',
@@ -705,7 +711,7 @@ function applyTranslations() {
   setTxt('btn-export', t('exportieren'));
   setTxt('btn-import-trigger', t('importieren'));
   setTxt('btn-fotos-komprimieren', t('komprimieren'));
-  setTxt('btn-ki-briefing', t('herunterladen'));
+  setTxt('btn-ki-briefing', t('ki_briefing_btn'));
   setTxt('tutorial-titel', t('tutorial_titel'));
   setTxt('tutorial-desc', t('tutorial_desc'));
   setTxt('btn-tutorial-neu', t('tutorial_neu'));
@@ -5646,3 +5652,52 @@ document.addEventListener('visibilitychange', async () => {
     }
   });
 })();
+
+// ── KI-Briefing: im Dialog anzeigen, kopieren, herunterladen (kein Verlassen der App) ──
+document.getElementById('btn-ki-briefing')?.addEventListener('click', async e => {
+  e.preventDefault();
+  let md = '';
+  try {
+    const r = await fetch('ki-briefing.md');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    md = await r.text();
+  } catch (err) { toast(tf('toast_fehler', err.message)); return; }
+  // nur der Prompt zwischen "PROMPT START" und "PROMPT ENDE" (der Rest ist Erklärung)
+  const a = md.search(/^##\s*PROMPT START.*$/m), b = md.search(/^##\s*PROMPT ENDE/m);
+  let prompt = md;
+  if (a >= 0 && b > a) prompt = md.slice(md.indexOf('\n', a) + 1, b).trim();
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `<div class="modal"><div class="modal-header"><h2>${esc(t('ki_briefing'))}</h2>
+      <button class="btn-modal-close" data-a="zu">✕</button></div>
+    <div class="modal-body">
+      <p class="modal-hint">${esc(t('ki_hinweis'))}</p>
+      <textarea readonly style="width:100%;height:42vh;font-size:0.75rem;line-height:1.45;font-family:ui-monospace,Menlo,monospace"></textarea>
+      <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
+        <button class="btn-primary" data-a="kopieren" style="flex:1;margin:0">${esc(t('ki_kopieren'))}</button>
+        <button class="btn-secondary" data-a="download" style="flex:1;margin:0">⬇ ${esc(t('herunterladen'))}</button>
+      </div>
+      <button class="btn-secondary" data-a="zu" style="width:100%;margin-top:0.5rem">${esc(t('ki_schliessen'))}</button>
+    </div></div>`;
+  document.body.appendChild(modal);
+  const ta = modal.querySelector('textarea');
+  ta.value = prompt;
+  modal.addEventListener('click', async ev => {
+    const act = ev.target.closest('[data-a]')?.dataset.a;
+    if (ev.target === modal || act === 'zu') { modal.remove(); return; }
+    if (act === 'kopieren') {
+      let ok = false;
+      try { await navigator.clipboard.writeText(prompt); ok = true; } catch (_) {}
+      if (!ok) { ta.focus(); ta.select(); ta.setSelectionRange(0, prompt.length); try { ok = document.execCommand('copy'); } catch (_) {} }
+      const btn = ev.target.closest('[data-a]');
+      btn.textContent = ok ? t('ki_kopiert') : t('ki_kopieren');
+      if (!ok) toast(t('ki_hinweis'));
+    } else if (act === 'download') {
+      const url = URL.createObjectURL(new Blob([md], { type: 'text/markdown' }));
+      Object.assign(document.createElement('a'), { href: url, download: 'MemoFix_KI-Briefing.md' }).click();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+  });
+});
+
