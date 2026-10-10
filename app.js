@@ -152,6 +152,10 @@ const TRANS = {
     ki_briefing: 'KI-Briefing für neue Karten',
     ki_briefing_desc: 'Fertiger Prompt für ChatGPT, Gemini, Claude & Co. — erklärt der KI das MemoFix-Datenformat, damit sie direkt passende Karten-Sets zum Import erzeugen kann',
     herunterladen: 'Herunterladen',
+    tutorial_titel: '🎓 Tutorial wiederherstellen',
+    tutorial_desc: 'Legt die Einführungskarten neu an, falls du sie gelöscht hast',
+    tutorial_neu: 'Wiederherstellen',
+    toast_tutorial_neu: 'Tutorial wiederhergestellt',
     datenspeicher_title: '⚠️ Nur auf diesem Gerät gespeichert',
     datenspeicher_text: 'Deine Karten liegen nur auf diesem Gerät. Exportiere sie ab und zu als Backup — z. B. bevor du Browserdaten löschst oder das Gerät wechselst.',
     // ── Export-Modal ──────────────────────────────────────
@@ -392,6 +396,10 @@ const TRANS = {
     ki_briefing: 'AI briefing for new cards',
     ki_briefing_desc: 'Ready-made prompt for ChatGPT, Gemini, Claude & co. — explains the MemoFix data format to the AI so it can generate ready-to-import card sets',
     herunterladen: 'Download',
+    tutorial_titel: '🎓 Restore tutorial',
+    tutorial_desc: 'Recreates the introduction cards in case you deleted them',
+    tutorial_neu: 'Restore',
+    toast_tutorial_neu: 'Tutorial restored',
     datenspeicher_title: '⚠️ Stored on this device only',
     datenspeicher_text: 'Your cards are stored only on this device. Export a backup now and then — e.g. before clearing browser data or switching devices.',
     // ── Export-Modal ──────────────────────────────────────
@@ -698,6 +706,9 @@ function applyTranslations() {
   setTxt('btn-import-trigger', t('importieren'));
   setTxt('btn-fotos-komprimieren', t('komprimieren'));
   setTxt('btn-ki-briefing', t('herunterladen'));
+  setTxt('tutorial-titel', t('tutorial_titel'));
+  setTxt('tutorial-desc', t('tutorial_desc'));
+  setTxt('btn-tutorial-neu', t('tutorial_neu'));
   setTxt('kursset-titel', t('kursset_titel'));
   setTxt('kursset-desc', t('kursset_desc'));
   setTxt('btn-kursset-alle', t('kursset_alle'));
@@ -3236,16 +3247,31 @@ async function ladeKurssetListe() {
     if (kurssetStatus(set) === 'orange') updates++;
   }
   const alleSets = n => [...n.sets, ...[...n.kinder.values()].flatMap(alleSets)];
+  let ordnerZustand = {};
+  try { ordnerZustand = JSON.parse(localStorage.getItem('kurssetOrdnerOffen') || '{}') || {}; } catch (_) {}
+  const keinesGeladen = sets.every(x => kurssetStatus(x) === 'rot');
   const zeichne = (n, tiefe) => {
     const ordner = [...n.kinder.entries()].map(([name, kind]) => {
       const st = alleSets(kind).map(kurssetStatus);
-      const offen = st.some(x => x !== 'rot') ? ' open' : '';
+      const pfadKey = (kind._pfad = [...(n._pfad || []), name]).join('/');
+      const gemerkt = ordnerZustand[pfadKey];
+      // Standard: oberste Ebene immer offen; tiefer offen, solange noch nichts geladen ist oder hier etwas geladen/aktualisierbar ist
+      const standard = tiefe === 1 || keinesGeladen || st.some(x => x !== 'rot');
+      const offen = (gemerkt === undefined ? standard : gemerkt) ? ' open' : '';
       const marke = st.includes('orange') ? ` <span class="ks-orange" title="${esc(t('kursset_status_orange'))}">↻</span>` : '';
-      return `<details class="ks-ordner ks-ebene-${Math.min(tiefe, 3)}"${offen}><summary>${esc(name)}${marke}</summary>${zeichne(kind, tiefe + 1)}</details>`;
+      return `<details class="ks-ordner ks-ebene-${Math.min(tiefe, 3)}" data-pfad="${esc(pfadKey)}"${offen}><summary>${esc(name)}${marke}</summary>${zeichne(kind, tiefe + 1)}</details>`;
     }).join('');
     return ordner + n.sets.map(zeile).join('');
   };
   box.innerHTML = zeichne(wurzel, 1);
+  // Auf-/Zuklappen merken
+  box.querySelectorAll('details.ks-ordner').forEach(d => d.addEventListener('toggle', () => {
+    try {
+      const z = JSON.parse(localStorage.getItem('kurssetOrdnerOffen') || '{}') || {};
+      z[d.dataset.pfad] = d.open;
+      localStorage.setItem('kurssetOrdnerOffen', JSON.stringify(z));
+    } catch (_) {}
+  }));
   if (updates > 0) {
     if (alle) alle.classList.remove('hidden');
     if (hint) { hint.querySelector('span').textContent = tf('kursset_updates_hinweis', updates); hint.classList.remove('hidden'); }
@@ -3323,6 +3349,11 @@ async function ladeKursset(set, opt = {}) {
   }
 }
 
+document.getElementById('btn-tutorial-neu')?.addEventListener('click', async () => {
+  await erstelleTutorial();
+  await ladeAlles(); renderVerwaltung(); renderLernAuswahl();
+  toast(t('toast_tutorial_neu'));
+});
 document.getElementById('kursset-liste')?.addEventListener('click', e => {
   const btn = e.target.closest('[data-kursset]');
   if (!btn) return;
@@ -5218,119 +5249,89 @@ if ('caches' in window) {
 // TUTORIAL GRUPPE
 // ============================================================
 
-async function erstelleTutorialGruppeWennNeu() {
-  if (localStorage.getItem('memofix-tutorial-created') || localStorage.getItem('memopix-tutorial-created') || localStorage.getItem('snapmatch-tutorial-created')) return;
+// Zweisprachige Begriff-Karten (zeigen zugleich das Kartenformat: Begriff vorn, Info + Merke hinten)
+const TUTORIAL_KARTEN = [
+  { de: ['Willkommen bei MemoFix',
+         'MemoFix trainiert aktives Erinnern: erst überlegen, dann aufdecken.\n\n- **Karte antippen** → sie dreht sich um\n- **✓ oder ✗** wertet, ob du es wusstest\n- **Wischen oder Pfeile** → vor und zurück\n- Nach der Runde: **Nachgeschaute üben**',
+         'Erst überlegen, dann aufdecken – so bleibt Wissen hängen.'],
+    en: ['Welcome to MemoFix',
+         'MemoFix trains active recall: think first, then reveal.\n\n- **Tap the card** → it flips\n- **✓ or ✗** rates whether you knew it\n- **Swipe or arrows** → forward and back\n- After a round: **Practise missed cards**',
+         'Think first, then reveal – that is how knowledge sticks.'] },
+  { de: ['Kurssets laden',
+         'Fertige Kartensets deines Kurses findest du unter **SICHERUNG → Kursset importieren**.\n\n- ● **rot**: noch nicht geladen\n- ✓ **grün**: aktuell\n- ↻ **orange**: Update verfügbar\n- Ordner (z. B. Innenarchitektur) antippen zum Aufklappen\n\nInternet nötig – große Sets besser im WLAN laden.',
+         'Updates behalten deinen Lernstand und deine Favoriten.'],
+    en: ['Load course sets',
+         'You find ready-made card sets for your course under **BACKUP → Import course set**.\n\n- ● **red**: not loaded yet\n- ✓ **green**: up to date\n- ↻ **orange**: update available\n- Tap a folder (e.g. Interior Architecture) to expand it\n\nInternet required – load large sets on Wi-Fi.',
+         'Updates keep your progress and your favorites.'] },
+  { de: ['Lernen anpassen',
+         'Unter **LERNEN** wählst du Gruppen und Modus:\n\n- **Normal**: Begriff oder Bild zuerst · **Umgekehrt**: Info zuerst\n- **Timer** blättert Karten automatisch, **Autorepeat** wiederholt\n- **⭐** markiert Favoriten, **Schwächste** übt, was du oft nicht wusstest',
+         'Kurze Runden, oft wiederholt, bringen mehr als eine lange Sitzung.'],
+    en: ['Adjust your learning',
+         'Under **LEARN** you choose groups and mode:\n\n- **Normal**: term or image first · **Reversed**: info first\n- **Timer** flips cards automatically, **Autorepeat** loops\n- **⭐** marks favorites, **Weakest** practises what you often missed',
+         'Short rounds, repeated often, beat one long session.'] },
+  { de: ['Beamer-Modus',
+         'Mit **Fullscreen 16:9** (auf der Seite LERNEN) füllt die Karte den ganzen Bildschirm – ideal für Beamer und Prüfungsgespräche.\n\n- **Leertaste** deckt auf, **Pfeiltasten** blättern\n- **✕** oben rechts oder **Esc** beendet\n- Lange Texte passen sich automatisch an',
+         'Kein Scrollen: Die Schrift wird so gewählt, dass alles auf den Bildschirm passt.'],
+    en: ['Presentation mode',
+         'With **Fullscreen 16:9** (on the LEARN page) the card fills the whole screen – ideal for projectors and oral exams.\n\n- **Space** reveals, **arrow keys** flip through\n- **✕** top right or **Esc** exits\n- Long texts adapt automatically',
+         'No scrolling: the font size is chosen so everything fits on screen.'] },
+  { de: ['Eigene Karten',
+         'In **VERWALTUNG** legst du mit **＋** neue Karten an.\n\n- **Bild vorn**: erst das Bild, dann der Begriff\n- **Begriff vorn, Bild hinten**: erst der Begriff, dann Text, Notiz und Bilder\n- **Merke** = Kernaussage als farbiger Kasten\n- Mehrere Fotos pro Karte möglich',
+         'Verrät das Bild die Antwort, wähle „Begriff vorn, Bild hinten“.'],
+    en: ['Your own cards',
+         'In **MANAGE** you create new cards with **＋**.\n\n- **Image on front**: image first, then the term\n- **Term on front, image on back**: term first, then text, note and images\n- **Memo** = key point as a colored box\n- Several photos per card possible',
+         'If the image gives the answer away, choose “Term on front, image on back”.'] },
+  { de: ['Mit KI arbeiten',
+         'Beim Lernen öffnet **Mit Claude besprechen** ein Gespräch zur aktuellen Karte.\n\nNeue Kartensets erstellst du mit dem **KI-Briefing** (SICHERUNG → KI-Briefing): in ChatGPT, Gemini oder Claude einfügen und dein Thema nennen.',
+         'Die KI liefert eine JSON-Datei, die du über SICHERUNG → Aus Datei importieren lädst.'],
+    en: ['Working with AI',
+         'While learning, **Discuss with Claude** opens a conversation about the current card.\n\nCreate new card sets with the **AI briefing** (BACKUP → AI briefing): paste it into ChatGPT, Gemini or Claude and name your topic.',
+         'The AI returns a JSON file that you load via BACKUP → Import from file.'] },
+  { de: ['Installieren und sichern',
+         '- **iPhone/iPad**: Safari → Teilen → „Zum Home-Bildschirm“\n- **Android**: Menü → „App installieren“\n- Danach funktioniert die App auch offline\n\nUnter **SICHERUNG → Exportieren** sicherst du deine Karten als Datei (bei vielen Bildern in mehreren Teilen).',
+         'Deine Karten liegen nur auf diesem Gerät – sichere sie regelmäßig.'],
+    en: ['Install and back up',
+         '- **iPhone/iPad**: Safari → Share → “Add to Home Screen”\n- **Android**: menu → “Install app”\n- After that the app also works offline\n\nUnder **BACKUP → Export** you save your cards as a file (in several parts when there are many images).',
+         'Your cards live only on this device – back them up regularly.'] },
+  { de: ['Hilfe und Sprache',
+         '- **?** oben rechts: ausführliche Hilfe\n- **DE/EN** oben rechts: Sprache wechseln (auch der Karteninhalt, wenn zweisprachig)\n- Dieses Tutorial kannst du in **VERWALTUNG** löschen und unter **SICHERUNG → Tutorial wiederherstellen** zurückholen.',
+         'Viel Erfolg beim Lernen!'],
+    en: ['Help and language',
+         '- **?** top right: detailed help\n- **DE/EN** top right: switch language (also card content when bilingual)\n- You can delete this tutorial in **MANAGE** and bring it back under **BACKUP → Restore tutorial**.',
+         'Enjoy learning!'] },
+];
 
-  const gruppeId     = 'tutorial-' + Date.now();
-  const tutSammlungId = 'sammlung-tutorial-' + Date.now();
-  await dbPut('sammlungen', { id: tutSammlungId, name: '🎓 Tutorial', erstellt: new Date().toISOString() });
-
-  const svgKarten = [
-    {
-      id: 'tut-1', name: 'Willkommen!',
-      svg: `<svg viewBox="0 0 360 480" xmlns="http://www.w3.org/2000/svg"><rect width="360" height="480" fill="#111"/><circle cx="130" cy="130" r="38" fill="#2a2a2a"/><path d="M72 230 Q72 185 130 185 Q188 185 188 230 L188 255 Q188 265 178 265 L82 265 Q72 265 72 255 Z" fill="#2a2a2a"/><circle cx="230" cy="120" r="32" fill="#383838"/><path d="M178 215 Q178 175 230 175 Q282 175 282 215 L282 240 Q282 248 274 248 L186 248 Q178 248 178 240 Z" fill="#383838"/><text x="180" y="310" text-anchor="middle" font-size="36" fill="#555">👋</text><line x1="30" y1="340" x2="330" y2="340" stroke="#222" stroke-width="1"/><text x="180" y="372" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="13" font-weight="700" fill="#f0f0f0">Willkommen!</text><text x="180" y="394" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#aaa">Diese App hilft dir, Bilder</text><text x="180" y="412" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#aaa">und Begriffe zu lernen.</text><text x="180" y="438" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#666">Tippe auf das Bild → Begriff</text><text x="180" y="456" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#666">erscheint. Los geht's! →</text></svg>`
-    },
-    {
-      id: 'tut-2', name: 'Tippen · Werten · Wischen',
-      svg: `<svg viewBox="0 0 360 480" xmlns="http://www.w3.org/2000/svg"><rect width="360" height="480" fill="#111"/>
-        <rect x="100" y="55" width="160" height="110" rx="14" fill="#1a1a1a" stroke="#2a2a2a" stroke-width="1.5"/>
-        <rect x="115" y="67" width="60" height="86" rx="6" fill="#252525"/>
-        <circle cx="145" cy="93" r="14" fill="#333"/>
-        <rect x="186" y="67" width="60" height="86" rx="6" fill="#333"/>
-        <text x="216" y="103" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" fill="#888">Begriff</text>
-        <line x1="192" y1="112" x2="240" y2="112" stroke="#444" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="192" y1="123" x2="230" y2="123" stroke="#333" stroke-width="1" stroke-linecap="round"/>
-        <path d="M180 110 Q180 100 172 97" fill="none" stroke="#4a4a4a" stroke-width="2" stroke-linecap="round"/>
-        <text x="180" y="188" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="10" fill="#555">↻ dreht sich um</text>
-        <line x1="30" y1="204" x2="330" y2="204" stroke="#1e1e1e" stroke-width="1"/>
-        <text x="180" y="228" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="12" font-weight="700" fill="#f0f0f0">So lernst du:</text>
-        <text x="50" y="249" font-family="-apple-system,sans-serif" font-size="11" fill="#aaa">①</text>
-        <text x="68" y="249" font-family="-apple-system,sans-serif" font-size="11" fill="#aaa">Karte antippen → dreht sich um → ✓</text>
-        <text x="50" y="269" font-family="-apple-system,sans-serif" font-size="11" fill="#aaa">②</text>
-        <text x="68" y="269" font-family="-apple-system,sans-serif" font-size="11" fill="#aaa">„Begriff zeigen" → Flip → ✗ nachgeschaut</text>
-        <text x="50" y="289" font-family="-apple-system,sans-serif" font-size="11" fill="#888">③</text>
-        <text x="68" y="289" font-family="-apple-system,sans-serif" font-size="11" fill="#888">✓ oder ✗ antippen → Wertung korrigieren</text>
-        <text x="50" y="309" font-family="-apple-system,sans-serif" font-size="11" fill="#777">④</text>
-        <text x="68" y="309" font-family="-apple-system,sans-serif" font-size="11" fill="#777">← → Pfeile oder Wischen = vor/zurück</text>
-        <text x="50" y="329" font-family="-apple-system,sans-serif" font-size="11" fill="#666">⑤</text>
-        <text x="68" y="329" font-family="-apple-system,sans-serif" font-size="11" fill="#666">↺ Nachgeschaut üben nach der Runde</text>
-        <text x="50" y="352" font-family="-apple-system,sans-serif" font-size="11" fill="#555">⑥</text>
-        <text x="68" y="352" font-family="-apple-system,sans-serif" font-size="11" fill="#555">⏱ Auto-Timer → Karten automatisch blättern</text>
-        <text x="50" y="372" font-family="-apple-system,sans-serif" font-size="11" fill="#444">⑦</text>
-        <text x="68" y="372" font-family="-apple-system,sans-serif" font-size="11" fill="#444">🔁 Autorepeat · ⭐ Favoriten in Lernen</text>
-      </svg>`
-    },
-    {
-      id: 'tut-3', name: 'Sammlungen · Gruppen · Karten',
-      svg: `<svg viewBox="0 0 360 480" xmlns="http://www.w3.org/2000/svg"><rect width="360" height="480" fill="#111"/>
-        <!-- Sammlung Header -->
-        <rect x="30" y="44" width="300" height="30" rx="7" fill="#1e1e28" stroke="#4a4a6a" stroke-width="1"/>
-        <text x="46" y="64" font-family="-apple-system,sans-serif" font-size="10" fill="#ccc" font-weight="700">▼</text>
-        <text x="62" y="64" font-family="-apple-system,sans-serif" font-size="11" fill="#eee" font-weight="700">Hochschule</text>
-        <text x="230" y="64" font-family="-apple-system,sans-serif" font-size="9" fill="#666">2 Gr. · 4 K.</text>
-        <!-- Gruppe 1 Header -->
-        <rect x="46" y="86" width="268" height="26" rx="5" fill="#222230" stroke="#333" stroke-width="1"/>
-        <text x="60" y="103" font-family="-apple-system,sans-serif" font-size="9" fill="#888">▼</text>
-        <text x="73" y="103" font-family="-apple-system,sans-serif" font-size="10" fill="#bbb" font-weight="700">BIOLOGIE KAP. 3</text>
-        <text x="218" y="103" font-family="-apple-system,sans-serif" font-size="9" fill="#555">2 K.</text>
-        <rect x="244" y="90" width="16" height="16" rx="4" fill="#2a3a2a"/>
-        <text x="248" y="102" font-family="-apple-system,sans-serif" font-size="11" fill="#4a9" font-weight="700">＋</text>
-        <text x="264" y="103" font-family="-apple-system,sans-serif" font-size="9" fill="#555">✏️ ✕</text>
-        <!-- Karten in Gruppe 1 -->
-        <rect x="62" y="122" width="48" height="60" rx="5" fill="#1a1a1a" stroke="#2a2a2a" stroke-width="1"/>
-        <circle cx="86" cy="140" r="11" fill="#2e2e2e"/>
-        <rect x="69" y="156" width="34" height="18" rx="3" fill="#252525"/>
-        <rect x="116" y="122" width="48" height="60" rx="5" fill="#1a1a1a" stroke="#2a2a2a" stroke-width="1"/>
-        <circle cx="140" cy="140" r="11" fill="#2e2e2e"/>
-        <rect x="123" y="156" width="34" height="18" rx="3" fill="#252525"/>
-        <!-- Gruppe 2 Header (closed) -->
-        <rect x="46" y="194" width="268" height="26" rx="5" fill="#1e1e1e" stroke="#2a2a2a" stroke-width="1"/>
-        <text x="60" y="211" font-family="-apple-system,sans-serif" font-size="9" fill="#555">▶</text>
-        <text x="73" y="211" font-family="-apple-system,sans-serif" font-size="10" fill="#777" font-weight="700">ANATOMIE</text>
-        <text x="218" y="211" font-family="-apple-system,sans-serif" font-size="9" fill="#444">2 K.</text>
-        <rect x="244" y="198" width="16" height="16" rx="4" fill="#2a3a2a"/>
-        <text x="248" y="210" font-family="-apple-system,sans-serif" font-size="11" fill="#4a9" font-weight="700">＋</text>
-        <text x="264" y="211" font-family="-apple-system,sans-serif" font-size="9" fill="#444">✏️ ✕</text>
-        <line x1="30" y1="234" x2="330" y2="234" stroke="#222" stroke-width="1"/>
-        <text x="180" y="258" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="12" font-weight="700" fill="#f0f0f0">3 Ebenen — alles in einer Ansicht</text>
-        <text x="180" y="280" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#aaa">▶/▼ Sammlung &amp; Gruppe auf-/zuklappen</text>
-        <text x="180" y="300" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#aaa">＋ am Gruppen-Header → Karte direkt</text>
-        <text x="180" y="318" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#aaa">in diese Gruppe hinzufügen</text>
-        <text x="180" y="344" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#666">📁 verschiebt Gruppe in andere Sammlung</text>
-        <text x="180" y="368" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#555">Kartennamen antippen → Großansicht</text>
-        <text x="180" y="386" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#555">links/rechts wischen zum Blättern</text>
-      </svg>`
-    },
-    {
-      id: 'tut-4', name: 'App installieren & offline nutzen',
-      svg: `<svg viewBox="0 0 360 480" xmlns="http://www.w3.org/2000/svg"><rect width="360" height="480" fill="#111"/><rect x="120" y="60" width="120" height="200" rx="16" fill="#1a1a1a" stroke="#333" stroke-width="2"/><rect x="130" y="75" width="100" height="155" rx="4" fill="#0a0a0a"/><circle cx="180" cy="248" r="8" fill="#2a2a2a"/><rect x="155" y="100" width="50" height="50" rx="10" fill="#222" stroke="#444" stroke-width="1"/><circle cx="170" cy="118" r="8" fill="#444"/><circle cx="190" cy="118" r="8" fill="#3a3a3a"/><g transform="translate(180,165)"><line x1="0" y1="10" x2="0" y2="-15" stroke="#fff" stroke-width="3" stroke-linecap="round"/><polyline points="-10,-5 0,-18 10,-5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g><line x1="30" y1="280" x2="330" y2="280" stroke="#222" stroke-width="1"/><text x="180" y="308" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="12" font-weight="700" fill="#f0f0f0">App installieren:</text><text x="180" y="330" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#aaa">iPhone: Safari → □↑ → „Zum</text><text x="180" y="348" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#aaa">Home-Bildschirm" hinzufügen</text><text x="180" y="370" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#aaa">Android: Chrome → ⋮ →</text><text x="180" y="388" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#aaa">„App installieren"</text><text x="180" y="414" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="10" fill="#555">Tab offen lassen → offline nutzbar!</text></svg>`
-    },
-    {
-      id: 'tut-5', name: 'Gruppen teilen',
-      svg: `<svg viewBox="0 0 360 480" xmlns="http://www.w3.org/2000/svg"><rect width="360" height="480" fill="#111"/><rect x="40" y="80" width="90" height="140" rx="12" fill="#1a1a1a" stroke="#333" stroke-width="2"/><rect x="50" y="93" width="70" height="105" rx="4" fill="#0a0a0a"/><circle cx="85" cy="232" r="6" fill="#2a2a2a"/><rect x="56" y="99" width="28" height="36" rx="4" fill="#252525" stroke="#333" stroke-width="1"/><circle cx="70" cy="111" r="7" fill="#333"/><rect x="90" y="99" width="28" height="36" rx="4" fill="#252525" stroke="#333" stroke-width="1"/><circle cx="104" cy="111" r="7" fill="#2e2e2e"/><rect x="230" y="80" width="90" height="140" rx="12" fill="#1a1a1a" stroke="#333" stroke-width="2"/><rect x="240" y="93" width="70" height="105" rx="4" fill="#0a0a0a"/><circle cx="275" cy="232" r="6" fill="#2a2a2a"/><rect x="246" y="99" width="28" height="36" rx="4" fill="#252525" stroke="#333" stroke-width="1"/><circle cx="260" cy="111" r="7" fill="#333"/><rect x="280" y="99" width="28" height="36" rx="4" fill="#252525" stroke="#333" stroke-width="1"/><circle cx="294" cy="111" r="7" fill="#2e2e2e"/><line x1="148" y1="148" x2="198" y2="148" stroke="#4caf50" stroke-width="3" stroke-linecap="round"/><polyline points="188,138 200,148 188,158" fill="none" stroke="#4caf50" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><line x1="148" y1="172" x2="198" y2="172" stroke="#6a8fff" stroke-width="3" stroke-linecap="round"/><polyline points="158,162 146,172 158,182" fill="none" stroke="#6a8fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><line x1="30" y1="260" x2="330" y2="260" stroke="#222" stroke-width="1"/><text x="180" y="288" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="12" font-weight="700" fill="#f0f0f0">Gruppen teilen:</text><text x="180" y="312" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#aaa">Unter SICHERUNG kannst du</text><text x="180" y="330" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#aaa">Gruppen als Datei exportieren</text><text x="180" y="348" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#aaa">und an andere weitergeben.</text><text x="180" y="374" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#666">Empfänger importieren die Datei</text><text x="180" y="392" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#666">– fertig, keine Tipparbeit!</text><text x="180" y="420" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="10" fill="#444">Ideal zum Weitergeben von Sammlungen.</text></svg>`
-    },
-    {
-      id: 'tut-6', name: 'Jetzt loslegen! 🎉',
-      svg: `<svg viewBox="0 0 360 480" xmlns="http://www.w3.org/2000/svg"><rect width="360" height="480" fill="#111"/><circle cx="180" cy="118" r="62" fill="#1a1a1a" stroke="#2a2a2a" stroke-width="2"/><circle cx="180" cy="118" r="50" fill="#161616"/><polyline points="154,118 172,140 210,96" fill="none" stroke="#4caf50" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="90" cy="56" r="5" fill="#4caf50" opacity="0.5"/><circle cx="270" cy="48" r="4" fill="#cc4444" opacity="0.5"/><circle cx="60" cy="156" r="3" fill="#fff" opacity="0.3"/><circle cx="300" cy="162" r="5" fill="#4caf50" opacity="0.4"/><line x1="30" y1="205" x2="330" y2="205" stroke="#222" stroke-width="1"/><text x="180" y="230" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="13" font-weight="700" fill="#f0f0f0">Bereit! 🎉</text><text x="180" y="254" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#aaa">⏱ Auto-Timer &amp; 🔁 Autorepeat beim Lernen</text><text x="180" y="274" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#aaa">⭐ Stern antippen → Favoriten markieren</text><text x="180" y="296" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#888">Tutorial löschen: VERWALTUNG →</text><text x="180" y="314" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#888">Sammlung 🎓 Tutorial → ✕</text><text x="180" y="336" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#777">＋ am Gruppen-Header → Karte hinzufügen</text><text x="180" y="356" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#666">Kartennamen antippen → Großansicht</text><text x="180" y="376" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" fill="#555">Regelmäßig unter SICHERUNG exportieren!</text><text x="180" y="398" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="10" fill="#444">Daten bleiben lokal im Browser.</text></svg>`
-    }
-  ];
-
-  await dbPut('gruppen', { id: gruppeId, name: '🎓 Tutorial', sammlungId: tutSammlungId, erstellt: new Date().toISOString() });
+// Legt das Tutorial an bzw. ersetzt es (feste IDs → kein Duplikat). Ältere Tutorial-Fassungen werden entfernt.
+async function erstelleTutorial() {
+  // alte Fassung(en) entfernen: Gruppen 'tutorial-…', Sammlungen 'sammlung-tutorial…', Karten 'tut-…'
+  const alleG = await dbGetAll('gruppen');
+  const alleS = await dbGetAll('studenten');
+  const alleSam = await dbGetAll('sammlungen');
+  const tutG = new Set(alleG.filter(g => g.id.startsWith('tutorial-')).map(g => g.id));
+  for (const k of alleS) if (tutG.has(k.gruppeId) || /^tut-/.test(k.id)) { await dbDelete('studenten', k.id); revokeUrl(k.id); }
+  for (const id of tutG) await dbDelete('gruppen', id);
+  for (const sm of alleSam) if (sm.id.startsWith('sammlung-tutorial')) await dbDelete('sammlungen', sm.id);
 
   const now = new Date().toISOString();
-  for (let i = 0; i < svgKarten.length; i++) {
-    const k = svgKarten[i];
-    const blob = new Blob([k.svg], { type: 'image/svg+xml' });
+  const samId = 'sammlung-tutorial', gruppeId = 'tutorial-start';
+  await dbPut('sammlungen', { id: samId, name: '🎓 Tutorial', name_en: '🎓 Tutorial', erstellt: now });
+  await dbPut('gruppen', { id: gruppeId, name: '🎓 Tutorial', name_en: '🎓 Tutorial', sammlungId: samId, erstellt: now });
+  for (let i = 0; i < TUTORIAL_KARTEN.length; i++) {
+    const { de, en } = TUTORIAL_KARTEN[i];
     await dbPut('studenten', {
-      id: k.id,
-      name: k.name,
-      gruppeId,
-      foto: blob,
-      erstellt: now
+      id: `tutorial-start-${String(i + 1).padStart(2, '0')}`, gruppeId, modus: 'text',
+      name: de[0], vorderseite: de[0], notiz: de[1], merke: de[2],
+      name_en: en[0], vorderseite_en: en[0], notiz_en: en[1], merke_en: en[2],
+      links: [], videoId: null, videoTitel: null, foto: null, fotos: [], erstellt: now
     });
   }
-
   localStorage.setItem('memofix-tutorial-created', '1');
+  localStorage.setItem('memofix-tutorial-v2', '1');
+}
+
+async function erstelleTutorialGruppeWennNeu() {
+  if (localStorage.getItem('memofix-tutorial-created') || localStorage.getItem('memopix-tutorial-created') || localStorage.getItem('snapmatch-tutorial-created')) return;
+  await erstelleTutorial();
 }
 
 // ============================================================
