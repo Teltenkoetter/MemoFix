@@ -1,3 +1,52 @@
 {
-  "sets": []
+  "sets": [
+    {
+      "id": "de1-2026-designstrategien-01",
+      "titel": "DE1 Design Strategies",
+      "beschreibung": "31 Karten · 3 Gruppen",
+      "datei": "Innenarchitektur/Digitales Entwerfen 1/DE1_2026_Designstrategien_01.json"
+    },
+    {
+      "id": "de1-2026-designstrategien-02",
+      "titel": "DE1 Design Strategies",
+      "beschreibung": "16 Karten · 2 Gruppen",
+      "datei": "Innenarchitektur/Digitales Entwerfen 1/DE1_2026_Designstrategien_02.json"
+    },
+    {
+      "id": "de1-2026-grundwissen-final",
+      "titel": "DE1 Grundwissen",
+      "beschreibung": "75 Karten · 6 Gruppen",
+      "datei": "Innenarchitektur/Digitales Entwerfen 1/DE1_2026_Grundwissen_final.json"
+    },
+    {
+      "id": "de1-2026-rhinocommands-01",
+      "titel": "DE1 Rhino Commands",
+      "beschreibung": "31 Karten · 8 Gruppen",
+      "datei": "Innenarchitektur/Digitales Entwerfen 1/DE1_2026_RhinoCommands_01.json"
+    },
+    {
+      "id": "de2-2026-designstrategien-01",
+      "titel": "DE2 Design Strategies",
+      "beschreibung": "26 Karten · 4 Gruppen",
+      "datei": "Innenarchitektur/Digitales Entwerfen 2/DE2_2026_Designstrategien_01.json"
+    },
+    {
+      "id": "de2-2026-designstrategien-02",
+      "titel": "DE2 Design Strategies",
+      "beschreibung": "5 Karten · 1 Gruppen",
+      "datei": "Innenarchitektur/Digitales Entwerfen 2/DE2_2026_Designstrategien_02.json"
+    },
+    {
+      "id": "de2-2026-grundwissen-komplett",
+      "titel": "DE2 Grundwissen",
+      "beschreibung": "60 Karten · 6 Gruppen",
+      "datei": "Innenarchitektur/Digitales Entwerfen 2/DE2_2026_Grundwissen_komplett.json"
+    },
+    {
+      "id": "de2-2026-rhinocommands-01",
+      "titel": "DE2 Rhino Commands",
+      "beschreibung": "25 Karten · 6 Gruppen",
+      "datei": "Innenarchitektur/Digitales Entwerfen 2/DE2_2026_RhinoCommands_01.json"
+    }
+  ]
 }
