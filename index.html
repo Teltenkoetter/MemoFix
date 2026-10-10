@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=50">
+  <link rel="stylesheet" href="style.css?v=52">
 </head>
 <body>
 
@@ -158,7 +158,7 @@
             </div>
             <div class="anleitung-zeile">
               <span class="anleitung-icon">⚠️</span>
-              <div class="anleitung-text">„Safari-Daten löschen" in den iPhone-Einstellungen entfernt auch alle Karten — regelmäßig exportieren!</div>
+              <div class="anleitung-text">„Browserdaten löschen" (in den Einstellungen von Browser oder Handy) entfernt auch alle Karten — regelmäßig exportieren!</div>
             </div>
           </div>
         </div>
@@ -179,6 +179,31 @@
   </div>
 
   <!-- ── KARTE BEARBEITEN / KOPIEREN MODAL ─────────────── -->
+  <!-- ── NAMEN (Sammlung / Gruppe) ─────────────────────── -->
+  <div id="namen-modal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="namen-modal-titel">Bearbeiten</h2>
+        <button id="btn-namen-close" class="btn-modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="namen-de" id="namen-de-l">Name</label>
+          <input type="text" id="namen-de" maxlength="60">
+        </div>
+        <div class="form-group">
+          <label for="namen-en" id="namen-en-l">Name (EN)</label>
+          <input type="text" id="namen-en" maxlength="60">
+        </div>
+        <label class="check-zeile hidden" id="namen-zweisprachig-zeile">
+          <input type="checkbox" id="namen-zweisprachig">
+          <span id="namen-zweisprachig-l">Inhalt ist bereits zweisprachig (Sprachschalter ändert die Karten nicht)</span>
+        </label>
+        <button id="btn-namen-save" class="btn-primary" style="margin-top:0.75rem">Speichern</button>
+      </div>
+    </div>
+  </div>
+
   <div id="karte-edit-modal" class="modal-backdrop hidden">
     <div class="modal">
       <div class="modal-header">
@@ -209,12 +234,35 @@
         </div>
         <div class="form-group hidden" id="karte-edit-vorderseite-gruppe">
           <label for="karte-edit-vorderseite">Text / Vorderseite</label>
-          <textarea id="karte-edit-vorderseite" class="input-vorderseite" maxlength="300"></textarea>
+          <textarea id="karte-edit-vorderseite" class="input-vorderseite" maxlength="1000"></textarea>
         </div>
         <div class="form-group">
           <label for="karte-edit-notiz">Notiz <span class="label-optional">(optional)</span></label>
-          <textarea id="karte-edit-notiz" class="input-notiz" rows="2" maxlength="250" placeholder="Zusatzinfo, erscheint beim Aufdecken… (max. 250 Zeichen)"></textarea>
+          <textarea id="karte-edit-notiz" class="input-notiz" rows="4" maxlength="3000" placeholder="Zusatzinfo, erscheint beim Aufdecken… (max. 3000 Zeichen)"></textarea>
         </div>
+        <div class="form-group">
+          <label for="karte-edit-merke">Merke <span class="label-optional">(optional, farbig hervorgehoben)</span></label>
+          <textarea id="karte-edit-merke" class="input-notiz" rows="2" maxlength="500" placeholder="Kernaussage in ein bis zwei Sätzen… (max. 500 Zeichen)"></textarea>
+        </div>
+        <details class="en-felder" id="karte-edit-en">
+          <summary id="karte-edit-en-summary">🇬🇧 English <span class="label-optional">(optional, für den Sprachschalter)</span></summary>
+          <div class="form-group">
+            <label for="karte-edit-name-en" id="l-name-en">Name (EN)</label>
+            <input type="text" id="karte-edit-name-en" maxlength="100">
+          </div>
+          <div class="form-group">
+            <label for="karte-edit-vorderseite-en" id="l-vorderseite-en">Vorderseite (EN)</label>
+            <textarea id="karte-edit-vorderseite-en" class="input-vorderseite" maxlength="1000"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="karte-edit-notiz-en" id="l-notiz-en">Notiz (EN)</label>
+            <textarea id="karte-edit-notiz-en" class="input-notiz" rows="4" maxlength="3000"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="karte-edit-merke-en" id="l-merke-en">Merke (EN)</label>
+            <textarea id="karte-edit-merke-en" class="input-notiz" rows="2" maxlength="500"></textarea>
+          </div>
+        </details>
         <div class="form-group">
           <label for="karte-edit-links">Links <span class="label-optional">(optional, eine URL pro Zeile)</span></label>
           <textarea id="karte-edit-links" class="input-notiz" rows="2" maxlength="1000" placeholder="https://…"></textarea>
@@ -365,12 +413,16 @@
               <label for="input-foto" id="btn-neue-karte-foto-add" class="btn-datei-waehlen hidden">📷 Weiteres Foto hinzufügen</label>
             </div>
             <div id="text-bereich" class="hidden">
-              <textarea id="input-vorderseite" class="input-vorderseite" placeholder="Text, Definition oder Erklärung… (max. 300 Zeichen)" maxlength="300"></textarea>
+              <textarea id="input-vorderseite" class="input-vorderseite" placeholder="Text, Definition oder Erklärung… (max. 1000 Zeichen)" maxlength="1000"></textarea>
             </div>
           </div>
           <div class="form-group">
             <label for="input-notiz">Notiz <span class="label-optional">(optional, erscheint beim Aufdecken)</span></label>
-            <textarea id="input-notiz" class="input-notiz" rows="2" maxlength="250" placeholder="Zusatzinfo zum Begriff… (max. 250 Zeichen)"></textarea>
+            <textarea id="input-notiz" class="input-notiz" rows="4" maxlength="3000" placeholder="Zusatzinfo zum Begriff… (max. 3000 Zeichen)"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="input-merke">Merke <span class="label-optional">(optional, farbig hervorgehoben)</span></label>
+            <textarea id="input-merke" class="input-notiz" rows="2" maxlength="500" placeholder="Kernaussage in ein bis zwei Sätzen… (max. 500 Zeichen)"></textarea>
           </div>
           <div class="form-group">
             <label for="input-links">Links <span class="label-optional">(optional, eine URL pro Zeile)</span></label>
@@ -597,10 +649,16 @@
     <!-- ── SICHERUNG ───────────────────────────────────── -->
     <section id="view-sicherung" class="view hidden">
 
+      <div id="kursset-hinweis" class="kursset-hinweis-box hidden">
+        <span></span>
+        <button type="button" id="kursset-hinweis-link" class="btn-text">Anzeigen</button>
+      </div>
+
       <div class="card" id="kursset-card">
         <strong id="kursset-titel">Kursset importieren</strong>
         <p id="kursset-desc" class="kursset-desc">Fertige Kartensets zum Kurs — ein Tipp importiert sie direkt in die App. Erneutes Importieren aktualisiert die Karten des Sets.</p>
         <div id="kursset-liste" class="kursset-liste"></div>
+        <button type="button" id="btn-kursset-alle" class="btn-secondary hidden" style="margin-top:0.6rem;width:100%">Alle aktualisieren</button>
       </div>
 
       <div class="card">
@@ -646,7 +704,7 @@
 
       <div class="card info-card">
         <strong>💾 Nur auf diesem Gerät gespeichert</strong>
-        <p style="font-size:0.82rem;color:var(--muted);line-height:1.6;margin-top:0.4rem">Deine Karten liegen nur auf diesem Gerät. Exportiere sie ab und zu als Backup — z.&nbsp;B. bevor du Safari-Daten löschst oder das Gerät wechselst.</p>
+        <p style="font-size:0.82rem;color:var(--muted);line-height:1.6;margin-top:0.4rem">Deine Karten liegen nur auf diesem Gerät. Exportiere sie ab und zu als Backup — z.&nbsp;B. bevor du Browserdaten löschst oder das Gerät wechselst.</p>
       </div>
 
     </section>
@@ -730,6 +788,6 @@
     <div id="video-overlay-title" class="video-overlay-title"></div>
   </div>
 
-  <script src="app.js?v=68"></script>
+  <script src="app.js?v=74"></script>
 </body>
 </html>

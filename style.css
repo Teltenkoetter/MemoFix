@@ -2037,3 +2037,30 @@ body.praesi .lern-position-counter .counter-total { font-size: 14px; letter-spac
 /* Hilfe: Teilpunkte als Aufzählung auf neuer Zeile */
 .anleitung-liste { margin: 0.35rem 0 0; padding-left: 1.1rem; list-style: disc; }
 .anleitung-liste li { margin: 0.15rem 0; padding: 0; }
+
+/* ── ZWEISPRACHIGE KARTEN ─────────────────────────────── */
+.de-badge {
+  display: inline-block; vertical-align: middle;
+  font-size: 0.55em; font-weight: 700; letter-spacing: 0.4px; line-height: 1;
+  padding: 0.18em 0.4em; margin-left: 0.3em;
+  border: 1px solid rgba(255,255,255,0.3); border-radius: 5px;
+  color: var(--muted); background: rgba(255,255,255,0.05);
+  font-style: normal; text-transform: none;
+}
+.notiz-de { margin-top: 0.4em; font-size: 0.8em; }
+.en-felder { margin-top: 0.75rem; border: 1px solid var(--border); border-radius: 12px; padding: 0.5rem 0.75rem; }
+.en-felder > summary { cursor: pointer; font-size: 0.85rem; font-weight: 600; padding: 0.35rem 0; }
+.check-zeile { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.85rem; line-height: 1.4; margin-top: 0.4rem; }
+.check-zeile input { margin-top: 0.2rem; flex-shrink: 0; }
+
+/* ── KURSSET-STATUS (Farbe + Symbol, farbsicher) ──────── */
+.ks-rot    { color: #ff7a7a; }
+.ks-gruen  { color: #5fd38d; }
+.ks-orange { color: #ffb454; }
+.kursset-hinweis-box {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+  padding: 0.55rem 0.85rem; margin-bottom: 0.75rem;
+  border: 1px solid rgba(255,180,84,0.45); border-radius: 12px;
+  background: rgba(255,180,84,0.08); color: #ffb454; font-size: 0.85rem; font-weight: 600;
+}
+.kursset-hinweis-box.hidden { display: none; }

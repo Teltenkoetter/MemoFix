@@ -47,14 +47,24 @@ const TRANS = {
     gruppe_waehlen: 'Gruppe wählen…',
     karten_inhalt: 'Karten-Inhalt',
     tippen_foto: 'Tippen zum Foto auswählen',
-    notiz_ph: 'Zusatzinfo zum Begriff… (max. 250 Zeichen)',
-    text_ph: 'Text, Definition oder Erklärung… (max. 300 Zeichen)',
+    notiz_ph: 'Zusatzinfo zum Begriff… (max. 3000 Zeichen)',
+    text_ph: 'Text, Definition oder Erklärung… (max. 1000 Zeichen)',
     karte_speichern: 'Karte speichern',
     wird_gespeichert: 'Wird gespeichert…',
     name_label: 'Name',
     begriff_label: 'Begriff',
     gruppe_label: 'Gruppe',
     notiz_label: 'Notiz',
+    merke_label: 'Merke',
+    toast_namen_gespeichert: 'Gespeichert',
+    namen_titel_sammlung: 'Sammlung bearbeiten',
+    namen_titel_gruppe: 'Gruppe bearbeiten',
+    namen_zweisprachig: 'Inhalt ist bereits zweisprachig (Sprachschalter ändert die Karten nicht)',
+    en_summary: '🇬🇧 English <span class="label-optional">(optional, für den Sprachschalter)</span>',
+    l_name_en: 'Name (EN)', l_vorderseite_en: 'Vorderseite (EN)', l_notiz_en: 'Notiz (EN)', l_merke_en: 'Merke (EN)',
+    namen_de: 'Name', namen_en: 'Name (EN)', speichern_btn: 'Speichern',
+    merke_optional: '(optional, farbig hervorgehoben)',
+    merke_ph: 'Kernaussage in ein bis zwei Sätzen… (max. 500 Zeichen)',
     links_label: 'Links',
     youtube_label: 'YouTube',
     optional: '(optional)',
@@ -127,13 +137,20 @@ const TRANS = {
     kursset_offline: 'Kurssets können nur mit Internetverbindung geladen werden.',
     kursset_format: 'Ungültiges Set-Format',
     confirm_kursset: (name) => `Set „${name}" importieren?\n\nKarten dieses Sets werden ersetzt bzw. aktualisiert. Eigene Karten bleiben unberührt.`,
-    toast_kursset_ok: (name, n, a, e) => `„${name}": ${n} neu, ${a} aktualisiert${e ? `, ${e} entfernt` : ''}`,
+    toast_kursset_ok: (name, n, a, e, k) => `„${name}": ${n} neu, ${a} aktualisiert${e ? `, ${e} entfernt` : ''}${k ? `, ${k} lokal behalten` : ''}`,
+    toast_kursset_alle: (n) => `${n} Kurs${n !== 1 ? 'sets' : 'set'} aktualisiert`,
+    kursset_stand: 'Stand', kursset_neu: 'Neu', kursset_gruppen: 'Gruppe(n)', kursset_erneut: 'Erneut laden',
+    kursset_alle: 'Alle aktualisieren', kursset_anzeigen: 'Anzeigen',
+    kursset_status_rot: 'Noch nicht geladen', kursset_status_gruen: 'Aktuell', kursset_status_orange: 'Update verfügbar',
+    kursset_updates_hinweis: (n) => `${n} Kurs${n !== 1 ? 'sets haben' : 'set hat'} Updates`,
+    confirm_kursset_konflikt: (name, n) => `„${name}": ${n} Karte${n !== 1 ? 'n wurden' : ' wurde'} bei dir geändert.\n\nOK = mit der neuen Fassung überschreiben\nAbbrechen = deine Änderungen behalten`,
+    confirm_kursset_entfallen: (n) => `${n} Karte${n !== 1 ? 'n entfallen' : ' entfällt'} im neuen Set.\n\nOK = entfernen\nAbbrechen = behalten`,
     toast_kursset_fehler: (msg) => `Set konnte nicht importiert werden: ${msg}`,
     ki_briefing: 'KI-Briefing für neue Karten',
     ki_briefing_desc: 'Fertiger Prompt für ChatGPT, Gemini, Claude & Co. — erklärt der KI das MemoFix-Datenformat, damit sie direkt passende Karten-Sets zum Import erzeugen kann',
     herunterladen: 'Herunterladen',
     datenspeicher_title: '💾 Nur auf diesem Gerät gespeichert',
-    datenspeicher_text: 'Deine Karten liegen nur auf diesem Gerät. Exportiere sie ab und zu als Backup — z. B. bevor du Safari-Daten löschst oder das Gerät wechselst.',
+    datenspeicher_text: 'Deine Karten liegen nur auf diesem Gerät. Exportiere sie ab und zu als Backup — z. B. bevor du Browserdaten löschst oder das Gerät wechselst.',
     // ── Export-Modal ──────────────────────────────────────
     gruppen_exportieren: 'Gruppen exportieren',
     welche_gruppen: 'Welche Gruppen sollen exportiert werden?',
@@ -266,14 +283,24 @@ const TRANS = {
     gruppe_waehlen: 'Choose group…',
     karten_inhalt: 'Card content',
     tippen_foto: 'Tap to select photo',
-    notiz_ph: 'Extra info… (max. 250 chars)',
-    text_ph: 'Text, definition or explanation… (max. 300 chars)',
+    notiz_ph: 'Extra info… (max. 3000 chars)',
+    text_ph: 'Text, definition or explanation… (max. 1000 chars)',
     karte_speichern: 'Save card',
     wird_gespeichert: 'Saving…',
     name_label: 'Name',
     begriff_label: 'Term',
     gruppe_label: 'Group',
     notiz_label: 'Note',
+    merke_label: 'Memo',
+    toast_namen_gespeichert: 'Saved',
+    namen_titel_sammlung: 'Edit collection',
+    namen_titel_gruppe: 'Edit group',
+    namen_zweisprachig: 'Content is already bilingual (language switch does not change the cards)',
+    en_summary: '🇬🇧 English <span class="label-optional">(optional, for the language switch)</span>',
+    l_name_en: 'Name (EN)', l_vorderseite_en: 'Front (EN)', l_notiz_en: 'Note (EN)', l_merke_en: 'Memo (EN)',
+    namen_de: 'Name', namen_en: 'Name (EN)', speichern_btn: 'Save',
+    merke_optional: '(optional, highlighted)',
+    merke_ph: 'Key point in one or two sentences… (max. 500 chars)',
     links_label: 'Links',
     youtube_label: 'YouTube',
     optional: '(optional)',
@@ -346,13 +373,20 @@ const TRANS = {
     kursset_offline: 'Course sets can only be loaded with an internet connection.',
     kursset_format: 'Invalid set format',
     confirm_kursset: (name) => `Import set "${name}"?\n\nCards of this set are replaced or updated. Your own cards stay untouched.`,
-    toast_kursset_ok: (name, n, a, e) => `"${name}": ${n} new, ${a} updated${e ? `, ${e} removed` : ''}`,
+    toast_kursset_ok: (name, n, a, e, k) => `"${name}": ${n} new, ${a} updated${e ? `, ${e} removed` : ''}${k ? `, ${k} kept locally` : ''}`,
+    toast_kursset_alle: (n) => `${n} course set${n !== 1 ? 's' : ''} updated`,
+    kursset_stand: 'As of', kursset_neu: 'New', kursset_gruppen: 'group(s)', kursset_erneut: 'Reload',
+    kursset_alle: 'Update all', kursset_anzeigen: 'Show',
+    kursset_status_rot: 'Not loaded yet', kursset_status_gruen: 'Up to date', kursset_status_orange: 'Update available',
+    kursset_updates_hinweis: (n) => `${n} course set${n !== 1 ? 's have' : ' has'} updates`,
+    confirm_kursset_konflikt: (name, n) => `"${name}": ${n} card${n !== 1 ? 's were' : ' was'} changed on your device.\n\nOK = overwrite with the new version\nCancel = keep your changes`,
+    confirm_kursset_entfallen: (n) => `${n} card${n !== 1 ? 's are' : ' is'} no longer part of the new set.\n\nOK = remove\nCancel = keep`,
     toast_kursset_fehler: (msg) => `Could not import set: ${msg}`,
     ki_briefing: 'AI briefing for new cards',
     ki_briefing_desc: 'Ready-made prompt for ChatGPT, Gemini, Claude & co. — explains the MemoFix data format to the AI so it can generate ready-to-import card sets',
     herunterladen: 'Download',
     datenspeicher_title: '💾 Stored on this device only',
-    datenspeicher_text: 'Your cards are stored only on this device. Export a backup now and then — e.g. before clearing Safari data or switching devices.',
+    datenspeicher_text: 'Your cards are stored only on this device. Export a backup now and then — e.g. before clearing browser data or switching devices.',
     // ── Export-Modal ──────────────────────────────────────
     gruppen_exportieren: 'Export groups',
     welche_gruppen: 'Which groups should be exported?',
@@ -501,6 +535,16 @@ function applyTranslations() {
     if (el) el.childNodes[0].textContent = t('text_vorderseite');
   })();
   setPH('karte-edit-notiz', t('notiz_ph'));
+  setPH('karte-edit-merke', t('merke_ph'));
+  document.getElementById('karte-edit-en-summary').innerHTML = t('en_summary');
+  [['l-name-en','l_name_en'],['l-vorderseite-en','l_vorderseite_en'],['l-notiz-en','l_notiz_en'],['l-merke-en','l_merke_en'],
+   ['namen-de-l','namen_de'],['namen-en-l','namen_en'],['namen-zweisprachig-l','namen_zweisprachig'],['btn-namen-save','speichern_btn']]
+    .forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.textContent = t(k); });
+  setPH('input-merke', t('merke_ph'));
+  ['karte-edit-merke', 'input-merke'].forEach(id => {
+    const l = document.querySelector(`label[for="${id}"]`);
+    if (l) l.innerHTML = `${t('merke_label')} <span class="label-optional">${t('merke_optional')}</span>`;
+  });
 
   // Gruppe-Verschieben-Modal
   const gvH2 = document.querySelector('#gruppe-verschieben-modal .modal-header h2');
@@ -646,6 +690,8 @@ function applyTranslations() {
   setTxt('btn-ki-briefing', t('herunterladen'));
   setTxt('kursset-titel', t('kursset_titel'));
   setTxt('kursset-desc', t('kursset_desc'));
+  setTxt('btn-kursset-alle', t('kursset_alle'));
+  setTxt('kursset-hinweis-link', t('kursset_anzeigen'));
 
   // Karte-Detail
   const swipeHint = document.getElementById('karte-detail-swipe-hint');
@@ -660,9 +706,11 @@ function applyTranslations() {
 function getHelpHtml() {
   const sections = currentLang === 'en' ? [
     { title: '🚀 Getting started', rows: [
-      ['📲', '<strong>Add to Home Screen first</strong> — iPhone: Safari → Share → "Add to Home Screen" · Android (Chrome): ⋮ menu → "Install app" · Without this, Safari can delete your cards after about 7 days without use'],
-      ['📚', '<strong>Import course set</strong> — BACKUP → "Import course set" → tap "Import" (internet required) · importing again updates the cards of the set, your own cards stay untouched'],
-      ['💾', '<strong>Back up regularly</strong> — Cards live only on this device (no sync between devices) · BACKUP → Export · "Clear Safari data" deletes everything'],
+      ['🌐', '<strong>Browser</strong> — iPhone and iPad: Safari · Android: Chrome · Computer: Chrome, Edge or Safari'],
+      ['📲', '<strong>Add to Home Screen first</strong> — iPhone/iPad: Share → "Add to Home Screen" · Android: ⋮ menu → "Install app" · Without this, the browser can delete your cards after about 7 days without use'],
+      ['📚', '<strong>Import course set</strong> — BACKUP → "Import course set" → tap "Import" (internet required) · your own cards stay untouched'],
+      ['🚦', '<strong>Course set status</strong> — ● red: not loaded yet · ✓ green: up to date · ↻ orange: update available (tap "Update" or "Update all") · learning progress and favorites are kept · cards you changed yourself or that were removed from the set: you are asked first · offline the last known status stays visible'],
+      ['💾', '<strong>Back up regularly</strong> — Cards live only on this device (no sync between devices) · BACKUP → Export · "Clear browser data" deletes everything'],
       ['🔄', '<strong>After an update</strong> — close the app completely and open it again, otherwise you may still see the old version'],
       ['🎬', '<strong>Intro video</strong> — <a href="https://www.designstrategies.org/memofix-einfuhrung/" target="_blank" rel="noopener">Watch the short tutorial</a>'],
     ]},
@@ -680,7 +728,7 @@ function getHelpHtml() {
       ['🔁', '<strong>Autorepeat</strong> — After the last card the round restarts automatically'],
       ['⭐', '<strong>Favourites</strong> — Tap the star to mark a card as favourite · export as Favourites group under BACKUP'],
       ['🤏', '<strong>Zoom photos</strong> — Pinch with two fingers to zoom into a photo (also photos on the back of term cards) · drag with two fingers to pan · double-tap to reset'],
-      ['⛶', '<strong>Fullscreen 16:9</strong> — Button next to "Start learning": runs your selection full-screen on a 16:9 stage with large type, no menus · ideal for projectors and oral exams · tap = reveal / next, swipe = back · ✕ ends it · iPhone: no browser fullscreen, but bars are hidden (best as home-screen app, rotate to landscape)'],
+      ['⛶', '<strong>Fullscreen 16:9</strong> — Button next to "Start learning": runs your selection full-screen on a 16:9 stage with large type, no menus · ideal for projectors and oral exams · tap = reveal / next, swipe = back · ✕ ends it · real fullscreen works on iPad, not on iPhone (there the bars are hidden instead — best as home-screen app, rotate to landscape)'],
       ['🗣️', '<strong>Discuss with Claude</strong> — Send the current card, or your whole selection, to Claude for a deeper conversation about the topic · copies to clipboard and opens claude.ai in a new tab'],
     ]},
     { title: '⚙️ Manage', rows: [
@@ -695,7 +743,9 @@ function getHelpHtml() {
       ['📋', '<strong>Copy</strong> — Duplicate card into another group (✏️ opens Edit modal)'],
       ['🎨', '<strong>Collection colour</strong> — Tap the colour dot next to the collection name · appears as left stripe and card background in learning mode'],
       ['🔗', '<strong>Links</strong> — Add links when editing a card (e.g. Wikipedia, YouTube) · shown as tappable links when revealed'],
-      ['💬', '<strong>Note</strong> — Short extra info per card (max. 250 chars) · shown when revealed · formatting: <strong>**bold**</strong> · blank line = new paragraph · lines starting with <strong>- </strong> = bullet list · a paragraph starting with <strong>&gt; </strong> = highlighted call-out box'],
+      ['💬', '<strong>Note</strong> — Short extra info per card (max. 3000 chars) · shown when revealed · formatting: <strong>**bold**</strong> · blank line = new paragraph · lines starting with <strong>- </strong> = bullet list · a paragraph starting with <strong>&gt; </strong> = highlighted call-out box'],
+      ['📌', '<strong>Memo (Merke)</strong> — optional field per card (when adding or editing): the key point in one or two sentences · shown as a coloured box under the note when revealed'],
+      ['🇬🇧', '<strong>English cards</strong> — the DE/EN switch also changes card content: edit the English texts under "English" when editing a card, collection or group · missing translations show the German text with a small "DE" label · collections marked "content is already bilingual" stay unchanged'],
       ['🔄', '<strong>Remembers your state</strong> — Expanded collections/groups and the last-used tab are restored the next time you open the app'],
     ]},
     { title: '💾 Storage & Backup', rows: [
@@ -705,16 +755,18 @@ function getHelpHtml() {
       ['📥', '<strong>Import</strong> — Add (keep existing) or Replace all · also imports collection structure'],
       ['🗜️', '<strong>Compress photos</strong> — Under BACKUP: shrinks large, already-stored photos afterwards · use if exports feel slow or too large'],
       ['🤖', '<strong>AI briefing</strong> — Under BACKUP: download a ready-made prompt for ChatGPT, Gemini, Claude &amp; co. that explains the MemoFix data format, so an AI can build card sets you import directly'],
-      ['⚠️', '"Clear Safari data" in iPhone Settings also deletes all cards — export regularly!'],
+      ['⚠️', '"Clear browser data" (in the browser or phone settings) also deletes all cards — export regularly!'],
     ]},
     { title: '🔧 Troubleshooting', rows: [
       ['🖼️', '<strong>Images missing or export stuck?</strong> — Close and reopen the app · images reload immediately · no data is lost'],
     ]},
   ] : [
     { title: '🚀 Erste Schritte', rows: [
-      ['📲', '<strong>Zuerst zum Home-Bildschirm hinzufügen</strong> — iPhone: Safari → Teilen → „Zum Home-Bildschirm" · Android (Chrome): ⋮-Menü → „App installieren" · Ohne das kann Safari deine Karten nach etwa 7 Tagen ohne Nutzung löschen'],
-      ['📚', '<strong>Kursset importieren</strong> — SICHERUNG → „Kursset importieren" → „Importieren" antippen (Internet nötig) · erneutes Importieren aktualisiert die Karten des Sets, eigene Karten bleiben unberührt'],
-      ['💾', '<strong>Regelmäßig sichern</strong> — Karten liegen nur auf diesem Gerät (kein Abgleich zwischen Geräten) · SICHERUNG → Exportieren · „Safari-Daten löschen" entfernt alles'],
+      ['🌐', '<strong>Browser</strong> — iPhone und iPad: Safari · Android: Chrome · Computer: Chrome, Edge oder Safari'],
+      ['📲', '<strong>Zuerst zum Home-Bildschirm hinzufügen</strong> — iPhone/iPad: Teilen → „Zum Home-Bildschirm" · Android: ⋮-Menü → „App installieren" · Ohne das kann der Browser deine Karten nach etwa 7 Tagen ohne Nutzung löschen'],
+      ['📚', '<strong>Kursset importieren</strong> — SICHERUNG → „Kursset importieren" → „Importieren" antippen (Internet nötig) · eigene Karten bleiben unberührt'],
+      ['🚦', '<strong>Kursset-Status</strong> — ● rot: noch nicht geladen · ✓ grün: aktuell · ↻ orange: Update verfügbar (auf „Aktualisieren" oder „Alle aktualisieren" tippen) · Lernstand und Favoriten bleiben erhalten · selbst geänderte oder im Set entfallene Karten: es wird vorher nachgefragt · offline bleibt der letzte bekannte Status sichtbar'],
+      ['💾', '<strong>Regelmäßig sichern</strong> — Karten liegen nur auf diesem Gerät (kein Abgleich zwischen Geräten) · SICHERUNG → Exportieren · „Browserdaten löschen" entfernt alles'],
       ['🔄', '<strong>Nach einem Update</strong> — App komplett schließen und neu öffnen, sonst siehst du eventuell noch die alte Version'],
       ['🎬', '<strong>Einführungsvideo</strong> — <a href="https://www.designstrategies.org/memofix-einfuhrung/" target="_blank" rel="noopener">Kurzes Tutorial ansehen</a>'],
     ]},
@@ -732,7 +784,7 @@ function getHelpHtml() {
       ['🔁', '<strong>Autorepeat</strong> — nach dem letzten Bild startet die Runde automatisch neu'],
       ['⭐', '<strong>Favoriten</strong> — Stern antippen markiert eine Karte als Favorit · unter SICHERUNG gezielt als Favoriten-Gruppe exportieren'],
       ['🤏', '<strong>Fotos zoomen</strong> — mit zwei Fingern in ein Foto hineinzoomen (auch bei Fotos auf der Rückseite von Begriff-Karten) · mit zwei Fingern verschieben · Doppeltipp setzt den Zoom zurück'],
-      ['⛶', '<strong>Fullscreen 16:9</strong> — Button neben „Lernen starten": zeigt deine Auswahl im Vollbild auf einer 16:9-Bühne mit großer Schrift, ohne Menüs · ideal für Beamer und Prüfungsgespräche · Tippen = aufdecken / weiter, Wischen = zurück · ✕ beendet · iPhone: kein Browser-Vollbild, aber alle Leisten sind ausgeblendet (am besten als Home-Bildschirm-App, Handy quer halten)'],
+      ['⛶', '<strong>Fullscreen 16:9</strong> — Button neben „Lernen starten": zeigt deine Auswahl im Vollbild auf einer 16:9-Bühne mit großer Schrift, ohne Menüs · ideal für Beamer und Prüfungsgespräche · Tippen = aufdecken / weiter, Wischen = zurück · ✕ beendet · Vollbild geht auf dem iPad, auf dem iPhone nicht (dort werden stattdessen alle Leisten ausgeblendet — am besten als Home-Bildschirm-App, Handy quer halten)'],
       ['🗣️', '<strong>Mit Claude besprechen</strong> — aktuelle Karte oder die ganze Auswahl an Claude übergeben, um das Thema im Gespräch zu vertiefen · kopiert in die Zwischenablage und öffnet claude.ai in neuem Tab'],
     ]},
     { title: '⚙️ Verwaltung', rows: [
@@ -747,7 +799,9 @@ function getHelpHtml() {
       ['📋', '<strong>Kopieren</strong> — Karte in eine andere Gruppe duplizieren (✏️ öffnet Bearbeiten-Modal)'],
       ['🎨', '<strong>Sammlungsfarbe</strong> — Farbpunkt neben dem Sammlungsnamen antippen · Farbe erscheint als Streifen links und als Kartenhintergrund im Lernmodus'],
       ['🔗', '<strong>Links</strong> — beim Bearbeiten einer Karte Links hinzufügen (z.&nbsp;B. Wikipedia, YouTube) · erscheinen beim Aufdecken als tippbare Verweise'],
-      ['💬', '<strong>Notiz</strong> — kurze Zusatzinfo pro Karte (max. 250 Zeichen) · wird beim Aufdecken angezeigt · Formatierung: <strong>**fett**</strong> · Leerzeile = neuer Absatz · Zeilen mit <strong>- </strong> = Aufzählung · Absatz mit <strong>&gt; </strong> = hervorgehobener Kasten (Callout)'],
+      ['💬', '<strong>Notiz</strong> — kurze Zusatzinfo pro Karte (max. 3000 Zeichen) · wird beim Aufdecken angezeigt · Formatierung: <strong>**fett**</strong> · Leerzeile = neuer Absatz · Zeilen mit <strong>- </strong> = Aufzählung · Absatz mit <strong>&gt; </strong> = hervorgehobener Kasten (Callout)'],
+      ['📌', '<strong>Merke</strong> — optionales Feld pro Karte (beim Anlegen oder Bearbeiten): die Kernaussage in ein bis zwei Sätzen · erscheint nach dem Aufdecken als farbig hinterlegter Kasten unter der Notiz'],
+      ['🇬🇧', '<strong>Englische Karten</strong> — der DE/EN-Schalter ändert auch den Karteninhalt: englische Texte beim Bearbeiten einer Karte unter „English" eintragen, bei Sammlung und Gruppe als „Name (EN)" · fehlende Übersetzungen zeigen den deutschen Text mit kleinem „DE"-Label · Sammlungen mit „Inhalt ist bereits zweisprachig" bleiben unverändert'],
       ['🔄', '<strong>Merkt sich deinen Stand</strong> — aufgeklappte Sammlungen/Gruppen und der zuletzt genutzte Bereich sind beim nächsten Öffnen wieder da'],
     ]},
     { title: '💾 Datenspeicher & Backup', rows: [
@@ -757,7 +811,7 @@ function getHelpHtml() {
       ['📥', '<strong>Importieren</strong> — Hinzufügen (bestehende behalten) oder Alles ersetzen · importiert auch Sammlungsstruktur'],
       ['🗜️', '<strong>Fotos komprimieren</strong> — unter SICHERUNG: verkleinert nachträglich große, bereits gespeicherte Fotos · hilfreich, wenn Exporte langsam oder groß werden'],
       ['🤖', '<strong>KI-Briefing</strong> — unter SICHERUNG: fertigen Prompt für ChatGPT, Gemini, Claude &amp; Co. herunterladen, der das MemoFix-Datenformat erklärt · so kann eine KI Kartensets bauen, die du direkt importierst'],
-      ['⚠️', '„Safari-Daten löschen" in den iPhone-Einstellungen entfernt auch alle Karten — regelmäßig exportieren!'],
+      ['⚠️', '„Browserdaten löschen" (in den Einstellungen von Browser oder Handy) entfernt auch alle Karten — regelmäßig exportieren!'],
     ]},
     { title: '🔧 Probleme & Lösungen', rows: [
       ['🖼️', '<strong>Bilder verschwunden oder Export hängt?</strong> — App schließen und neu öffnen · die Bilder werden sofort wieder geladen · keine Daten gehen verloren'],
@@ -1343,17 +1397,17 @@ function zeigeNameAuto() {
     document.getElementById('lernkarte-text-scroll-wrap').classList.add('hidden');
     document.getElementById('lern-name-overlay').classList.remove('hidden');
     const n = document.getElementById('lern-notiz-text');
-    if (s.notiz) { n.innerHTML = renderNotizHtml(s.notiz); n.classList.remove('hidden'); } else n.classList.add('hidden');
+    if (hatNotizInhalt(s)) { n.innerHTML = notizHtml(s); n.classList.remove('hidden'); } else n.classList.add('hidden');
     showLinks('lern-card-links', s.links || []);
     showVideo('lern-card-video', s);
   } else if (kartenModus === 'text') {
     document.getElementById('lern-name-karte').classList.add('hidden');
-    document.getElementById('lern-vorderseite-text').innerHTML = renderVorderseiteHtml(s.vorderseite || '');
+    document.getElementById('lern-vorderseite-text').innerHTML = vorderseiteHtml(s);
     renderTextFotos('lern-text-fotos', s);
     document.getElementById('lernkarte-text-scroll-wrap').classList.remove('hidden');
     resetScrollIndikatoren();
     const nr = document.getElementById('lern-notiz-text-rueck');
-    if (s.notiz) { nr.innerHTML = renderNotizHtml(s.notiz); nr.classList.remove('hidden'); } else nr.classList.add('hidden');
+    if (hatNotizInhalt(s)) { nr.innerHTML = notizHtml(s); nr.classList.remove('hidden'); } else nr.classList.add('hidden');
     showLinks('lern-card-links', s.links || []);
     showVideo('lern-card-video', s);
   } else if (lernModus === 'name') {
@@ -1361,13 +1415,13 @@ function zeigeNameAuto() {
     document.getElementById('lernkarte-foto-wrapper').classList.remove('hidden');
     document.getElementById('lern-name-karte').classList.add('hidden');
     const n = document.getElementById('lern-notiz-text');
-    if (s.notiz) { n.innerHTML = renderNotizHtml(s.notiz); n.classList.remove('hidden'); } else n.classList.add('hidden');
+    if (hatNotizInhalt(s)) { n.innerHTML = notizHtml(s); n.classList.remove('hidden'); } else n.classList.add('hidden');
     showLinks('lern-card-links', s.links || []);
     showVideo('lern-card-video', s);
   } else {
     document.getElementById('lern-name-overlay').classList.remove('hidden');
     const n = document.getElementById('lern-notiz-text');
-    if (s.notiz) { n.innerHTML = renderNotizHtml(s.notiz); n.classList.remove('hidden'); } else n.classList.add('hidden');
+    if (hatNotizInhalt(s)) { n.innerHTML = notizHtml(s); n.classList.remove('hidden'); } else n.classList.add('hidden');
     showLinks('lern-card-links', s.links || []);
     showVideo('lern-card-video', s);
   }
@@ -1478,8 +1532,9 @@ function getSortierteKartenInGruppe(gruppeId) {
   const karten = studenten.filter(s => s.gruppeId === gruppeId);
   const sort   = document.getElementById('select-karten-sort')?.value || 'manuell';
 
-  if (sort === 'az') return [...karten].sort((a, b) => a.name.localeCompare(b.name, 'de'));
-  if (sort === 'za') return [...karten].sort((a, b) => b.name.localeCompare(a.name, 'de'));
+  const loc = istEn() ? 'en' : 'de';
+  if (sort === 'az') return [...karten].sort((a, b) => kName(a).localeCompare(kName(b), loc));
+  if (sort === 'za') return [...karten].sort((a, b) => kName(b).localeCompare(kName(a), loc));
 
   // Manuell: gespeicherte Reihenfolge anwenden
   const reihenfolge = ladeKartenReihenfolge(gruppeId);
@@ -1685,16 +1740,61 @@ function gruppeKartenAnzahl(gid) {
   return studenten.filter(s => s.gruppeId === gid).length;
 }
 
+// ── Zweisprachige Karten (DE/EN) ─────────────────────────────
+const EN_FELDER_KARTE = ['name_en', 'vorderseite_en', 'notiz_en', 'merke_en'];
+function istEn() { return currentLang === 'en'; }
+function sammlungVonKarte(k) {
+  const g = gruppen.find(x => x.id === k.gruppeId);
+  return g ? sammlungen.find(x => x.id === g.sammlungId) : null;
+}
+// Anzeigetext eines Kartenfelds in der gewählten Sprache.
+// fallback=true: englische Fassung fehlt, deutscher Text wird ersatzweise gezeigt.
+// Sammlungen mit zweisprachig_inhalt:true behalten ihren Inhalt in beiden Sprachen.
+function kText(k, feld) {
+  const de = k[feld] || '';
+  if (!istEn()) return { text: de, fallback: false };
+  if (sammlungVonKarte(k)?.zweisprachig_inhalt) return { text: de, fallback: false };
+  const en = k[feld + '_en'];
+  if (en && String(en).trim()) return { text: en, fallback: false };
+  return { text: de, fallback: !!de };
+}
+function kName(k) { return kText(k, 'name').text; }
+function sammlungName(sam) { return (istEn() && sam.name_en) ? sam.name_en : sam.name; }
+function gruppeName(g)     { return (istEn() && g.name_en)   ? g.name_en   : g.name; }
+const DE_BADGE = '<span class="de-badge" title="Deutsch (noch keine englische Fassung)">DE</span>';
+function nameMitBadge(k) { const n = kText(k, 'name'); return esc(n.text) + (n.fallback ? ' ' + DE_BADGE : ''); }
+function hatNotizInhalt(k) { return !!(k.notiz || k.merke || k.notiz_en || k.merke_en); }
+function notizHtml(k) {
+  const n = kText(k, 'notiz'), m = kText(k, 'merke');
+  return renderNotizHtml(n.text, m.text, { fallback: n.fallback || m.fallback });
+}
+function vorderseiteHtml(k) { const v = kText(k, 'vorderseite'); return renderVorderseiteHtml(v.text, v.fallback); }
+// Ergänzt fehlende englische Felder aus einem Import (vorhandene Werte werden nie überschrieben)
+function ergaenzeEnFelder(vorh, neu, felder) {
+  let geaendert = false;
+  const r = { ...vorh };
+  for (const f of felder) {
+    const hatNeu  = neu[f] != null && String(neu[f]).trim() !== '';
+    const hatVorh = vorh[f] != null && String(vorh[f]).trim() !== '';
+    if (hatNeu && !hatVorh) { r[f] = neu[f]; geaendert = true; }
+  }
+  return geaendert ? r : null;
+}
+// Kopie der Karte mit Anzeigetexten (PDF, Teilen, Bildexport, Prompts)
+function kAnzeige(k) {
+  return { ...k, name: kText(k, 'name').text, vorderseite: kText(k, 'vorderseite').text,
+           notiz: kText(k, 'notiz').text, merke: kText(k, 'merke').text };
+}
+
 function getGefilterteStudenten() {
   const suche = (document.getElementById('input-karten-suche')?.value || '').toLowerCase().trim();
   let result = [...studenten];
   if (suche) result = result.filter(s =>
-    s.name.toLowerCase().includes(suche) ||
-    (s.notiz || '').toLowerCase().includes(suche) ||
-    (s.vorderseite || '').toLowerCase().includes(suche)
+    [s.name, s.notiz, s.vorderseite, s.merke, s.name_en, s.notiz_en, s.vorderseite_en, s.merke_en]
+      .some(f => (f || '').toLowerCase().includes(suche))
   );
   // Im Suchmodus immer A→Z für übersichtliche Ergebnisse
-  result.sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  result.sort((a, b) => kName(a).localeCompare(kName(b), istEn() ? 'en' : 'de'));
   return result;
 }
 
@@ -1725,26 +1825,31 @@ async function getSchwacheKarten(gruppeIds = null) {
 // ============================================================
 
 // Mehrzeiligen Text als Bullet-Liste oder einfachen Absatz rendern
-function renderVorderseiteHtml(text) {
+function renderVorderseiteHtml(text, fallback) {
   if (!text) return '';
+  const badge = fallback ? ' ' + DE_BADGE : '';
   const bold = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   const zeilen = text.split('\n').map(z => z.trim()).filter(z => z.length > 0);
-  if (zeilen.length <= 1) return `<p>${bold(text.trim())}</p>`;
+  if (zeilen.length <= 1) return `<p>${bold(text.trim())}${badge}</p>`;
   const istHeader = z => /^\*\*[^*]+\*\*$/.test(z.trim());
   const items = zeilen.map((z, i) => {
+    const b = i === 0 ? badge : '';
     if (istHeader(z)) {
       const cls = i === 0 ? 'header-zeile header-zeile-first' : 'header-zeile';
-      return `<li class="${cls}">${bold(z)}</li>`;
+      return `<li class="${cls}">${bold(z)}${b}</li>`;
     }
-    return `<li>${bold(z)}</li>`;
+    return `<li>${bold(z)}${b}</li>`;
   });
   return `<ul class="lern-vorderseite-liste">${items.join('')}</ul>`;
 }
 
 // Notiz: Markdown-Light (**fett**, Absätze, Zeilenumbruch, "- "-Listen, "> "-Callout). HTML wird zuerst escaped.
-function renderNotizHtml(text) {
-  if (!text) return '';
+function renderNotizHtml(text, merke, opt) {
   const inline = z => esc(z).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  const merkeHtml = merke && String(merke).trim()
+    ? `<div class="notiz-callout"><strong>${esc(t('merke_label'))}:</strong> ${String(merke).trim().replace(/\r\n?/g, '\n').split('\n').map(inline).join('<br>')}</div>`
+    : '';
+  if (!text) return merkeHtml + (opt?.fallback ? `<div class="notiz-de">${DE_BADGE}</div>` : '');
   const absaetze = String(text).replace(/\r\n?/g, '\n').trim().split(/\n{2,}/);
   return absaetze.map(abs => {
     if (/^\s*>\s?/.test(abs)) {
@@ -1769,7 +1874,7 @@ function renderNotizHtml(text) {
       ? `<ul class="notiz-liste">${b.liste.map(i => `<li>${inline(i)}</li>`).join('')}</ul>`
       : `<div class="notiz-absatz">${b.text.map(inline).join('<br>')}</div>`
     ).join('');
-  }).join('');
+  }).join('') + merkeHtml + (opt?.fallback ? `<div class="notiz-de">${DE_BADGE}</div>` : '');
 }
 
 // ── Karte Detail Overlay ──────────────────────────────
@@ -1782,14 +1887,14 @@ function fillKarteDetail(s) {
   const textWrap = document.getElementById('karte-detail-text-wrap');
   if (!isText && s.foto) renderFotoSlideshow('karte-detail-foto', 'karte-detail-foto-wrap', s);
   else document.getElementById('karte-detail-foto').src = '';
-  document.getElementById('karte-detail-text').innerHTML = isText ? renderVorderseiteHtml(s.vorderseite || '') : '';
+  document.getElementById('karte-detail-text').innerHTML = isText ? vorderseiteHtml(s) : '';
   if (isText) renderTextFotos('karte-detail-text-fotos', s);
   fotoWrap.classList.toggle('hidden', isText);
   textWrap.classList.toggle('hidden', !isText);
-  document.getElementById('karte-detail-name').textContent   = s.name;
-  document.getElementById('karte-detail-gruppe').textContent = gruppen.find(g => g.id === s.gruppeId)?.name || '';
+  document.getElementById('karte-detail-name').innerHTML     = nameMitBadge(s);
+  document.getElementById('karte-detail-gruppe').textContent = (g => g ? gruppeName(g) : '')(gruppen.find(g => g.id === s.gruppeId));
   const notizEl = document.getElementById('karte-detail-notiz');
-  if (s.notiz) { notizEl.innerHTML = renderNotizHtml(s.notiz); notizEl.classList.remove('hidden'); }
+  if (hatNotizInhalt(s)) { notizEl.innerHTML = notizHtml(s); notizEl.classList.remove('hidden'); }
   else { notizEl.classList.add('hidden'); }
   showLinks('karte-detail-links', s.links || []);
   showVideo('karte-detail-video', s);
@@ -1860,6 +1965,7 @@ function _cvRoundRect(ctx, x, y, w, h, r) {
 }
 
 async function erstelleKartenBild(s) {
+  s = kAnzeige(s);
   const W = 630, PAD = 40, RADIUS = 24;
 
   // Akzentfarbe der Sammlung
@@ -1899,7 +2005,7 @@ async function erstelleKartenBild(s) {
   if (s.links?.length) hints.push(`🔗 ${s.links.length === 1 ? '1 Weblink' : s.links.length + ' Weblinks'}`);
   if (s.videoId)       hints.push(`▶ ${s.videoTitel || 'Video'}`);
 
-  const samName = (sam?.name || '').toUpperCase();
+  const samName = (sam ? sammlungName(sam) : '').toUpperCase();
 
   // ── Höhe berechnen ──────────────────────────────────────
   const samH   = samName ? 30 : 0;
@@ -2032,6 +2138,7 @@ async function erstelleKartenBild(s) {
 
 // ── Karte teilen ─────────────────────────────────────────
 async function teileKarte(s) {
+  s = kAnzeige(s);
   const MEMOFIX_URL = 'https://teltenkoetter.github.io/MemoFix/';
 
   // Extra-Text: Links + Video (als Begleittext oder Fallback)
@@ -2139,7 +2246,7 @@ function karteItemHtml(s, idx, total) {
     thumb = `<div class="karte-text-thumb karte-detail-trigger" data-id="${s.id}">${esc((s.vorderseite || '').substring(0, 40))}${(s.vorderseite || '').length > 40 ? '…' : ''}</div>`;
   } else if (s.foto) {
     const multiCount = (s.fotos && s.fotos.length > 1) ? s.fotos.length : 0;
-    thumb = `<img src="${getFotoUrl(s)}" alt="${esc(s.name)}" loading="lazy">
+    thumb = `<img src="${getFotoUrl(s)}" alt="${esc(kName(s))}" loading="lazy">
        <div class="karte-foto-overlay">📷</div>
        ${multiCount ? `<div class="karte-foto-multi-badge">${multiCount}</div>` : ''}
        <input type="file" accept="image/*" class="karte-foto-input" data-id="${s.id}">`;
@@ -2154,7 +2261,7 @@ function karteItemHtml(s, idx, total) {
       <div class="karte-foto-wrapper">
         ${thumb}
       </div>
-      <span class="karte-name karte-detail-trigger" data-id="${s.id}">${esc(s.name)}${s.notiz ? ' <span style="opacity:.45;font-size:.7rem">📝</span>' : ''}${s.links?.length ? ' <span style="opacity:.45;font-size:.7rem">🔗</span>' : ''}${s.videoId ? ' <span style="opacity:.55;font-size:.7rem">▶</span>' : ''}</span>
+      <span class="karte-name karte-detail-trigger" data-id="${s.id}">${nameMitBadge(s)}${s.notiz ? ' <span style="opacity:.45;font-size:.7rem">📝</span>' : ''}${s.merke ? ' <span style="opacity:.55;font-size:.7rem">📌</span>' : ''}${s.links?.length ? ' <span style="opacity:.45;font-size:.7rem">🔗</span>' : ''}${s.videoId ? ' <span style="opacity:.55;font-size:.7rem">▶</span>' : ''}</span>
       <button class="btn-favorit${s.favorit ? ' aktiv' : ''}" data-id="${s.id}" title="${s.favorit ? t('fav_entfernen') : t('fav_markieren')}">★</button>
       ${showMove ? `<button class="btn-karte-move" data-id="${s.id}" data-gid="${s.gruppeId}" data-dir="up" ${idx === 0 ? 'disabled' : ''}>▲</button>
       <button class="btn-karte-move" data-id="${s.id}" data-gid="${s.gruppeId}" data-dir="down" ${idx === total - 1 ? 'disabled' : ''}>▼</button>` : ''}
@@ -2199,8 +2306,8 @@ function _renderVerwaltung() {
     sortierteSammlungen.map(sam => {
       const gs = getSortierteGruppenInSammlung(sam.id);
       if (!gs.length) return '';
-      return `<optgroup label="${esc(sam.name)}">` +
-        gs.map(g => `<option value="${g.id}"${g.id === savedId ? ' selected' : ''}>${esc(g.name)}</option>`).join('') +
+      return `<optgroup label="${esc(sammlungName(sam))}">` +
+        gs.map(g => `<option value="${g.id}"${g.id === savedId ? ' selected' : ''}>${esc(gruppeName(g))}</option>`).join('') +
         `</optgroup>`;
     }).join('');
 
@@ -2266,7 +2373,7 @@ function _renderVerwaltung() {
       return `<div class="gruppe-karten-section">
         <div class="gruppe-karten-header" data-gid="${g.id}">
           <span class="gruppe-toggle-arrow">${isGroupOpen ? '▼' : '▶'}</span>
-          <span class="gruppe-karten-title-text">${esc(g.name)}</span>
+          <span class="gruppe-karten-title-text">${esc(gruppeName(g))}</span>
           <span class="gruppe-karten-count">${tf('karte_n', gCount)}</span>
           <div class="gruppe-mgmt-btns">
             <button class="btn-gruppe-add-karte" data-gid="${g.id}" title="${t('karte_hinzufuegen')}">＋</button>
@@ -2287,7 +2394,7 @@ function _renderVerwaltung() {
     html += `<div class="sammlung-section" style="${sammlungStyle(farbe)}">
       <div class="sammlung-header" data-sid="${sam.id}">
         <span class="sammlung-toggle-icon">${isOpen ? '▼' : '▶'}</span>
-        <span class="sammlung-name-text">${esc(sam.name)}</span>
+        <span class="sammlung-name-text">${esc(sammlungName(sam))}</span>
         <span class="sammlung-count">${gs.length} ${t('gr_abbr')} · ${kCount} ${t('k_abbr')}</span>
         <div class="sammlung-btns">
           <button class="btn-sammlung-move" data-id="${sam.id}" data-dir="up"${si === 0 ? ' disabled' : ''}>▲</button>
@@ -2318,7 +2425,7 @@ function _renderVerwaltung() {
       return `<div class="gruppe-karten-section">
         <div class="gruppe-karten-header" data-gid="${g.id}">
           <span class="gruppe-toggle-arrow">${isGroupOpen ? '▼' : '▶'}</span>
-          <span class="gruppe-karten-title-text">${esc(g.name)}</span>
+          <span class="gruppe-karten-title-text">${esc(gruppeName(g))}</span>
           <span class="gruppe-karten-count">${tf('karte_n', gCount)}</span>
           <div class="gruppe-mgmt-btns">
             <button class="btn-gruppe-move-sammlung" data-id="${g.id}" title="${t('sammlung_zuweisen')}">📁</button>
@@ -2380,7 +2487,7 @@ function renderLernAuswahl() {
         <div class="gruppe-check-item" data-gid="${g.id}">
           <div class="check-box">✓</div>
           <div class="check-label">
-            <strong>${esc(g.name)}</strong>
+            <strong>${esc(gruppeName(g))}</strong>
             <span>${tf('karte_n', n)}${icon ? ' · ' + icon : ''}</span>
           </div>
         </div>`;
@@ -2404,7 +2511,7 @@ function renderLernAuswahl() {
     html += `<div class="lern-sammlung-section" style="${sammlungStyle(farbe)}">
       <div class="lern-sammlung-header" data-lern-sid="${sam.id}">
         <span class="lern-sammlung-toggle">${isOpen ? '▼' : '▶'}</span>
-        <span class="lern-sammlung-name">${esc(sam.name)}</span>
+        <span class="lern-sammlung-name">${esc(sammlungName(sam))}</span>
         <button class="btn-lern-sam-alle" data-sam-sid="${sam.id}" title="${t('alle_gruppen_toggle')}">${t('alle')}</button>
       </div>
       <div class="lern-sammlung-body${isOpen ? '' : ' hidden'}" data-lern-sid="${sam.id}">
@@ -2626,7 +2733,7 @@ function zeigeKarte() {
 
   const s           = lernKarten[lernIndex];
   const gruppe      = gruppen.find(g => g.id === s.gruppeId);
-  const gName       = gruppe ? gruppe.name : '';
+  const gName       = gruppe ? gruppeName(gruppe) : '';
   const kartenModus = s.modus || 'foto';
   const total       = lernKarten.length;
 
@@ -2638,7 +2745,7 @@ function zeigeKarte() {
   lernkarte.style.setProperty('--sam-farbe', kartefarbe);
   lernkarte.style.setProperty('--sam-farbe-tint', hexToRgba(kartefarbe, 0.13));
 
-  setText('lern-name-text', s.name);
+  document.getElementById('lern-name-text') && (document.getElementById('lern-name-text').innerHTML = nameMitBadge(s));
   setText('lern-gruppe-text', gName);
   setText('lern-name-karte-gruppe', gName);
   setText('lern-text-gruppe', gName);
@@ -2673,18 +2780,18 @@ function zeigeKarte() {
 
   if (kartenModus === 'text' && lernModus === 'name') {
     // Begriff-Karte UMGEKEHRT: Info/Definition (+ Fotos) vorne → Begriff aufdecken
-    document.getElementById('lern-vorderseite-text').innerHTML = renderVorderseiteHtml(s.vorderseite || '');
+    document.getElementById('lern-vorderseite-text').innerHTML = vorderseiteHtml(s);
     renderTextFotos('lern-text-fotos', s);
     document.getElementById('lernkarte-text-scroll-wrap').classList.remove('hidden');
     resetScrollIndikatoren();
     aufdeckBtn.textContent = t('begriff_zeigen');
   } else if (kartenModus === 'text') {
     document.getElementById('lern-name-karte').classList.remove('hidden');
-    document.getElementById('lern-name-karte-text').textContent = s.name;
+    document.getElementById('lern-name-karte-text').innerHTML = nameMitBadge(s);
     aufdeckBtn.textContent = t('info_zeigen');
   } else if (lernModus === 'name') {
     document.getElementById('lern-name-karte').classList.remove('hidden');
-    document.getElementById('lern-name-karte-text').textContent = s.name;
+    document.getElementById('lern-name-karte-text').innerHTML = nameMitBadge(s);
     aufdeckBtn.textContent = t('bild_zeigen');
   } else {
     renderFotoSlideshow('lern-foto', 'lernkarte-foto-wrapper', s);
@@ -2709,19 +2816,19 @@ function zeigeName(wertung) {
     document.getElementById('lernkarte-text-scroll-wrap').classList.add('hidden');
     document.getElementById('lern-name-overlay').classList.remove('hidden');
     const notizEl = document.getElementById('lern-notiz-text');
-    if (s.notiz) { notizEl.innerHTML = renderNotizHtml(s.notiz); notizEl.classList.remove('hidden'); }
+    if (hatNotizInhalt(s)) { notizEl.innerHTML = notizHtml(s); notizEl.classList.remove('hidden'); }
     else { notizEl.classList.add('hidden'); }
     showLinks('lern-card-links', s.links || []);
     showVideo('lern-card-video', s);
   } else if (kartenModus === 'text') {
     // Begriff-Karte normal aufdecken: Info/Definition (+ Fotos) anzeigen (Begriff war vorne)
     document.getElementById('lern-name-karte').classList.add('hidden');
-    document.getElementById('lern-vorderseite-text').innerHTML = renderVorderseiteHtml(s.vorderseite || '');
+    document.getElementById('lern-vorderseite-text').innerHTML = vorderseiteHtml(s);
     renderTextFotos('lern-text-fotos', s);
     document.getElementById('lernkarte-text-scroll-wrap').classList.remove('hidden');
     resetScrollIndikatoren();
     const notizRueck = document.getElementById('lern-notiz-text-rueck');
-    if (s.notiz) { notizRueck.innerHTML = renderNotizHtml(s.notiz); notizRueck.classList.remove('hidden'); }
+    if (hatNotizInhalt(s)) { notizRueck.innerHTML = notizHtml(s); notizRueck.classList.remove('hidden'); }
     else { notizRueck.classList.add('hidden'); }
     showLinks('lern-card-links', s.links || []);
     showVideo('lern-card-video', s);
@@ -2731,7 +2838,7 @@ function zeigeName(wertung) {
     document.getElementById('lernkarte-foto-wrapper').classList.remove('hidden');
     document.getElementById('lern-name-karte').classList.add('hidden');
     const notizEl = document.getElementById('lern-notiz-text');
-    if (s.notiz) { notizEl.innerHTML = renderNotizHtml(s.notiz); notizEl.classList.remove('hidden'); }
+    if (hatNotizInhalt(s)) { notizEl.innerHTML = notizHtml(s); notizEl.classList.remove('hidden'); }
     else { notizEl.classList.add('hidden'); }
     showLinks('lern-card-links', s.links || []);
     showVideo('lern-card-video', s);
@@ -2739,7 +2846,7 @@ function zeigeName(wertung) {
     // Foto-Karte normal aufdecken: Begriff im Overlay
     document.getElementById('lern-name-overlay').classList.remove('hidden');
     const notizEl = document.getElementById('lern-notiz-text');
-    if (s.notiz) { notizEl.innerHTML = renderNotizHtml(s.notiz); notizEl.classList.remove('hidden'); }
+    if (hatNotizInhalt(s)) { notizEl.innerHTML = notizHtml(s); notizEl.classList.remove('hidden'); }
     else { notizEl.classList.add('hidden'); }
     showLinks('lern-card-links', s.links || []);
     showVideo('lern-card-video', s);
@@ -2908,6 +3015,9 @@ async function openKarteEditModal(studentId, mode) {
   document.getElementById('karte-edit-titel').textContent = mode === 'copy' ? t('karte_kopieren') : t('karte_bearbeiten');
   document.getElementById('karte-edit-name').value  = s.name;
   document.getElementById('karte-edit-notiz').value = s.notiz || '';
+  document.getElementById('karte-edit-merke').value = s.merke || '';
+  EN_FELDER_KARTE.forEach(f => { document.getElementById('karte-edit-' + f.replace('_', '-')).value = s[f] || ''; });
+  document.getElementById('karte-edit-en').open = EN_FELDER_KARTE.some(f => s[f]);
   document.getElementById('karte-edit-links').value = (s.links || []).join('\n');
   document.getElementById('karte-edit-video').value = s.videoId || '';
   const editVideoStatus = document.getElementById('karte-edit-video-status');
@@ -2947,8 +3057,8 @@ async function openKarteEditModal(studentId, mode) {
   sel.innerHTML = sortierteSamml.map(sam => {
     const gs = getSortierteGruppenInSammlung(sam.id);
     if (!gs.length) return '';
-    return `<optgroup label="${esc(sam.name)}">` +
-      gs.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('') +
+    return `<optgroup label="${esc(sammlungName(sam))}">` +
+      gs.map(g => `<option value="${g.id}">${esc(gruppeName(g))}</option>`).join('') +
       `</optgroup>`;
   }).join('');
   if (mode === 'copy') {
@@ -3008,67 +3118,164 @@ function dataUrlToBlob(dataUrl) {
   return new Blob([arr], { type: mime });
 }
 
-// ── KURSSETS: Sets von der eigenen Domain laden (kurssets/index.json) ──
-async function ladeKurssetListe() {
-  const box = document.getElementById('kursset-liste');
-  if (!box) return;
+// ── KURSSETS: manifest.json, Status (rot ● / grün ✓ / orange ↻) und Update-Check ──
+const KURSSET_MANIFEST_CACHE = 'kurssetManifestLetzter';
+
+async function holeJson(url, timeoutMs = 5000) {
+  const ctrl  = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const r = await fetch('kurssets/index.json?cb=' + Date.now(), { cache: 'no-store' });
+    const r = await fetch(url + (url.includes('?') ? '&' : '?') + 'cb=' + Date.now(), { cache: 'no-store', signal: ctrl.signal });
     if (!r.ok) throw new Error('HTTP ' + r.status);
-    const idx  = await r.json();
-    const sets = Array.isArray(idx.sets) ? idx.sets : [];
-    box._sets = sets;
-    if (!sets.length) { box.innerHTML = `<p class="kursset-hinweis">${esc(t('kursset_keine'))}</p>`; return; }
-    box.innerHTML = sets.map(set => {
-      const geladen = studenten.some(k => k.kurssetId === set.id);
-      return `<div class="kursset-zeile">
-        <div class="kursset-info"><strong>${esc(set.titel || set.id)}</strong>${set.beschreibung ? `<span>${esc(set.beschreibung)}</span>` : ''}</div>
-        <button class="btn-secondary btn-inline" data-kursset="${esc(set.id)}">${esc(t(geladen ? 'kursset_aktualisieren' : 'kursset_laden'))}</button>
-      </div>`;
-    }).join('');
-  } catch (err) {
-    box._sets = [];
-    box.innerHTML = `<p class="kursset-hinweis">${esc(t('kursset_offline'))}</p>`;
+    return await r.json();
+  } finally { clearTimeout(timer); }
+}
+
+// manifest.json bevorzugt, sonst alte index.json, sonst letzter bekannter Stand (offline)
+async function ladeKurssetManifest() {
+  try {
+    const m = await holeJson('kurssets/manifest.json');
+    if (Array.isArray(m.sets)) {
+      const sets = m.sets.map(x => ({ ...x, dateien: Array.isArray(x.dateien) && x.dateien.length ? x.dateien : (x.datei ? [x.datei] : []) }));
+      try { localStorage.setItem(KURSSET_MANIFEST_CACHE, JSON.stringify(sets)); } catch (_) {}
+      return sets;
+    }
+  } catch (_) { /* weiter mit Fallback */ }
+  try {
+    const idx = await holeJson('kurssets/index.json');
+    if (Array.isArray(idx.sets)) {
+      return idx.sets.map(x => ({ id: x.id, name: x.titel || x.id, beschreibung: x.beschreibung || '', hash: '', dateien: x.datei ? [x.datei] : [] }));
+    }
+  } catch (_) { /* weiter mit Cache */ }
+  try {
+    const c = JSON.parse(localStorage.getItem(KURSSET_MANIFEST_CACHE) || 'null');
+    if (Array.isArray(c)) return c;
+  } catch (_) {}
+  return null;
+}
+
+// Kurzer Fingerabdruck der inhaltlichen Felder einer Karte (nur lokal, erkennt Änderungen in der Verwaltung)
+function kartenFingerabdruck(k) {
+  const z = v => String(v == null ? '' : v).trim();
+  const fotos = (k.fotos && k.fotos.length) ? k.fotos : (k.foto ? [k.foto] : []);
+  const str = JSON.stringify([
+    z(k.modus), z(k.name), z(k.vorderseite), z(k.notiz), z(k.merke),
+    z(k.name_en), z(k.vorderseite_en), z(k.notiz_en), z(k.merke_en),
+    (k.links || []).map(z), z(k.videoId), fotos.map(b => b?.size || 0)
+  ]);
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(16);
+}
+
+// 'rot' = nie geladen, 'gruen' = aktuell, 'orange' = Update verfügbar
+function kurssetStatus(set) {
+  const sams = sammlungen.filter(x => x.kurssetId === set.id);
+  const geladen = sams.length || studenten.some(k => k.kurssetId === set.id) || sammlungen.some(x => x.id === set.id);
+  if (!geladen) return 'rot';
+  if (!set.hash) return 'gruen';                       // alte index.json ohne Hash
+  const gespeichert = sams.find(x => x.kurssetHash)?.kurssetHash;
+  return gespeichert && gespeichert === set.hash ? 'gruen' : 'orange';   // vor dem Status-Feature geladen -> orange
+}
+const KURSSET_SYMBOL = { rot: '●', gruen: '✓', orange: '↻' };
+
+async function ladeKurssetListe() {
+  const box   = document.getElementById('kursset-liste');
+  const hint  = document.getElementById('kursset-hinweis');
+  const alle  = document.getElementById('btn-kursset-alle');
+  if (!box) return;
+  const sets = await ladeKurssetManifest();
+  box._sets = sets || [];
+  if (hint) hint.classList.add('hidden');
+  if (alle) alle.classList.add('hidden');
+  if (!sets) { box.innerHTML = `<p class="kursset-hinweis">${esc(t('kursset_offline'))}</p>`; return; }
+  if (!sets.length) { box.innerHTML = `<p class="kursset-hinweis">${esc(t('kursset_keine'))}</p>`; return; }
+  let updates = 0;
+  box.innerHTML = sets.map(set => {
+    const st    = kurssetStatus(set);
+    if (st === 'orange') updates++;
+    const name  = (istEn() && set.name_en) ? set.name_en : (set.name || set.id);
+    const neu   = (istEn() && set.neu_en) ? set.neu_en : (set.neu || '');
+    const meta  = [set.stand ? `${t('kursset_stand')} ${set.stand}` : '',
+                   set.karten ? tf('karte_n', set.karten) : '',
+                   set.gruppen ? `${set.gruppen} ${t('kursset_gruppen')}` : ''].filter(Boolean).join(' · ');
+    const btnTxt = t(st === 'rot' ? 'kursset_laden' : st === 'orange' ? 'kursset_aktualisieren' : 'kursset_erneut');
+    return `<div class="kursset-zeile">
+      <div class="kursset-info">
+        <strong class="ks-${st}" title="${esc(t('kursset_status_' + st))}">${KURSSET_SYMBOL[st]} ${esc(name)}</strong>
+        ${meta ? `<span>${esc(meta)}</span>` : ''}
+        ${set.beschreibung ? `<span>${esc(set.beschreibung)}</span>` : ''}
+        ${neu ? `<span>${esc(t('kursset_neu'))}: ${esc(neu)}</span>` : ''}
+      </div>
+      <button class="btn-secondary btn-inline" data-kursset="${esc(set.id)}">${esc(btnTxt)}</button>
+    </div>`;
+  }).join('');
+  if (updates > 0) {
+    if (alle) alle.classList.remove('hidden');
+    if (hint) { hint.querySelector('span').textContent = tf('kursset_updates_hinweis', updates); hint.classList.remove('hidden'); }
   }
 }
 
-// Karten dieses Sets werden über ihre ID ersetzt; vom Set entfernte Karten verschwinden,
-// eigene Karten der Studierenden (ohne kurssetId) bleiben unberührt.
-async function ladeKursset(set) {
-  if (!confirm(tf('confirm_kursset', set.titel || set.id))) return;
+// Karten werden über ihre ID abgeglichen. Entfallene Karten und lokal geänderte Karten
+// werden nie stillschweigend entfernt bzw. überschrieben, sondern erst nach Rückfrage.
+async function ladeKursset(set, opt = {}) {
+  const name = (istEn() && set.name_en) ? set.name_en : (set.name || set.id);
+  if (!opt.ohneRueckfrage && kurssetStatus(set) === 'rot' && !confirm(tf('confirm_kursset', name))) return false;
   try {
-    const r = await fetch('kurssets/' + encodeURIComponent(set.datei) + '?cb=' + Date.now(), { cache: 'no-store' });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const daten = await r.json();
-    if (!Array.isArray(daten.studenten) || !Array.isArray(daten.gruppen)) throw new Error(t('kursset_format'));
+    const daten = { sammlungen: [], gruppen: [], studenten: [] };
+    const mische = (liste, neuListe) => {
+      for (const x of neuListe) { const i = liste.findIndex(y => y.id === x.id); if (i >= 0) liste[i] = x; else liste.push(x); }
+    };
+    for (const datei of set.dateien) {
+      const d = await holeJson('kurssets/' + encodeURIComponent(datei), 30000);
+      if (!Array.isArray(d.studenten) || !Array.isArray(d.gruppen)) throw new Error(t('kursset_format'));
+      mische(daten.sammlungen, d.sammlungen || []); mische(daten.gruppen, d.gruppen); mische(daten.studenten, d.studenten);
+    }
+    const neueIds = new Set(daten.studenten.map(k => k.id));
 
-    for (const sam of (daten.sammlungen || [])) {
+    // Lokal geänderte Karten (Verwaltung) erkennen
+    const konflikte = daten.studenten
+      .filter(k => { const v = studenten.find(x => x.id === k.id); return v && v.kurssetStand && kartenFingerabdruck(v) !== v.kurssetStand; })
+      .map(k => k.id);
+    let behalten = new Set();
+    if (konflikte.length && !confirm(tf('confirm_kursset_konflikt', name, konflikte.length))) behalten = new Set(konflikte);
+    // Entfallene Karten: Standard behalten
+    const entfallen = studenten.filter(x => x.kurssetId === set.id && !neueIds.has(x.id));
+    const entfernen = entfallen.length > 0 && confirm(tf('confirm_kursset_entfallen', entfallen.length));
+
+    for (const sam of daten.sammlungen) {
       const vorh = sammlungen.find(x => x.id === sam.id);
-      await dbPut('sammlungen', vorh ? { ...vorh, name: sam.name } : sam);
+      const enS = {};
+      ['name_en', 'zweisprachig_inhalt'].forEach(f => { if (sam[f] != null) enS[f] = sam[f]; });
+      const marke = { kurssetId: set.id, kurssetHash: set.hash || '', kurssetStand: set.stand || '' };
+      await dbPut('sammlungen', vorh ? { ...vorh, name: sam.name, ...enS, ...marke } : { ...sam, ...marke });
     }
     for (const g of daten.gruppen) {
       const vorh = gruppen.find(x => x.id === g.id);
-      await dbPut('gruppen', vorh ? { ...vorh, name: g.name, sammlungId: g.sammlungId } : g);
+      const enG = g.name_en != null ? { name_en: g.name_en } : {};
+      await dbPut('gruppen', vorh ? { ...vorh, name: g.name, sammlungId: g.sammlungId, ...enG } : g);
     }
-    const neueIds = new Set();
-    let neu = 0, aktualisiert = 0, entfernt = 0;
+    let neu = 0, aktualisiert = 0, beibehalten = 0;
     for (const k of daten.studenten) {
       const vorh = studenten.find(x => x.id === k.id);
-      neueIds.add(k.id);
+      if (vorh && behalten.has(k.id)) { beibehalten++; continue; }
       const rec = { ...k, ...importFotosFelder(k), kurssetId: set.id };
       if (vorh?.favorit) rec.favorit = true;
+      EN_FELDER_KARTE.forEach(f => { if ((rec[f] == null || rec[f] === '') && vorh?.[f]) rec[f] = vorh[f]; });
+      rec.kurssetStand = kartenFingerabdruck(rec);
       revokeUrl(k.id);
       await dbPut('studenten', rec);
       vorh ? aktualisiert++ : neu++;
     }
-    for (const k of studenten.filter(x => x.kurssetId === set.id && !neueIds.has(x.id))) {
-      await dbDelete('studenten', k.id); revokeUrl(k.id); entfernt++;
-    }
+    let entfernt = 0;
+    if (entfernen) for (const k of entfallen) { await dbDelete('studenten', k.id); revokeUrl(k.id); entfernt++; }
     await ladeAlles();
     renderVerwaltung(); renderLernAuswahl(); ladeKurssetListe();
-    toast(tf('toast_kursset_ok', set.titel || set.id, neu, aktualisiert, entfernt));
+    if (!opt.still) toast(tf('toast_kursset_ok', name, neu, aktualisiert, entfernt, beibehalten));
+    return true;
   } catch (err) {
     toast(tf('toast_kursset_fehler', err.message));
+    return false;
   }
 }
 
@@ -3078,6 +3285,13 @@ document.getElementById('kursset-liste')?.addEventListener('click', e => {
   const set = (document.getElementById('kursset-liste')._sets || []).find(x => x.id === btn.dataset.kursset);
   if (set) ladeKursset(set);
 });
+document.getElementById('btn-kursset-alle')?.addEventListener('click', async () => {
+  const sets = (document.getElementById('kursset-liste')._sets || []).filter(x => kurssetStatus(x) === 'orange');
+  for (const set of sets) await ladeKursset(set, { ohneRueckfrage: true, still: true });
+  if (sets.length) toast(tf('toast_kursset_alle', sets.length));
+});
+document.getElementById('kursset-hinweis-link')?.addEventListener('click', () =>
+  document.getElementById('kursset-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
 
 // Konvertiert importierte foto/fotos-Felder (dataURLs) zurück in Blobs
 // (Begriff-Karten können optional ebenfalls Fotos auf der Rückseite haben)
@@ -3188,6 +3402,7 @@ document.getElementById('btn-karte-edit-save').addEventListener('click', async (
   const name     = document.getElementById('karte-edit-name').value.trim();
   const gruppeId = document.getElementById('karte-edit-gruppe').value;
   const notiz    = document.getElementById('karte-edit-notiz').value.trim();
+  const merke    = document.getElementById('karte-edit-merke').value.trim();
   const links    = parseLinks(document.getElementById('karte-edit-links').value);
   if (!name || !gruppeId) return;
 
@@ -3208,12 +3423,14 @@ document.getElementById('btn-karte-edit-save').addEventListener('click', async (
     const orig = studenten.find(x => x.id === editModalStudentId);
     const fotos = await Promise.all(editFotosBuffer.map(async f =>
       new Blob([await f.blob.arrayBuffer()], { type: f.blob.type })));
+    const enFelder = {};
+    EN_FELDER_KARTE.forEach(f => { const v = document.getElementById('karte-edit-' + f.replace('_', '-')).value.trim(); if (v) enFelder[f] = v; });
     const newS = orig.modus === 'text'
-      ? { id: Date.now().toString(), name, gruppeId, modus: 'text',
-          foto: fotos[0] || null, fotos, vorderseite: orig.vorderseite || '', notiz, links,
+      ? { ...enFelder, id: Date.now().toString(), name, gruppeId, modus: 'text',
+          foto: fotos[0] || null, fotos, vorderseite: orig.vorderseite || '', notiz, merke, links,
           videoId, videoTitel, erstellt: new Date().toISOString() }
-      : { id: Date.now().toString(), name, gruppeId, modus: 'foto',
-          foto: fotos[0] || null, fotos, vorderseite: '', notiz, links,
+      : { ...enFelder, id: Date.now().toString(), name, gruppeId, modus: 'foto',
+          foto: fotos[0] || null, fotos, vorderseite: '', notiz, merke, links,
           videoId, videoTitel, erstellt: new Date().toISOString() };
     await dbPut('studenten', newS);
     studenten.push(newS);
@@ -3230,6 +3447,11 @@ document.getElementById('btn-karte-edit-save').addEventListener('click', async (
     s.name       = name;
     s.gruppeId   = gruppeId;
     s.notiz      = notiz;
+    s.merke      = merke;
+    EN_FELDER_KARTE.forEach(f => {
+      const v = document.getElementById('karte-edit-' + f.replace('_', '-')).value.trim();
+      if (v) s[f] = v; else delete s[f];
+    });
     s.links      = links;
     s.videoId    = videoId;
     s.videoTitel = videoTitel;
@@ -3250,6 +3472,45 @@ document.getElementById('btn-karte-edit-save').addEventListener('click', async (
   }
   document.getElementById('karte-edit-modal').classList.add('hidden');
   renderVerwaltung();
+});
+
+// ── Namen bearbeiten (Sammlung / Gruppe): Name, Name EN, bei Sammlungen "bereits zweisprachig" ──
+let namenModalCtx = null;
+function oeffneNamenModal(typ, id) {
+  const obj = (typ === 'sammlung' ? sammlungen : gruppen).find(x => x.id === id);
+  if (!obj) return;
+  namenModalCtx = { typ, id };
+  document.getElementById('namen-modal-titel').textContent = t(typ === 'sammlung' ? 'namen_titel_sammlung' : 'namen_titel_gruppe');
+  document.getElementById('namen-de').value = obj.name || '';
+  document.getElementById('namen-en').value = obj.name_en || '';
+  document.getElementById('namen-zweisprachig').checked = !!obj.zweisprachig_inhalt;
+  document.getElementById('namen-zweisprachig-zeile').classList.toggle('hidden', typ !== 'sammlung');
+  document.getElementById('namen-modal').classList.remove('hidden');
+  setTimeout(() => { const i = document.getElementById('namen-de'); i.focus(); i.select(); }, 80);
+}
+function schliesseNamenModal() {
+  document.getElementById('namen-modal').classList.add('hidden');
+  namenModalCtx = null;
+}
+document.getElementById('btn-namen-close').addEventListener('click', schliesseNamenModal);
+document.getElementById('namen-modal').addEventListener('click', e => { if (e.target === e.currentTarget) schliesseNamenModal(); });
+document.getElementById('btn-namen-save').addEventListener('click', async () => {
+  if (!namenModalCtx) return;
+  const { typ, id } = namenModalCtx;
+  const obj = (typ === 'sammlung' ? sammlungen : gruppen).find(x => x.id === id);
+  const name = document.getElementById('namen-de').value.trim();
+  if (!obj || !name) return;
+  const nameEn = document.getElementById('namen-en').value.trim();
+  obj.name = name;
+  if (nameEn) obj.name_en = nameEn; else delete obj.name_en;
+  if (typ === 'sammlung') {
+    if (document.getElementById('namen-zweisprachig').checked) obj.zweisprachig_inhalt = true;
+    else delete obj.zweisprachig_inhalt;
+  }
+  await dbPut(typ === 'sammlung' ? 'sammlungen' : 'gruppen', obj);
+  schliesseNamenModal();
+  renderVerwaltung(); renderLernAuswahl();
+  toast(t('toast_namen_gespeichert'));
 });
 
 // Sammlung hinzufügen
@@ -3385,14 +3646,7 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
   // Sammlung umbenennen
   const sammlRenBtn = e.target.closest('.btn-sammlung-ren');
   if (sammlRenBtn) {
-    const sam = sammlungen.find(x => x.id === sammlRenBtn.dataset.id);
-    const newName = prompt(t('prompt_sammlung'), sam.name);
-    if (newName && newName.trim() && newName.trim() !== sam.name) {
-      sam.name = newName.trim();
-      await dbPut('sammlungen', sam);
-      renderVerwaltung();
-      toast(tf('toast_sammlung_umbenannt', sam.name));
-    }
+    oeffneNamenModal('sammlung', sammlRenBtn.dataset.id);
     return;
   }
   // Sammlung löschen (Kaskade: alle Gruppen + Karten)
@@ -3439,12 +3693,12 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
   if (moveSammlBtn) {
     gruppeVerschiebenId = moveSammlBtn.dataset.id;
     const g = gruppen.find(x => x.id === gruppeVerschiebenId);
-    document.getElementById('gruppe-verschieben-info').textContent = currentLang === 'en' ? `Move "${esc(g.name)}" to:` : `„${esc(g.name)}" verschieben nach:`;
+    document.getElementById('gruppe-verschieben-info').textContent = currentLang === 'en' ? `Move "${esc(gruppeName(g))}" to:` : `„${esc(gruppeName(g))}" verschieben nach:`;
     const andere = getSortierteSammlungen().filter(s => s.id !== g.sammlungId);
     document.getElementById('sammlung-auswahl-liste').innerHTML = andere.length
       ? andere.map(s => `
           <div class="sammlung-ziel-item" data-sid="${s.id}">
-            <span class="sammlung-ziel-name">${esc(s.name)}</span>
+            <span class="sammlung-ziel-name">${esc(sammlungName(s))}</span>
             <span class="sammlung-ziel-count">${sammlungKartenAnzahl(s.id)} K.</span>
           </div>`).join('')
       : `<p class="hinweis" style="padding:0.75rem 0">${t('keine_anderen_sammlungen')}</p>`;
@@ -3488,14 +3742,7 @@ document.getElementById('sammlungen-liste').addEventListener('click', async e =>
   // Gruppe umbenennen
   const renBtn = e.target.closest('.btn-gruppe-ren');
   if (renBtn) {
-    const g = gruppen.find(x => x.id === renBtn.dataset.id);
-    const newName = prompt(t('prompt_gruppe'), g.name);
-    if (newName && newName.trim() && newName.trim() !== g.name) {
-      g.name = newName.trim();
-      await dbPut('gruppen', g);
-      renderVerwaltung();
-      toast(tf('toast_gruppe_umbenannt', g.name));
-    }
+    oeffneNamenModal('gruppe', renBtn.dataset.id);
     return;
   }
   // Gruppe löschen (inkl. aller Karten)
@@ -3633,6 +3880,7 @@ document.getElementById('form-karte').addEventListener('submit', async e => {
   const gruppeId = document.getElementById('select-gruppe').value;
   const modus    = document.getElementById('chip-foto').classList.contains('active') ? 'foto' : 'text';
   const notiz    = document.getElementById('input-notiz').value.trim();
+  const merke    = document.getElementById('input-merke').value.trim();
   const links    = parseLinks(document.getElementById('input-links').value);
   const videoRaw = document.getElementById('input-video').value.trim();
   const videoId  = extrahiereYoutubeId(videoRaw) || null;
@@ -3645,18 +3893,19 @@ document.getElementById('form-karte').addEventListener('submit', async e => {
     if (modus === 'foto') {
       if (!neueKarteFotosBuffer.length) { toast(t('toast_foto_pflicht')); return; }
       const fotos = neueKarteFotosBuffer.map(f => f.blob);
-      s = { id: Date.now().toString(), name, gruppeId, modus: 'foto', foto: fotos[0], fotos, vorderseite: '', notiz, links, videoId, videoTitel, erstellt: new Date().toISOString() };
+      s = { id: Date.now().toString(), name, gruppeId, modus: 'foto', foto: fotos[0], fotos, vorderseite: '', notiz, merke, links, videoId, videoTitel, erstellt: new Date().toISOString() };
     } else {
       const vorderseite = document.getElementById('input-vorderseite').value.trim();
       if (!vorderseite) { toast(t('toast_text_pflicht')); return; }
       // Fotos für die Rückseite sind bei Begriff-Karten optional
       const fotos = neueKarteFotosBuffer.map(f => f.blob);
-      s = { id: Date.now().toString(), name, gruppeId, modus: 'text', foto: fotos[0] || null, fotos, vorderseite, notiz, links, videoId, videoTitel, erstellt: new Date().toISOString() };
+      s = { id: Date.now().toString(), name, gruppeId, modus: 'text', foto: fotos[0] || null, fotos, vorderseite, notiz, merke, links, videoId, videoTitel, erstellt: new Date().toISOString() };
     }
     await dbPut('studenten', s);
     studenten.push(s);
     document.getElementById('input-name').value       = '';
     document.getElementById('input-notiz').value      = '';
+    document.getElementById('input-merke').value      = '';
     document.getElementById('input-links').value      = '';
     document.getElementById('input-video').value      = '';
     const addVideoStatus = document.getElementById('input-video-status');
@@ -4188,7 +4437,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
     return `<div class="gruppe-check-item selected" data-gid="${g.id}" data-export-sam="${samId}">
       ${checkBoxHtml(true)}
       <div class="check-label">
-        <strong>${esc(g.name)}</strong>
+        <strong>${esc(gruppeName(g))}</strong>
         <span>${n} Karte${n !== 1 ? 'n' : ''}</span>
       </div>
     </div>`;
@@ -4202,7 +4451,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
     if (!gs.length) return;
     const samFavs = studenten.filter(s => s.favorit && gs.some(g => g.id === s.gruppeId));
     html += `<div class="export-sammlung-header">
-      <span class="export-sammlung-name">${esc(sam.name)}</span>
+      <span class="export-sammlung-name">${esc(sammlungName(sam))}</span>
       <button class="btn-export-sam-alle" data-sam-id="${sam.id}">${t('alle')}</button>
     </div>`;
     if (samFavs.length) {
@@ -4501,9 +4750,10 @@ function pvGridHtml(karten, farbe) {
 }
 
 async function exportAlsPDF(studExport, exportGruppen, exportSammlungen, win) {
+  studExport = studExport.map(kAnzeige);   // Texte in der gewählten Sprache
   const esc   = t => (t || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const datum = new Date().toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
-  const sortierteSamml = [...exportSammlungen].sort((a,b) => (a.name||'').localeCompare(b.name||''));
+  const sortierteSamml = [...exportSammlungen].sort((a,b) => (sammlungName(a)||'').localeCompare(sammlungName(b)||''));
 
   let body = '';
 
@@ -4514,11 +4764,11 @@ async function exportAlsPDF(studExport, exportGruppen, exportSammlungen, win) {
     const farbe = sammlungFarbe(sam, si);
 
     body += `<section class="pv-sammlung">`;
-    body += `<h2 class="pv-sammlung-titel" style="color:${esc(farbe)};border-color:${esc(farbe)}">${esc(sam.name || 'Sammlung')}</h2>`;
+    body += `<h2 class="pv-sammlung-titel" style="color:${esc(farbe)};border-color:${esc(farbe)}">${esc(sammlungName(sam) || 'Sammlung')}</h2>`;
     for (const gruppe of samGruppen) {
       const karten = studExport.filter(s => s.gruppeId === gruppe.id);
       if (!karten.length) continue;
-      body += `<h3 class="pv-gruppe-titel">${esc(gruppe.name || 'Gruppe')}</h3>`;
+      body += `<h3 class="pv-gruppe-titel">${esc(gruppeName(gruppe) || 'Gruppe')}</h3>`;
       body += pvGridHtml(karten, farbe);
     }
     body += `</section>`;
@@ -4533,7 +4783,7 @@ async function exportAlsPDF(studExport, exportGruppen, exportSammlungen, win) {
     for (const gruppe of orphanGruppen) {
       const karten = studExport.filter(s => s.gruppeId === gruppe.id);
       if (!karten.length) continue;
-      body += `<h3 class="pv-gruppe-titel">${esc(gruppe.name || 'Gruppe')}</h3>`;
+      body += `<h3 class="pv-gruppe-titel">${esc(gruppeName(gruppe) || 'Gruppe')}</h3>`;
       body += pvGridHtml(karten, '#888');
     }
     body += `</section>`;
@@ -4692,12 +4942,19 @@ document.getElementById('btn-import-start').addEventListener('click', async () =
     } else {
       // Hinzufügen: merge, bestehende unberührt
       for (const sam of (importDatenBuffer.sammlungen || [])) {
-        if (!sammlungen.find(x => x.id === sam.id)) await dbPut('sammlungen', sam);
+        const vorh = sammlungen.find(x => x.id === sam.id);
+        if (!vorh) { await dbPut('sammlungen', sam); continue; }
+        const m = ergaenzeEnFelder(vorh, sam, ['name_en', 'zweisprachig_inhalt']);
+        if (m) await dbPut('sammlungen', m);
       }
       for (const importGruppe of importDatenBuffer.gruppen) {
         const existing = gruppen.find(g => g.name === importGruppe.name);
         const targetId = existing ? existing.id : importGruppe.id;
         if (!existing) await dbPut('gruppen', importGruppe);
+        else {
+          const m = ergaenzeEnFelder(existing, importGruppe, ['name_en']);
+          if (m) await dbPut('gruppen', m);
+        }
 
         // Hinzufügen: bestehende Karten NICHT löschen — nur neue Karten ergänzen.
         // Duplikat-Erkennung per Kartenname: gleicher Name in der Zielgruppe → überspringen.
@@ -4707,7 +4964,16 @@ document.getElementById('btn-import-start').addEventListener('click', async () =
         const importStudents = importDatenBuffer.studenten.filter(s => s.gruppeId === importGruppe.id);
         let hinzugefuegt = 0;
         for (const s of importStudents) {
-          if (vorhandeneNamen.has((s.name || '').trim().toLowerCase())) continue; // bereits vorhanden
+          if (vorhandeneNamen.has((s.name || '').trim().toLowerCase())) {
+            // bereits vorhanden: nur fehlende englische Felder ergänzen
+            const vorhKarte = studenten.find(x => x.gruppeId === targetId && (x.name || '').trim().toLowerCase() === (s.name || '').trim().toLowerCase());
+            if (vorhKarte) {
+              const frisch = (await dbGet('studenten', vorhKarte.id)) || vorhKarte;
+              const m = ergaenzeEnFelder(frisch, s, EN_FELDER_KARTE);
+              if (m) await dbPut('studenten', m);
+            }
+            continue;
+          }
           await dbPut('studenten', { ...s, gruppeId: targetId, ...importFotosFelder(s) });
           hinzugefuegt++;
         }
@@ -5110,8 +5376,9 @@ document.addEventListener('visibilitychange', async () => {
   if (!btn) return;
 
   function baueClaudePrompt(s) {
+    s = kAnzeige(s);
     const gruppe = gruppen.find(g => g.id === s.gruppeId);
-    const zeilen = [`Ich lerne gerade mit Karteikarten zum Thema "${gruppe?.name || ''}".`, `Karte: ${s.name}`];
+    const zeilen = [`Ich lerne gerade mit Karteikarten zum Thema "${gruppe ? gruppeName(gruppe) : ''}".`, `Karte: ${s.name}`];
     if (s.modus === 'text' && s.vorderseite) zeilen.push(`Inhalt: ${s.vorderseite}`);
     if (s.notiz) zeilen.push(`Notiz: ${s.notiz}`);
     zeilen.push('Kannst du mir das genauer erklären, mir dazu ein paar Verständnisfragen stellen und mich auch auf verwandte Themen hinweisen?');
@@ -5151,11 +5418,11 @@ document.addEventListener('visibilitychange', async () => {
     }));
     const themen = gids
       .filter(g => !g.startsWith('__favoriten__'))
-      .map(gid => gruppen.find(g => g.id === gid)?.name)
+      .map(gid => { const g = gruppen.find(x => x.id === gid); return g ? gruppeName(g) : null; })
       .filter(Boolean);
     const zeilen = [
       `Ich lerne gerade mit Karteikarten${themen.length ? ' zum Thema "' + themen.join(', ') + '"' : ''} (${karten.length} Karten).`,
-      'Begriffe/Karten: ' + karten.map(k => k.name).join(', '),
+      'Begriffe/Karten: ' + karten.map(k => kName(k)).join(', '),
       'Kannst du mir helfen, die Zusammenhänge zwischen diesen Themen zu verstehen, mir ein paar Verständnisfragen dazu zu stellen und mich auf Wissenslücken hinzuweisen?'
     ];
     return zeilen.join('\n');
