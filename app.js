@@ -152,7 +152,7 @@ const TRANS = {
     ki_briefing: 'KI-Briefing für neue Karten',
     ki_briefing_desc: 'Fertiger Prompt für ChatGPT, Gemini, Claude & Co. — erklärt der KI das MemoFix-Datenformat, damit sie direkt passende Karten-Sets zum Import erzeugen kann',
     herunterladen: 'Herunterladen',
-    datenspeicher_title: '💾 Nur auf diesem Gerät gespeichert',
+    datenspeicher_title: '⚠️ Nur auf diesem Gerät gespeichert',
     datenspeicher_text: 'Deine Karten liegen nur auf diesem Gerät. Exportiere sie ab und zu als Backup — z. B. bevor du Browserdaten löschst oder das Gerät wechselst.',
     // ── Export-Modal ──────────────────────────────────────
     gruppen_exportieren: 'Gruppen exportieren',
@@ -392,7 +392,7 @@ const TRANS = {
     ki_briefing: 'AI briefing for new cards',
     ki_briefing_desc: 'Ready-made prompt for ChatGPT, Gemini, Claude & co. — explains the MemoFix data format to the AI so it can generate ready-to-import card sets',
     herunterladen: 'Download',
-    datenspeicher_title: '💾 Stored on this device only',
+    datenspeicher_title: '⚠️ Stored on this device only',
     datenspeicher_text: 'Your cards are stored only on this device. Export a backup now and then — e.g. before clearing browser data or switching devices.',
     // ── Export-Modal ──────────────────────────────────────
     gruppen_exportieren: 'Export groups',

@@ -2095,3 +2095,11 @@ body.praesi .lernkarte-text-vorderseite {
 }
 body.praesi .lernkarte-text-vorderseite .lern-text-fotos img,
 body.praesi .lernkarte-text-vorderseite img { max-width: 100%; object-fit: contain; }
+
+/* Datenspeicher-Hinweis: Warnung ohne Kasten, in Rot */
+.card.info-card {
+  background: none; border: none; box-shadow: none;
+  padding: 0.5rem 0.25rem 0.25rem;
+}
+.card.info-card strong { color: #ff7a7a; font-size: 0.9rem; margin-bottom: 0.35rem; }
+.card.info-card p { font-size: 0.82rem; line-height: 1.6; color: #e9a4a4; margin: 0; }
