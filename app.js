@@ -818,7 +818,11 @@ function getHelpHtml() {
     ]},
   ];
 
-  return sections.map((sec, i) => `
+  const haltung = currentLang === 'en'
+    ? { t: 'Stairs, not the elevator', a: "AI can take a lot off your plate – thinking isn't one of them. Whoever knows nothing has to believe everything, and never gets beyond the middle of the internet.", b: 'MemoFix trains your own knowledge, so you can be a counterpart – not an echo.' }
+    : { t: 'Treppe statt Aufzug', a: 'KI kann vieles abnehmen – das Denken nicht. Wer nichts weiß, muss alles glauben und kommt über die Mitte des Internets nicht hinaus.', b: 'MemoFix trainiert dein eigenes Wissen, damit du ein Gegenüber bist und kein Echo.' };
+  const praeambel = `<aside class="haltung"><h4>${haltung.t}</h4><p>${haltung.a}</p><p><em>${haltung.b}</em></p></aside>`;
+  return praeambel + sections.map((sec, i) => `
     ${i > 0 ? '<div class="modal-divider"></div>' : ''}
     <div class="modal-section">
       <div class="modal-section-title">${sec.title}</div>
@@ -3136,7 +3140,7 @@ async function ladeKurssetManifest() {
   try {
     const m = await holeJson('kurssets/manifest.json');
     if (Array.isArray(m.sets)) {
-      const sets = m.sets.map(x => ({ ...x, dateien: Array.isArray(x.dateien) && x.dateien.length ? x.dateien : (x.datei ? [x.datei] : []) }));
+      const sets = m.sets.map(x => ({ ...x, pfad: Array.isArray(x.pfad) ? x.pfad : [], dateien: Array.isArray(x.dateien) && x.dateien.length ? x.dateien : (x.datei ? [x.datei] : []) }));
       try { localStorage.setItem(KURSSET_MANIFEST_CACHE, JSON.stringify(sets)); } catch (_) {}
       return sets;
     }
@@ -3144,7 +3148,7 @@ async function ladeKurssetManifest() {
   try {
     const idx = await holeJson('kurssets/index.json');
     if (Array.isArray(idx.sets)) {
-      return idx.sets.map(x => ({ id: x.id, name: x.titel || x.id, beschreibung: x.beschreibung || '', hash: '', dateien: x.datei ? [x.datei] : [] }));
+      return idx.sets.map(x => ({ id: x.id, name: x.titel || x.id, beschreibung: x.beschreibung || '', hash: '', pfad: String(x.datei || '').split('/').slice(0, -1), dateien: x.datei ? [x.datei] : [] }));
     }
   } catch (_) { /* weiter mit Cache */ }
   try {
@@ -3191,9 +3195,8 @@ async function ladeKurssetListe() {
   if (!sets) { box.innerHTML = `<p class="kursset-hinweis">${esc(t('kursset_offline'))}</p>`; return; }
   if (!sets.length) { box.innerHTML = `<p class="kursset-hinweis">${esc(t('kursset_keine'))}</p>`; return; }
   let updates = 0;
-  box.innerHTML = sets.map(set => {
+  const zeile = set => {
     const st    = kurssetStatus(set);
-    if (st === 'orange') updates++;
     const name  = (istEn() && set.name_en) ? set.name_en : (set.name || set.id);
     const neu   = (istEn() && set.neu_en) ? set.neu_en : (set.neu || '');
     const meta  = [set.stand ? `${t('kursset_stand')} ${set.stand}` : '',
@@ -3209,7 +3212,29 @@ async function ladeKurssetListe() {
       </div>
       <button class="btn-secondary btn-inline" data-kursset="${esc(set.id)}">${esc(btnTxt)}</button>
     </div>`;
-  }).join('');
+  };
+  // Baum aus pfad (Studiengang/Fach/…): Ordner zuerst, Sets ohne Pfad stehen auf oberster Ebene
+  const wurzel = { sets: [], kinder: new Map() };
+  for (const set of sets) {
+    let n = wurzel;
+    for (const seg of (set.pfad || [])) {
+      if (!n.kinder.has(seg)) n.kinder.set(seg, { sets: [], kinder: new Map() });
+      n = n.kinder.get(seg);
+    }
+    n.sets.push(set);
+    if (kurssetStatus(set) === 'orange') updates++;
+  }
+  const alleSets = n => [...n.sets, ...[...n.kinder.values()].flatMap(alleSets)];
+  const zeichne = (n, tiefe) => {
+    const ordner = [...n.kinder.entries()].map(([name, kind]) => {
+      const st = alleSets(kind).map(kurssetStatus);
+      const offen = st.some(x => x !== 'rot') ? ' open' : '';
+      const marke = st.includes('orange') ? ` <span class="ks-orange" title="${esc(t('kursset_status_orange'))}">↻</span>` : '';
+      return `<details class="ks-ordner ks-ebene-${Math.min(tiefe, 3)}"${offen}><summary>${esc(name)}${marke}</summary>${zeichne(kind, tiefe + 1)}</details>`;
+    }).join('');
+    return ordner + n.sets.map(zeile).join('');
+  };
+  box.innerHTML = zeichne(wurzel, 1);
   if (updates > 0) {
     if (alle) alle.classList.remove('hidden');
     if (hint) { hint.querySelector('span').textContent = tf('kursset_updates_hinweis', updates); hint.classList.remove('hidden'); }
@@ -3227,7 +3252,7 @@ async function ladeKursset(set, opt = {}) {
       for (const x of neuListe) { const i = liste.findIndex(y => y.id === x.id); if (i >= 0) liste[i] = x; else liste.push(x); }
     };
     for (const datei of set.dateien) {
-      const d = await holeJson('kurssets/' + encodeURIComponent(datei), 30000);
+      const d = await holeJson('kurssets/' + datei.split('/').map(encodeURIComponent).join('/'), 30000);
       if (!Array.isArray(d.studenten) || !Array.isArray(d.gruppen)) throw new Error(t('kursset_format'));
       mische(daten.sammlungen, d.sammlungen || []); mische(daten.gruppen, d.gruppen); mische(daten.studenten, d.studenten);
     }

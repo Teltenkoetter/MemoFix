@@ -2064,3 +2064,18 @@ body.praesi .lern-position-counter .counter-total { font-size: 14px; letter-spac
   background: rgba(255,180,84,0.08); color: #ffb454; font-size: 0.85rem; font-weight: 600;
 }
 .kursset-hinweis-box.hidden { display: none; }
+
+/* ── HILFE: Haltung/Präambel ───────────────────────────── */
+.haltung { border-left: 3px solid var(--text, #f2f2f2); padding: 0.2rem 0 0.2rem 0.9rem; margin: 0 0 1.25rem; }
+.haltung h4 { margin: 0 0 0.45rem; font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text, #f2f2f2); }
+.haltung p { margin: 0 0 0.4rem; font-size: 0.9rem; line-height: 1.5; color: var(--text-dim); }
+.haltung p em { color: var(--text, #f2f2f2); }
+
+/* ── KURSSET-HIERARCHIE ────────────────────────────────── */
+.ks-ordner { margin: 0.35rem 0; }
+.ks-ordner > summary { cursor: pointer; font-weight: 600; padding: 0.45rem 0.2rem; list-style: none; display: flex; align-items: center; gap: 0.4rem; }
+.ks-ordner > summary::-webkit-details-marker { display: none; }
+.ks-ordner > summary::before { content: '▸'; font-size: 0.8em; color: var(--text-dim); transition: transform 0.15s; }
+.ks-ordner[open] > summary::before { transform: rotate(90deg); }
+.ks-ordner > :not(summary) { margin-left: 0.9rem; }
+.ks-ebene-2 > summary { font-weight: 500; }
