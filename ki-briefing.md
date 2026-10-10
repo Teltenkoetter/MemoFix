@@ -59,6 +59,12 @@ Sammlung → Gruppe → Karte (Feld `studenten`)
 8. **Quellen/Links:** Nur stabile, dauerhafte Quellen verlinken (offizielle Seiten, Institutionsdatenbanken, etablierte Fachpresse). Keinen Link erzwingen, wenn nichts Verlässliches auffindbar ist — lieber weglassen als ein wackliger oder toter Link. Ein Link pro Karte reicht in der Regel.
 9. **Dateibenennung:** `<Thema>_<Jahr>_<Nummer>.json`, z. B. `Vogelarten_2026_01.json`.
 
+### Bilder: vorn oder hinten
+
+- **`modus: "foto"`** = Bild vorn, Begriff beim Aufdecken. Nur verwenden, wenn das Erkennen des Bildes die Lernaufgabe ist.
+- **`modus: "text"` mit `fotos`** = Begriff vorn, beim Aufdecken `vorderseite`, Notiz und Bilder. **Verwenden, wenn das Bild die Antwort verrät** (z. B. ein Befehl, ein Material, ein Fachbegriff mit Abbildung).
+- `merke` nur schreiben, wenn es einen Inhalt gibt (kein leeres `""`). An die `notiz` keinen Zusatz wie „ · <Name>" anhängen.
+
 ### Zweisprachige Karten (optional, Deutsch/Englisch)
 
 Alle Felder sind **optional und additiv** — Dateien ohne sie bleiben gültig. Der Sprachschalter der App (DE/EN) steuert damit auch den Karteninhalt:

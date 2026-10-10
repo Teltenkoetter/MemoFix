@@ -75,8 +75,9 @@ const TRANS = {
     fotos_label_foto: 'Fotos <span class="label-optional">(mehrere möglich)</span>',
     fotos_label_begriff: 'Fotos für Rückseite <span class="label-optional">(optional, mehrere möglich)</span>',
     typ_label: 'Typ',
-    chip_foto: '📷 Foto',
-    chip_text: '📖 Begriff',
+    chip_foto: '📷 Bild vorn',
+    chip_text: '📖 Begriff vorn, Bild hinten',
+    chip_hinweis: '<strong>Bild vorn:</strong> erst das Bild, beim Aufdecken der Begriff · <strong>Begriff vorn:</strong> erst der Begriff, beim Aufdecken Text, Notiz und Bilder (z. B. wenn das Bild die Antwort verrät)',
     text_vorderseite: 'Text / Vorderseite',
     speichern: 'Speichern',
     name_ph: 'Name oder Begriff…',
@@ -312,8 +313,9 @@ const TRANS = {
     fotos_label_foto: 'Photos <span class="label-optional">(multiple allowed)</span>',
     fotos_label_begriff: 'Photos for back <span class="label-optional">(optional, multiple allowed)</span>',
     typ_label: 'Type',
-    chip_foto: '📷 Photo',
-    chip_text: '📖 Term',
+    chip_foto: '📷 Image on front',
+    chip_text: '📖 Term on front, image on back',
+    chip_hinweis: '<strong>Image on front:</strong> image first, term on reveal · <strong>Term on front:</strong> term first, text, note and images on reveal (e.g. when the image gives the answer away)',
     text_vorderseite: 'Text / Front side',
     speichern: 'Save',
     name_ph: 'Name or term…',
@@ -526,6 +528,7 @@ function applyTranslations() {
   const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
   const setPH  = (id, v) => { const el = document.getElementById(id); if (el) el.placeholder = v; };
   setTxt('karte-edit-chip-foto', t('chip_foto'));
+  ['karte-edit-chip-hinweis', 'chip-hinweis'].forEach(id => { const e = document.getElementById(id); if (e) e.innerHTML = t('chip_hinweis'); });
   setTxt('karte-edit-chip-text', t('chip_text'));
   setTxt('btn-karte-edit-save',  t('speichern'));
   document.querySelector('label[for="karte-edit-gruppe"]')?.childNodes[0] && (() => {
@@ -741,7 +744,7 @@ function getHelpHtml() {
       ['3️⃣', '<strong>Add card</strong> — ＋ on the group header taps into that group · or choose group in the form below, enter name, pick 📷 Photo <em>or</em> 📖 Term'],
       ['📷', '<strong>Photo card</strong> — Photo as front, name as back · tap photo to replace'],
       ['🖼️', '<strong>Multiple photos</strong> — Add as many photos as you like to a card (when adding or editing) · shown as a swipeable gallery with dots in learning mode and full view · switches automatically every 3 s until you swipe yourself'],
-      ['📖', '<strong>Term card</strong> — Term on front, info/definition on back · multi-line text shown as bullet list · wrap a line in <strong>**bold**</strong> to make it a section heading · optionally add <strong>photos on the back</strong> (shown below the text)'],
+      ['📖', '<strong>Term card</strong> — Term on front, info/definition on back · multi-line text shown as bullet list · wrap a line in <strong>**bold**</strong> to make it a section heading · optionally add <strong>photos on the back</strong> (shown below the text) · Use "Term on front, image on back" when the image would give the answer away (e.g. "Decal")'],
       ['🔍', '<strong>Full view</strong> — Tap card name → image/text shown large · swipe left/right to browse'],
       ['📋', '<strong>Copy</strong> — Duplicate card into another group (✏️ opens Edit modal)'],
       ['🎨', '<strong>Collection colour</strong> — Tap the colour dot next to the collection name · appears as left stripe and card background in learning mode'],
@@ -797,7 +800,7 @@ function getHelpHtml() {
       ['3️⃣', '<strong>Karte hinzufügen</strong> — ＋ am Gruppen-Header tippt direkt in diese Gruppe · oder unten im Formular Gruppe wählen, Name eingeben, 📷 Foto <em>oder</em> 📖 Text wählen'],
       ['📷', '<strong>Foto-Karte</strong> — Foto als Vorderseite, Name als Rückseite · Foto antippen zum Austauschen'],
       ['🖼️', '<strong>Mehrere Fotos</strong> — beim Anlegen oder Bearbeiten beliebig viele Fotos zu einer Karte hinzufügen · erscheinen im Lernmodus und in der Großansicht als Wisch-Galerie mit Punkte-Anzeige · wechselt automatisch alle 3 s, bis du selbst wischst'],
-      ['📖', '<strong>Begriff-Karte</strong> — Begriff vorne, Info/Definition hinten · mehrzeilige Texte werden als Aufzählung dargestellt · eine Zeile in <strong>**fett**</strong> setzen macht sie zur Zwischenüberschrift · optional <strong>Fotos auf der Rückseite</strong> (erscheinen unter dem Text)'],
+      ['📖', '<strong>Begriff-Karte</strong> — Begriff vorne, Info/Definition hinten · mehrzeilige Texte werden als Aufzählung dargestellt · eine Zeile in <strong>**fett**</strong> setzen macht sie zur Zwischenüberschrift · optional <strong>Fotos auf der Rückseite</strong> (erscheinen unter dem Text) · „Begriff vorn, Bild hinten“ wählen, wenn das Bild die Antwort verrät (z. B. „Decal“)'],
       ['🔍', '<strong>Großansicht</strong> — Kartennamen antippen → Bild/Text wird groß angezeigt · links/rechts wischen zum Durchblättern'],
       ['📋', '<strong>Kopieren</strong> — Karte in eine andere Gruppe duplizieren (✏️ öffnet Bearbeiten-Modal)'],
       ['🎨', '<strong>Sammlungsfarbe</strong> — Farbpunkt neben dem Sammlungsnamen antippen · Farbe erscheint als Streifen links und als Kartenhintergrund im Lernmodus'],
@@ -3455,10 +3458,10 @@ document.getElementById('btn-karte-edit-save').addEventListener('click', async (
     EN_FELDER_KARTE.forEach(f => { const v = document.getElementById('karte-edit-' + f.replace('_', '-')).value.trim(); if (v) enFelder[f] = v; });
     const newS = orig.modus === 'text'
       ? { ...enFelder, id: Date.now().toString(), name, gruppeId, modus: 'text',
-          foto: fotos[0] || null, fotos, vorderseite: orig.vorderseite || '', notiz, merke, links,
+          foto: fotos[0] || null, fotos, vorderseite: orig.vorderseite || '', notiz, ...(merke ? { merke } : {}), links,
           videoId, videoTitel, erstellt: new Date().toISOString() }
       : { ...enFelder, id: Date.now().toString(), name, gruppeId, modus: 'foto',
-          foto: fotos[0] || null, fotos, vorderseite: '', notiz, merke, links,
+          foto: fotos[0] || null, fotos, vorderseite: '', notiz, ...(merke ? { merke } : {}), links,
           videoId, videoTitel, erstellt: new Date().toISOString() };
     await dbPut('studenten', newS);
     studenten.push(newS);
@@ -3475,7 +3478,7 @@ document.getElementById('btn-karte-edit-save').addEventListener('click', async (
     s.name       = name;
     s.gruppeId   = gruppeId;
     s.notiz      = notiz;
-    s.merke      = merke;
+    if (merke) s.merke = merke; else delete s.merke;
     EN_FELDER_KARTE.forEach(f => {
       const v = document.getElementById('karte-edit-' + f.replace('_', '-')).value.trim();
       if (v) s[f] = v; else delete s[f];
@@ -3921,13 +3924,13 @@ document.getElementById('form-karte').addEventListener('submit', async e => {
     if (modus === 'foto') {
       if (!neueKarteFotosBuffer.length) { toast(t('toast_foto_pflicht')); return; }
       const fotos = neueKarteFotosBuffer.map(f => f.blob);
-      s = { id: Date.now().toString(), name, gruppeId, modus: 'foto', foto: fotos[0], fotos, vorderseite: '', notiz, merke, links, videoId, videoTitel, erstellt: new Date().toISOString() };
+      s = { id: Date.now().toString(), name, gruppeId, modus: 'foto', foto: fotos[0], fotos, vorderseite: '', notiz, ...(merke ? { merke } : {}), links, videoId, videoTitel, erstellt: new Date().toISOString() };
     } else {
       const vorderseite = document.getElementById('input-vorderseite').value.trim();
       if (!vorderseite) { toast(t('toast_text_pflicht')); return; }
       // Fotos für die Rückseite sind bei Begriff-Karten optional
       const fotos = neueKarteFotosBuffer.map(f => f.blob);
-      s = { id: Date.now().toString(), name, gruppeId, modus: 'text', foto: fotos[0] || null, fotos, vorderseite, notiz, merke, links, videoId, videoTitel, erstellt: new Date().toISOString() };
+      s = { id: Date.now().toString(), name, gruppeId, modus: 'text', foto: fotos[0] || null, fotos, vorderseite, notiz, ...(merke ? { merke } : {}), links, videoId, videoTitel, erstellt: new Date().toISOString() };
     }
     await dbPut('studenten', s);
     studenten.push(s);

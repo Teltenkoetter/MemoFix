@@ -214,9 +214,10 @@
         <div class="form-group">
           <label>Typ</label>
           <div class="karten-modus-chips">
-            <button type="button" id="karte-edit-chip-foto" class="karten-modus-chip">📷 Foto</button>
-            <button type="button" id="karte-edit-chip-text" class="karten-modus-chip">📖 Begriff</button>
+            <button type="button" id="karte-edit-chip-foto" class="karten-modus-chip">📷 Bild vorn</button>
+            <button type="button" id="karte-edit-chip-text" class="karten-modus-chip">📖 Begriff vorn, Bild hinten</button>
           </div>
+          <p id="karte-edit-chip-hinweis" class="modal-hint" style="font-size:0.75rem;line-height:1.45;margin-top:0.4rem"></p>
         </div>
         <div class="form-group hidden" id="karte-edit-foto-gruppe">
           <label id="karte-edit-foto-label">Fotos <span class="label-optional">(mehrere möglich)</span></label>
@@ -400,9 +401,10 @@
           <div class="form-group">
             <label>Karten-Inhalt</label>
             <div class="karten-modus-chips">
-              <button type="button" class="karten-modus-chip active" id="chip-foto">📷 Foto</button>
-              <button type="button" class="karten-modus-chip" id="chip-text">📖 Begriff</button>
+              <button type="button" class="karten-modus-chip active" id="chip-foto">📷 Bild vorn</button>
+              <button type="button" class="karten-modus-chip" id="chip-text">📖 Begriff vorn, Bild hinten</button>
             </div>
+            <p id="chip-hinweis" class="modal-hint" style="font-size:0.75rem;line-height:1.45;margin-top:0.4rem"></p>
             <div id="foto-bereich">
               <label id="foto-bereich-label" class="hidden"></label>
               <div id="neue-karte-fotos-liste" class="karte-edit-fotos-liste hidden"></div>
@@ -791,6 +793,6 @@
     <div id="video-overlay-title" class="video-overlay-title"></div>
   </div>
 
-  <script src="app.js?v=83"></script>
+  <script src="app.js?v=84"></script>
 </body>
 </html>
