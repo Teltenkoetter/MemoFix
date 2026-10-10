@@ -2,49 +2,6 @@
   "version": 1,
   "sets": [
     {
-      "id": "DE1-Designstrategien",
-      "name": "DE1 Design Strategies",
-      "name_en": "DE1 Design Strategies",
-      "beschreibung": "",
-      "stand": "2026-10-10",
-      "hash": "1d6665baff4720eaf934721266de952fb4c9176301723775b8729b13a2dd035e",
-      "gruppen": 5,
-      "karten": 47,
-      "mb": 27.0,
-      "bilder": true,
-      "pfad": [
-        "Innenarchitektur",
-        "Digitales Entwerfen 1"
-      ],
-      "dateien": [
-        "Innenarchitektur/Digitales Entwerfen 1/DE1_2026_Designstrategien_01.json",
-        "Innenarchitektur/Digitales Entwerfen 1/DE1_2026_Designstrategien_02.json"
-      ],
-      "neu": "",
-      "neu_en": ""
-    },
-    {
-      "id": "DE1-Grundwissen",
-      "name": "DE1 Grundwissen",
-      "name_en": "",
-      "beschreibung": "",
-      "stand": "2026-10-10",
-      "hash": "2de0b4333a5b38b21245c989266d5cf36f7225be55ecd41ebe74220c475df0be",
-      "gruppen": 6,
-      "karten": 75,
-      "mb": 7.1,
-      "bilder": true,
-      "pfad": [
-        "Innenarchitektur",
-        "Digitales Entwerfen 1"
-      ],
-      "dateien": [
-        "Innenarchitektur/Digitales Entwerfen 1/DE1_2026_Grundwissen_final.json"
-      ],
-      "neu": "",
-      "neu_en": ""
-    },
-    {
       "id": "DE1-RhinoCommands",
       "name": "DE1 Rhino Commands",
       "name_en": "DE1 Rhino Commands",
@@ -66,49 +23,6 @@
       "neu_en": ""
     },
     {
-      "id": "DE2-Designstrategien",
-      "name": "DE2 Design Strategies",
-      "name_en": "DE2 Design Strategies",
-      "beschreibung": "",
-      "stand": "2026-10-10",
-      "hash": "dc1250b3e4ecc9dd7013fd97db3eb8fbb8c634e3955efe56b1bab455c4fd05f0",
-      "gruppen": 5,
-      "karten": 31,
-      "mb": 22.6,
-      "bilder": true,
-      "pfad": [
-        "Innenarchitektur",
-        "Digitales Entwerfen 2"
-      ],
-      "dateien": [
-        "Innenarchitektur/Digitales Entwerfen 2/DE2_2026_Designstrategien_01.json",
-        "Innenarchitektur/Digitales Entwerfen 2/DE2_2026_Designstrategien_02.json"
-      ],
-      "neu": "",
-      "neu_en": ""
-    },
-    {
-      "id": "DE2-Grundwissen",
-      "name": "DE2 Grundwissen",
-      "name_en": "DE2 Fundamentals",
-      "beschreibung": "",
-      "stand": "2026-10-10",
-      "hash": "eecf99f101627f5455da8937d63952dd5546959ccb0ead29e9e3eda570420e47",
-      "gruppen": 6,
-      "karten": 60,
-      "mb": 14.4,
-      "bilder": true,
-      "pfad": [
-        "Innenarchitektur",
-        "Digitales Entwerfen 2"
-      ],
-      "dateien": [
-        "Innenarchitektur/Digitales Entwerfen 2/DE2_2026_Grundwissen_komplett.json"
-      ],
-      "neu": "",
-      "neu_en": ""
-    },
-    {
       "id": "DE2-RhinoCommands",
       "name": "DE2 Rhino Commands",
       "name_en": "DE2 Rhino Commands",
@@ -125,6 +39,110 @@
       ],
       "dateien": [
         "Innenarchitektur/Digitales Entwerfen 2/DE2_2026_RhinoCommands_01.json"
+      ],
+      "neu": "",
+      "neu_en": ""
+    },
+    {
+      "id": "DE1-Designstrategien",
+      "name": "DE1 Design Strategies",
+      "name_en": "DE1 Design Strategies",
+      "beschreibung": "",
+      "stand": "2026-10-10",
+      "hash": "1d6665baff4720eaf934721266de952fb4c9176301723775b8729b13a2dd035e",
+      "gruppen": 5,
+      "karten": 47,
+      "mb": 27.0,
+      "bilder": true,
+      "pfad": [
+        "Innenarchitektur_Files",
+        "Digitales Entwerfen 1"
+      ],
+      "dateien": [
+        "Innenarchitektur_Files/Digitales Entwerfen 1/DE1_2026_Designstrategien_01.json",
+        "Innenarchitektur_Files/Digitales Entwerfen 1/DE1_2026_Designstrategien_02.json"
+      ],
+      "neu": "",
+      "neu_en": ""
+    },
+    {
+      "id": "DE1-Grundwissen",
+      "name": "DE1 Grundwissen",
+      "name_en": "",
+      "beschreibung": "",
+      "stand": "2026-10-10",
+      "hash": "2de0b4333a5b38b21245c989266d5cf36f7225be55ecd41ebe74220c475df0be",
+      "gruppen": 6,
+      "karten": 75,
+      "mb": 7.1,
+      "bilder": true,
+      "pfad": [
+        "Innenarchitektur_Files",
+        "Digitales Entwerfen 1"
+      ],
+      "dateien": [
+        "Innenarchitektur_Files/Digitales Entwerfen 1/DE1_2026_Grundwissen_final.json"
+      ],
+      "neu": "",
+      "neu_en": ""
+    },
+    {
+      "id": "DE2-Designstrategien",
+      "name": "DE2 Design Strategies",
+      "name_en": "DE2 Design Strategies",
+      "beschreibung": "",
+      "stand": "2026-10-10",
+      "hash": "dc1250b3e4ecc9dd7013fd97db3eb8fbb8c634e3955efe56b1bab455c4fd05f0",
+      "gruppen": 5,
+      "karten": 31,
+      "mb": 22.6,
+      "bilder": true,
+      "pfad": [
+        "Innenarchitektur_Files",
+        "Digitales Entwerfen 2"
+      ],
+      "dateien": [
+        "Innenarchitektur_Files/Digitales Entwerfen 2/DE2_2026_Designstrategien_01.json",
+        "Innenarchitektur_Files/Digitales Entwerfen 2/DE2_2026_Designstrategien_02.json"
+      ],
+      "neu": "",
+      "neu_en": ""
+    },
+    {
+      "id": "DE2-Grundwissen",
+      "name": "DE2 Grundwissen",
+      "name_en": "DE2 Fundamentals",
+      "beschreibung": "",
+      "stand": "2026-10-10",
+      "hash": "eecf99f101627f5455da8937d63952dd5546959ccb0ead29e9e3eda570420e47",
+      "gruppen": 6,
+      "karten": 60,
+      "mb": 14.4,
+      "bilder": true,
+      "pfad": [
+        "Innenarchitektur_Files",
+        "Digitales Entwerfen 2"
+      ],
+      "dateien": [
+        "Innenarchitektur_Files/Digitales Entwerfen 2/DE2_2026_Grundwissen_komplett.json"
+      ],
+      "neu": "",
+      "neu_en": ""
+    },
+    {
+      "id": "sammlung-tutorial-1779808595185",
+      "name": "🎓 Tutorial",
+      "name_en": "",
+      "beschreibung": "",
+      "stand": "2026-10-10",
+      "hash": "c0b485478a623bd5ee62f6c704b9a8fd6059110f1c122a91a806c590930a9c72",
+      "gruppen": 1,
+      "karten": 6,
+      "mb": 0.0,
+      "bilder": true,
+      "pfad": [],
+      "dateien": [
+        "memofix-Tutorial-2026-10-10.json"
       ],
       "neu": "",
       "neu_en": ""
