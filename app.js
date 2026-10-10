@@ -709,8 +709,8 @@ function applyTranslations() {
 function getHelpHtml() {
   const sections = currentLang === 'en' ? [
     { title: '🚀 Getting started', rows: [
-      ['🌐', '<strong>Browser</strong> — iPhone and iPad: Safari · Android: Chrome · Computer: Chrome, Edge or Safari'],
-      ['📲', '<strong>Add to Home Screen first</strong> — iPhone/iPad: Share → "Add to Home Screen" · Android: ⋮ menu → "Install app" · Without this, the browser can delete your cards after about 7 days without use'],
+      ['🌐', '<strong>Browser</strong> — iPhone and iPad: Safari · Android: Chrome or Firefox · Computer: Safari, Firefox, Chrome or Edge'],
+      ['📲', '<strong>Add to Home Screen first</strong> — iPhone/iPad: Share → "Add to Home Screen" · Android: ⋮ menu → "Install app" (Firefox: menu → "Install") · Without this, the browser can delete your cards after about 7 days without use'],
       ['📚', '<strong>Import course set</strong> — BACKUP → "Import course set" → tap "Import" (internet required) · your own cards stay untouched'],
       ['🚦', '<strong>Course set status</strong> — ● red: not loaded yet · ✓ green: up to date · ↻ orange: update available (tap "Update" or "Update all") · learning progress and favorites are kept · cards you changed yourself or that were removed from the set: you are asked first · offline the last known status stays visible'],
       ['💾', '<strong>Back up regularly</strong> — Cards live only on this device (no sync between devices) · BACKUP → Export · "Clear browser data" deletes everything'],
@@ -765,8 +765,8 @@ function getHelpHtml() {
     ]},
   ] : [
     { title: '🚀 Erste Schritte', rows: [
-      ['🌐', '<strong>Browser</strong> — iPhone und iPad: Safari · Android: Chrome · Computer: Chrome, Edge oder Safari'],
-      ['📲', '<strong>Zuerst zum Home-Bildschirm hinzufügen</strong> — iPhone/iPad: Teilen → „Zum Home-Bildschirm" · Android: ⋮-Menü → „App installieren" · Ohne das kann der Browser deine Karten nach etwa 7 Tagen ohne Nutzung löschen'],
+      ['🌐', '<strong>Browser</strong> — iPhone und iPad: Safari · Android: Chrome oder Firefox · Computer: Safari, Firefox, Chrome oder Edge'],
+      ['📲', '<strong>Zuerst zum Home-Bildschirm hinzufügen</strong> — iPhone/iPad: Teilen → „Zum Home-Bildschirm" · Android: ⋮-Menü → „App installieren" (Firefox: Menü → „Installieren") · Ohne das kann der Browser deine Karten nach etwa 7 Tagen ohne Nutzung löschen'],
       ['📚', '<strong>Kursset importieren</strong> — SICHERUNG → „Kursset importieren" → „Importieren" antippen (Internet nötig) · eigene Karten bleiben unberührt'],
       ['🚦', '<strong>Kursset-Status</strong> — ● rot: noch nicht geladen · ✓ grün: aktuell · ↻ orange: Update verfügbar (auf „Aktualisieren" oder „Alle aktualisieren" tippen) · Lernstand und Favoriten bleiben erhalten · selbst geänderte oder im Set entfallene Karten: es wird vorher nachgefragt · offline bleibt der letzte bekannte Status sichtbar'],
       ['💾', '<strong>Regelmäßig sichern</strong> — Karten liegen nur auf diesem Gerät (kein Abgleich zwischen Geräten) · SICHERUNG → Exportieren · „Browserdaten löschen" entfernt alles'],
@@ -4187,26 +4187,60 @@ let praesentationAktiv = false;
 let praesiFaktor = 1;   // Auto-Verkleinerung für lange Rückseiten (1 = volle Größe)
 let praesiBasis  = 16;
 
+// Bühne = gesamte sichtbare Fläche (kein 16:9-Rahmen mehr). Die Basisschrift bleibt proportional
+// zur 16:9-Fläche, die in den Bildschirm passt — auf einem 16:9-Bildschirm ist alles wie zuvor.
+function praesiMasse() {
+  const vv = window.visualViewport;
+  const w  = Math.round(vv?.width  || window.innerWidth);
+  const h  = Math.round(vv?.height || window.innerHeight);
+  const ref = Math.min(h, w * 9 / 16);              // Referenzhöhe für die Schriftgröße
+  const basis = Math.max(14, ref / 18);
+  // Mindestschrift: 28 px Fließtext bei 1280 px Breite (Fließtext = 1.05 rem), proportional skaliert
+  const refBreite = Math.min(w, h * 16 / 9);
+  const minRoot = Math.max(12, refBreite * 28 / 1280 / 1.05);
+  return { w, h, basis, minFaktor: Math.min(1, minRoot / basis) };
+}
+
 function praesiSkalieren() {
   if (!praesentationAktiv) return;
-  const stageH = Math.min(window.innerHeight, window.innerWidth * 9 / 16);
-  praesiBasis = Math.max(14, stageH / 18);
+  praesiBasis = praesiMasse().basis;
   document.documentElement.style.fontSize = (praesiBasis * praesiFaktor) + 'px';
 }
 
-// Schrift schrittweise verkleinern (bis 65 %), bis die Rückseite ohne Scrollen passt
+// Größte Schriftstufe suchen (Binärsuche bis zur Mindestschrift), bei der die Rückseite ohne Scrollen passt
+let praesiLetzterFit = null;   // { faktor, passt } — für Tests/Diagnose
 function praesiAutofit() {
   if (!praesentationAktiv) return;
   const wrap = document.getElementById('lernkarte-text-scroll-wrap');
   const box  = document.getElementById('lernkarte-text-vorderseite');
   praesiFaktor = 1;
   praesiSkalieren();
-  if (!wrap || !box || wrap.classList.contains('hidden')) return;
-  let n = 0;
-  while (box.scrollHeight > box.clientHeight + 1 && praesiFaktor > 0.65 && n++ < 10) {
-    praesiFaktor = Math.round((praesiFaktor - 0.05) * 100) / 100;
-    praesiSkalieren();
+  if (!wrap || !box || wrap.classList.contains('hidden')) { praesiLetzterFit = null; return; }
+  const passt = () => box.scrollHeight <= box.clientHeight + 1;
+  const m = praesiMasse();
+  const minF = m.minFaktor;
+  // Hochformat: Bühne ist schmal, aber hoch -> Schrift darf über die Basis hinaus wachsen (bis 1,5)
+  if (m.h > m.w && passt()) {
+    let lo = 1, hi = 1.5;
+    for (let i = 0; i < 8 && hi - lo > 0.01; i++) {
+      const mid = (lo + hi) / 2;
+      praesiFaktor = mid; praesiSkalieren();
+      if (passt()) lo = mid; else hi = mid;
+    }
+    praesiFaktor = lo; praesiSkalieren();
+  } else if (!passt()) {
+    praesiFaktor = minF; praesiSkalieren();
+    if (passt()) {
+      let lo = minF, hi = 1;            // lo passt, hi passt nicht
+      for (let i = 0; i < 8 && hi - lo > 0.005; i++) {
+        const mid = (lo + hi) / 2;
+        praesiFaktor = mid; praesiSkalieren();
+        if (passt()) lo = mid; else hi = mid;
+      }
+      praesiFaktor = lo; praesiSkalieren();
+    }
   }
+  praesiLetzterFit = { faktor: +praesiFaktor.toFixed(3), root: +(praesiBasis * praesiFaktor).toFixed(1), passt: passt() };
   updateScrollIndikatoren(); // Pfeile nach der Größenanpassung neu bewerten
 }
 
@@ -4227,6 +4261,8 @@ function betretePraesentation() {
     praesiObserver = new MutationObserver(praesiAutofitPlanen);
     praesiObserver.observe(document.getElementById('lernkarte-text-vorderseite'), { childList: true, subtree: true });
     praesiObserver.observe(document.getElementById('lernkarte-text-scroll-wrap'), { attributes: true, attributeFilter: ['class'] });
+    // Bilder laden asynchron und verändern die Höhe -> Fit neu berechnen
+    document.getElementById('lernkarte-text-vorderseite').addEventListener('load', praesiAutofitPlanen, true);
   }
   praesiAutofitPlanen();
   erwerbeWakeLock();
@@ -4249,6 +4285,7 @@ document.getElementById('btn-fullscreen169').addEventListener('click', () => {
 });
 window.addEventListener('resize', praesiAutofitPlanen);
 window.addEventListener('orientationchange', praesiAutofitPlanen);
+window.visualViewport?.addEventListener('resize', praesiAutofitPlanen);
 ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev =>
   document.addEventListener(ev, () => {
     // Vollbild per Esc verlassen -> auch Präsentationsansicht beenden
@@ -4702,26 +4739,39 @@ document.getElementById('btn-export-start').addEventListener('click', async () =
   }
   const basisname = `memofix-${gruppenTeil}-${datum}`;
 
-  // Fotos NACHEINANDER (nicht alle gleichzeitig) einlesen; jeder Teil (max. ~35 MB) wird sofort
+  // Fotos NACHEINANDER (nicht alle gleichzeitig) einlesen; jeder Teil (max. ~20 MB) wird sofort
   // zum Blob und freigegeben, damit nie alle Bilder gleichzeitig im Speicher liegen.
   // Zählt mit: gewählt / geschrieben / Bildfehler — Abweichungen werden sichtbar gemeldet.
   const ohneBilder = !!document.getElementById('export-ohne-bilder')?.checked;
   const startBtn = document.getElementById('btn-export-start');
   const startLabel = startBtn.textContent;
   startBtn.disabled = true;
-  const CHUNK_BYTES = 35 * 1024 * 1024;
+  const CHUNK_BYTES = 20 * 1024 * 1024;   // Zielgröße (Schätzung) pro Teil
+  const MAX_TEIL_BYTES = 24.5 * 1024 * 1024;   // harte Grenze: GitHub-Upload im Browser erlaubt max. 25 MB pro Datei
+  let zuGross = 0;                              // Einzelkarten, die allein schon über der Grenze liegen
   const teile = [];            // { blob, anzahl }
   const bildFehler = [];       // Kartennamen mit Bildproblem
   let aktuell = [], aktuellBytes = 0, geschrieben = 0, gesamtBytes = 0;
-  const schliesseTeil = () => {
-    if (!aktuell.length) return;
+  // Baut aus einer Kartenliste einen Teil; ist er (real gemessen) größer als die harte Grenze,
+  // wird er rekursiv halbiert. Nur eine einzelne Karte lässt sich nicht weiter teilen.
+  const baueTeil = karten => {
     const payload = {
       version: 2, exportiert: new Date().toISOString(),
-      sammlungen: exportSammlungen, gruppen: exportGruppen, studenten: aktuell
+      sammlungen: exportSammlungen, gruppen: exportGruppen, studenten: karten
     };
     const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-    teile.push({ blob, anzahl: aktuell.length });
-    geschrieben += aktuell.length; gesamtBytes += blob.size;
+    if (blob.size > MAX_TEIL_BYTES && karten.length > 1) {
+      const h = Math.ceil(karten.length / 2);
+      baueTeil(karten.slice(0, h)); baueTeil(karten.slice(h));
+      return;
+    }
+    if (blob.size > MAX_TEIL_BYTES) zuGross++;
+    teile.push({ blob, anzahl: karten.length });
+    geschrieben += karten.length; gesamtBytes += blob.size;
+  };
+  const schliesseTeil = () => {
+    if (!aktuell.length) return;
+    baueTeil(aktuell);
     aktuell = []; aktuellBytes = 0;
   };
   try {
@@ -4761,7 +4811,7 @@ document.getElementById('btn-export-start').addEventListener('click', async () =
 
   document.getElementById('export-modal').classList.add('hidden');
   const teilName = i => `${basisname}${teile.length > 1 ? `-teil${i + 1}-von${teile.length}` : ''}.json`;
-  const problem = geschrieben !== exportStudentenRaw.length || bildFehler.length > 0;
+  const problem = geschrieben !== exportStudentenRaw.length || bildFehler.length > 0 || zuGross > 0;
 
   // Ein Teil ohne Auffälligkeit: direkt speichern wie bisher
   if (teile.length === 1 && !problem) {
@@ -4777,21 +4827,23 @@ document.getElementById('btn-export-start').addEventListener('click', async () =
   // Mehrere Teile oder Auffälligkeit: Ergebnis-Dialog, jeder Teil mit eigenem Button
   // (jeder Klick ist eine echte Nutzeraktion – automatische Mehrfach-Downloads werden von Browsern blockiert)
   zeigeExportErgebnis({
-    teile, teilName, gewaehlt: exportStudentenRaw.length, geschrieben, gesamtBytes, bildFehler, ohneBilder
+    teile, teilName, gewaehlt: exportStudentenRaw.length, geschrieben, gesamtBytes, bildFehler, ohneBilder, zuGross
   });
 });
 
-function zeigeExportErgebnis({ teile, teilName, gewaehlt, geschrieben, gesamtBytes, bildFehler, ohneBilder }) {
+function zeigeExportErgebnis({ teile, teilName, gewaehlt, geschrieben, gesamtBytes, bildFehler, ohneBilder, zuGross = 0 }) {
   const en = currentLang === 'en';
   const L = en ? {
     titel: 'Export result', summary: (g, w, n, mb) => `${g} selected · ${w} exported · ${n} file${n !== 1 ? 's' : ''} · ${mb} MB`,
     abw: (g, w) => `⚠️ ${g} selected, only ${w} exported. Please do not rely on this backup.`,
     bild: (n) => `⚠️ ${n} card${n !== 1 ? 's' : ''} without images (image could not be read): `,
+    gross: n => `⚠️ ${n} file${n !== 1 ? 's are' : ' is'} larger than 25 MB (single card with very large images) – compress photos first (BACKUP → Compress photos).`,
     ohne: 'Exported without images.', teil: (i, n) => `Part ${i} of ${n}`, karten: n => `${n} cards`,
     alle: '📁 Save all to one folder', hinweis: 'Tap each part to save it. Keep all parts together.', zu: 'Close'
   } : {
     titel: 'Export-Ergebnis', summary: (g, w, n, mb) => `${g} gewählt · ${w} exportiert · ${n} Datei${n !== 1 ? 'en' : ''} · ${mb} MB`,
     abw: (g, w) => `⚠️ ${g} gewählt, aber nur ${w} exportiert. Bitte verlasse dich nicht auf dieses Backup.`,
+    gross: n => `⚠️ ${n} Datei${n !== 1 ? 'en sind' : ' ist'} größer als 25 MB (einzelne Karte mit sehr großen Bildern) – bitte zuerst Fotos komprimieren (SICHERUNG → Fotos komprimieren).`,
     bild: (n) => `⚠️ ${n} Karte${n !== 1 ? 'n' : ''} ohne Bild (Bild konnte nicht gelesen werden): `,
     ohne: 'Ohne Bilder exportiert.', teil: (i, n) => `Teil ${i} von ${n}`, karten: n => `${n} Karten`,
     alle: '📁 Alle in einen Ordner speichern', hinweis: 'Tippe jeden Teil einzeln an, um ihn zu speichern. Alle Teile zusammen aufbewahren.', zu: 'Schließen'
@@ -4807,6 +4859,7 @@ function zeigeExportErgebnis({ teile, teilName, gewaehlt, geschrieben, gesamtByt
       <p class="modal-hint"><strong>${L.summary(gewaehlt, geschrieben, teile.length, mb(gesamtBytes))}</strong></p>
       ${abweichung ? `<div style="${fehlerStil}">${L.abw(gewaehlt, geschrieben)}</div>` : ''}
       ${bildFehler.length ? `<div style="${fehlerStil}">${L.bild(bildFehler.length)}${esc(bildFehler.slice(0, 8).join(', '))}${bildFehler.length > 8 ? ' …' : ''}</div>` : ''}
+      ${zuGross ? `<div style="${fehlerStil}">${L.gross(zuGross)}</div>` : ''}
       ${ohneBilder ? `<p class="modal-hint">${L.ohne}</p>` : ''}
       ${teile.length > 1 ? `<p class="modal-hint">${L.hinweis}</p>` : ''}
       <div class="export-teile">${teile.map((tl, i) => `

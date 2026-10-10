@@ -1975,8 +1975,7 @@ body.praesi #lernen-flashcard {
 }
 body.praesi .lern-karte-area {
   flex: none; position: relative;
-  width: min(100vw, calc(100dvh * 16 / 9));
-  aspect-ratio: 16 / 9;
+  width: 100%; height: 100%;
 }
 body.praesi .stack-card,
 body.praesi .session-timer-row,
@@ -1996,8 +1995,8 @@ body.praesi .lern-header { position: static; height: 0; padding: 0; background: 
    Bühne: Breite W = min(100vw, 100dvh*16/9), Höhe = min(100dvh, 100vw*9/16) */
 body.praesi #btn-beenden {
   position: fixed; z-index: 40;
-  top: calc(50% - min(50dvh, 50vw * 9 / 16) + 14px);
-  right: calc(50% - min(50vw, 50dvh * 16 / 9) + 14px);
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  right: calc(env(safe-area-inset-right, 0px) + 14px);
   width: 44px; height: 44px; padding: 0; border-radius: 50%;
   font-size: 0;
   display: flex; align-items: center; justify-content: center;
@@ -2009,8 +2008,8 @@ body.praesi #btn-beenden::before { content: '✕'; font-size: 18px; color: var(-
    Schriftanpassung (Vorder-/Rückseite) nicht springt */
 body.praesi .lern-progress-wrap {
   position: fixed; z-index: 40; margin: 0; padding: 0; gap: 0;
-  bottom: calc(50% - min(50dvh, 50vw * 9 / 16) + 14px);
-  right: calc(50% - min(50vw, 50dvh * 16 / 9) + 18px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
+  right: calc(env(safe-area-inset-right, 0px) + 18px);
   font-size: 14px; opacity: 0.6;
 }
 body.praesi .lern-position-counter,
@@ -2086,3 +2085,13 @@ body.praesi .lern-position-counter .counter-total { font-size: 14px; letter-spac
 .export-sammlung-header.offen .export-sammlung-pfeil { transform: rotate(90deg); }
 .export-sam-count { font-size: 0.7rem; font-weight: 700; color: var(--accent); margin-right: 0.3rem; }
 .export-sam-body.hidden { display: none; }
+
+/* Beamer-Modus: sichere Ränder (iPad Home-Anzeige, Notch) und Rückseite ohne Scrollen */
+body.praesi .lernkarte-text-vorderseite {
+  padding-top:    max(1.5rem, env(safe-area-inset-top));
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  padding-left:   max(1.5rem, env(safe-area-inset-left));
+  padding-right:  max(1.5rem, env(safe-area-inset-right));
+}
+body.praesi .lernkarte-text-vorderseite .lern-text-fotos img,
+body.praesi .lernkarte-text-vorderseite img { max-width: 100%; object-fit: contain; }
