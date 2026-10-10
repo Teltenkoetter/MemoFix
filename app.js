@@ -140,7 +140,9 @@ const TRANS = {
     confirm_kursset: (name) => `Set „${name}" importieren?\n\nKarten dieses Sets werden ersetzt bzw. aktualisiert. Eigene Karten bleiben unberührt.`,
     toast_kursset_ok: (name, n, a, e, k) => `„${name}": ${n} neu, ${a} aktualisiert${e ? `, ${e} entfernt` : ''}${k ? `, ${k} lokal behalten` : ''}`,
     toast_kursset_alle: (n) => `${n} Kurs${n !== 1 ? 'sets' : 'set'} aktualisiert`,
-    kursset_stand: 'Stand', kursset_neu: 'Neu', kursset_gruppen: 'Gruppe(n)', kursset_erneut: 'Erneut laden',
+    kursset_stand: 'Stand',
+    kursset_laedt: (i, n) => n > 1 ? `Lädt Teil ${i}/${n} …` : 'Lädt …',
+    confirm_kursset_gross: (name, mb) => `„${name}" ist ${mb} MB groß.\n\nIm Mobilfunk kann das langsam sein und Datenvolumen verbrauchen – besser im WLAN laden.\n\nJetzt laden?`, kursset_neu: 'Neu', kursset_gruppen: 'Gruppe(n)', kursset_erneut: 'Erneut laden',
     kursset_alle: 'Alle aktualisieren', kursset_anzeigen: 'Anzeigen',
     kursset_status_rot: 'Noch nicht geladen', kursset_status_gruen: 'Aktuell', kursset_status_orange: 'Update verfügbar',
     kursset_updates_hinweis: (n) => `${n} Kurs${n !== 1 ? 'sets haben' : 'set hat'} Updates`,
@@ -378,7 +380,9 @@ const TRANS = {
     confirm_kursset: (name) => `Import set "${name}"?\n\nCards of this set are replaced or updated. Your own cards stay untouched.`,
     toast_kursset_ok: (name, n, a, e, k) => `"${name}": ${n} new, ${a} updated${e ? `, ${e} removed` : ''}${k ? `, ${k} kept locally` : ''}`,
     toast_kursset_alle: (n) => `${n} course set${n !== 1 ? 's' : ''} updated`,
-    kursset_stand: 'As of', kursset_neu: 'New', kursset_gruppen: 'group(s)', kursset_erneut: 'Reload',
+    kursset_stand: 'As of',
+    kursset_laedt: (i, n) => n > 1 ? `Loading part ${i}/${n} …` : 'Loading …',
+    confirm_kursset_gross: (name, mb) => `"${name}" is ${mb} MB.\n\nOn mobile data this can be slow and use up your data allowance – better load it on Wi-Fi.\n\nLoad now?`, kursset_neu: 'New', kursset_gruppen: 'group(s)', kursset_erneut: 'Reload',
     kursset_alle: 'Update all', kursset_anzeigen: 'Show',
     kursset_status_rot: 'Not loaded yet', kursset_status_gruen: 'Up to date', kursset_status_orange: 'Update available',
     kursset_updates_hinweis: (n) => `${n} course set${n !== 1 ? 's have' : ' has'} updates`,
@@ -3207,6 +3211,7 @@ async function ladeKurssetListe() {
     const neu   = (istEn() && set.neu_en) ? set.neu_en : (set.neu || '');
     const meta  = [set.stand ? `${t('kursset_stand')} ${set.stand}` : '',
                    set.karten ? tf('karte_n', set.karten) : '',
+                   set.mb ? `${set.bilder ? '🖼 ' : ''}${set.mb} MB` : '',
                    set.gruppen ? `${set.gruppen} ${t('kursset_gruppen')}` : ''].filter(Boolean).join(' · ');
     const btnTxt = t(st === 'rot' ? 'kursset_laden' : st === 'orange' ? 'kursset_aktualisieren' : 'kursset_erneut');
     return `<div class="kursset-zeile">
@@ -3251,13 +3256,20 @@ async function ladeKurssetListe() {
 // werden nie stillschweigend entfernt bzw. überschrieben, sondern erst nach Rückfrage.
 async function ladeKursset(set, opt = {}) {
   const name = (istEn() && set.name_en) ? set.name_en : (set.name || set.id);
-  if (!opt.ohneRueckfrage && kurssetStatus(set) === 'rot' && !confirm(tf('confirm_kursset', name))) return false;
+  if (!opt.ohneRueckfrage && kurssetStatus(set) === 'rot' && !(set.mb > 5) && !confirm(tf('confirm_kursset', name))) return false;
+  // Große Sets: Warnung (Mobilfunk) — bei „Alle aktualisieren“ einmal vorab für alle
+  if (!opt.ohneRueckfrage && set.mb > 5 && !confirm(tf('confirm_kursset_gross', name, set.mb))) return false;
+  const lade = document.querySelector(`#kursset-liste [data-kursset="${CSS.escape(set.id)}"]`);
+  const ladeText = lade?.textContent;
+  if (lade) lade.disabled = true;
   try {
     const daten = { sammlungen: [], gruppen: [], studenten: [] };
     const mische = (liste, neuListe) => {
       for (const x of neuListe) { const i = liste.findIndex(y => y.id === x.id); if (i >= 0) liste[i] = x; else liste.push(x); }
     };
-    for (const datei of set.dateien) {
+    for (let di = 0; di < set.dateien.length; di++) {
+      const datei = set.dateien[di];
+      if (lade) lade.textContent = tf('kursset_laedt', di + 1, set.dateien.length);
       const d = await holeJson('kurssets/' + datei.split('/').map(encodeURIComponent).join('/'), 30000);
       if (!Array.isArray(d.studenten) || !Array.isArray(d.gruppen)) throw new Error(t('kursset_format'));
       mische(daten.sammlungen, d.sammlungen || []); mische(daten.gruppen, d.gruppen); mische(daten.studenten, d.studenten);
@@ -3305,6 +3317,7 @@ async function ladeKursset(set, opt = {}) {
     if (!opt.still) toast(tf('toast_kursset_ok', name, neu, aktualisiert, entfernt, beibehalten));
     return true;
   } catch (err) {
+    if (lade) { lade.disabled = false; lade.textContent = ladeText; }
     toast(tf('toast_kursset_fehler', err.message));
     return false;
   }
@@ -3318,6 +3331,8 @@ document.getElementById('kursset-liste')?.addEventListener('click', e => {
 });
 document.getElementById('btn-kursset-alle')?.addEventListener('click', async () => {
   const sets = (document.getElementById('kursset-liste')._sets || []).filter(x => kurssetStatus(x) === 'orange');
+  const summe = sets.reduce((a, x) => a + (x.mb || 0), 0);
+  if (summe > 5 && !confirm(tf('confirm_kursset_gross', t('kursset_alle'), Math.round(summe * 10) / 10))) return;
   for (const set of sets) await ladeKursset(set, { ohneRueckfrage: true, still: true });
   if (sets.length) toast(tf('toast_kursset_alle', sets.length));
 });
