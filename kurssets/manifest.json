@@ -44,24 +44,6 @@
       "neu_en": ""
     },
     {
-      "id": "sammlung-tutorial-1779808595185",
-      "name": "🎓 Tutorial",
-      "name_en": "",
-      "beschreibung": "",
-      "stand": "2026-10-10",
-      "hash": "c0b485478a623bd5ee62f6c704b9a8fd6059110f1c122a91a806c590930a9c72",
-      "gruppen": 1,
-      "karten": 6,
-      "mb": 0.0,
-      "bilder": true,
-      "pfad": [],
-      "dateien": [
-        "memofix-Tutorial-2026-10-10.json"
-      ],
-      "neu": "",
-      "neu_en": ""
-    },
-    {
       "id": "DE1-Designstrategien",
       "name": "DE1 Design Strategies",
       "name_en": "DE1 Design Strategies",
