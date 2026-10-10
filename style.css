@@ -2103,3 +2103,27 @@ body.praesi .lernkarte-text-vorderseite img { max-width: 100%; object-fit: conta
 }
 .card.info-card strong { color: #ff7a7a; font-size: 0.9rem; margin-bottom: 0.35rem; }
 .card.info-card p { font-size: 0.82rem; line-height: 1.6; color: #e9a4a4; margin: 0; }
+
+/* Lernkarte Rückseite: Bildbereich füllt den restlichen Platz (statt fester 190 px),
+   mindestens 140 px — reicht der Platz nicht, scrollt wie bisher der Textbereich */
+.lernkarte-text-vorderseite .lern-text-fotos {
+  flex: 1 1 140px; min-height: 140px;
+  display: flex; flex-direction: column;
+}
+.lernkarte-text-vorderseite .lern-text-fotos.hidden { display: none; }
+.lernkarte-text-vorderseite .lern-text-fotos-slides { flex: 1 1 auto; height: auto; min-height: 0; }
+.lernkarte-text-vorderseite .lern-text-fotos-slides .foto-slide { position: relative; height: auto; }
+.lernkarte-text-vorderseite .lern-text-fotos-slides .foto-slide img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
+}
+
+/* Querformat mit wenig Höhe (z. B. iPad quer): Steuerelemente unter der Karte kompakter,
+   damit die Karte mehr Platz für Text und Bild bekommt */
+@media (orientation: landscape) and (max-height: 860px) and (min-width: 700px) {
+  body:not(.praesi) .lern-header { padding-bottom: 0.2rem; }
+  body:not(.praesi) .session-timer-row { padding-top: 0.2rem; margin-top: 0.1rem; }
+  body:not(.praesi) .lern-steuerung { padding: 0.25rem 0 0.1rem; gap: 0.7rem; }
+  body:not(.praesi) .lern-steuerung .btn-nav { width: 40px; height: 40px; font-size: 1rem; }
+  body:not(.praesi) .lernkarte-text-vorderseite { padding-top: 1rem; padding-bottom: 1rem; }
+  body:not(.praesi) .lernkarte-text-vorderseite .lern-text-fotos { flex-basis: 110px; min-height: 110px; }
+}

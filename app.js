@@ -4291,6 +4291,10 @@ function praesiAutofit() {
       praesiFaktor = lo; praesiSkalieren();
     }
   }
+  // Sicherheitsnetz: Layout kann sich nach dem Setzen leicht verschieben (Bild-Mindesthöhe) -> bei Bedarf Schritt für Schritt kleiner
+  for (let i = 0; i < 15 && !passt() && praesiFaktor > minF + 0.001; i++) {
+    praesiFaktor = Math.max(minF, praesiFaktor - 0.02); praesiSkalieren();
+  }
   praesiLetzterFit = { faktor: +praesiFaktor.toFixed(3), root: +(praesiBasis * praesiFaktor).toFixed(1), passt: passt() };
   updateScrollIndikatoren(); // Pfeile nach der Größenanpassung neu bewerten
 }
