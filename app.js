@@ -5948,6 +5948,7 @@ document.addEventListener('click', e => {
 function spT() {
   return istEn() ? {
     zweiGleiche: (n, liste) => `Two ${n}s! From now on: ${liste.join(' and ')}`,
+    schliessen: 'Close', naechster: '＋ Next',
     umbenennen: '✎ Rename', entfernen: '🗑 Remove', abbr: 'Cancel', punkteUebertragen: n => `${n} point${n !== 1 ? 's' : ''} – give to:`, verwerfen: 'Discard points', entfernenFrage: n => `Remove “${n}”?`,
     dasBistDu: 'That is you!', anderes: '↻ Another', weiterGehts: 'On we go', eureTiere: 'Your animals', beendenFrage: 'End the game? The points will be lost.',
     unsere: 'Our', neuName2: '＋ Name', emojiSp: '＋ 🙂', einfuegen: '📋 Paste list', fuenf: '＋5 🙂', punkteK: 'Class',
@@ -5992,6 +5993,7 @@ function spT() {
     losgehts: "Let's go"
   } : {
     zweiGleiche: (n, liste) => `Zweimal ${n}! Ab jetzt: ${liste.join(' und ')}`,
+    schliessen: 'Schließen', naechster: '＋ Nächster',
     umbenennen: '✎ Umbenennen', entfernen: '🗑 Entfernen', abbr: 'Abbrechen', punkteUebertragen: n => `${n} Punkt${n !== 1 ? 'e' : ''} – übertragen an:`, verwerfen: 'Punkte verwerfen', entfernenFrage: n => `„${n}“ entfernen?`,
     dasBistDu: 'Das bist du!', anderes: '↻ Anderes', weiterGehts: 'Weiter geht\'s', eureTiere: 'Eure Tiere', beendenFrage: 'Spiel beenden? Die Punkte gehen verloren.',
     unsere: 'Unsere', neuName2: '＋ Name', emojiSp: '＋ 🙂', einfuegen: '📋 Liste einfügen', fuenf: '＋5 🙂', punkteK: 'Klasse',
@@ -6380,7 +6382,7 @@ function spielVergeben(namen, klasse) {
   }
   const los = () => { clearTimeout(spiel.warteTimer); spiel.warteSkip = null; spielWeiter(true); };
   spiel.warteSkip = los;
-  spiel.warteTimer = setTimeout(los, 1200);
+  spiel.warteTimer = setTimeout(los, 1350);
 }
 function spielChipBlinken(name) {
   setTimeout(() => {
@@ -6459,23 +6461,28 @@ function spielTastatur(titel, start, onOk, opt = {}) {
     <div class="sp-kb-reihe">${[...reihen[1]].map(taste).join('')}</div>
     <div class="sp-kb-reihe">${[...reihen[2]].map(taste).join('')}<button type="button" class="sp-taste sp-taste-breit" data-z="⌫">⌫</button></div>
     <div class="sp-kb-reihe sp-kb-unten">
-      <button type="button" class="sp-taste sp-taste-breit sp-aus" data-z="x">${esc(opt.mehrfach ? T.fertig : T.tasteAbbr)}</button>
+      <button type="button" class="sp-taste sp-taste-breit sp-aus" data-z="x">${esc(opt.mehrfach ? T.schliessen : T.tasteAbbr)}</button>
       <button type="button" class="sp-taste sp-taste-leer" data-z=" ">${esc(T.leerzeichen)}</button>
+      ${opt.mehrfach ? `<button type="button" class="sp-taste sp-taste-breit" data-z="next">${esc(T.naechster)}</button>` : ''}
       <button type="button" class="sp-taste sp-taste-breit sp-ok" data-z="ok">${esc(T.tasteOk)}</button>
     </div>`;
   document.body.appendChild(kb);
   const anz = kb.querySelector('#sp-kb-text');
   const zeige = () => { anz.textContent = text; };
   const schliesse = () => { document.removeEventListener('keydown', taste_, true); kb.remove(); };
-  const fertig = () => {
+  const fertig = () => {                      // OK: übernehmen und schließen (leer: nur schließen)
     const t = spielNameNorm(text);
-    if (opt.mehrfach) { if (t) { onOk(t); text = ''; zeige(); } return; }   // Mehrfach: Name übernehmen, Tastatur bleibt offen
     schliesse(); if (t) onOk(t);
+  };
+  const naechster = () => {                   // ＋ Nächster: übernehmen, Tastatur bleibt offen
+    const t = spielNameNorm(text);
+    if (t) { onOk(t); text = ''; zeige(); }
   };
   const tippe = z => {
     if (z === '⌫') text = text.slice(0, -1);
     else if (z === 'x') { schliesse(); return; }
     else if (z === 'ok') { fertig(); return; }
+    else if (z === 'next') { naechster(); return; }
     else if (text.length < 24) {
       const gross = !text || text.endsWith(' ') || text.endsWith('-');
       text += (z === ' ') ? ' ' : (gross ? z.toUpperCase() : z.toLowerCase());

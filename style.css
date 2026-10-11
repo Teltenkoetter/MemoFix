@@ -2577,3 +2577,22 @@ body.spiel input, body.spiel textarea { -webkit-user-select: text; user-select: 
 .sp-idee-text { font-size: 1.02rem; }
 .sp-video { margin-top: 0.5rem; }
 .sp-video button { width: 100%; }
+
+/* ── Sichere Ränder (Statusleiste, Dynamic Island, Home-Anzeige) im Vollbild ── */
+body.spiel.praesi #lernen-flashcard {
+  padding-left: env(safe-area-inset-left) !important;
+  padding-right: env(safe-area-inset-right) !important;
+  padding-bottom: env(safe-area-inset-bottom) !important;
+}
+.spiel-hud { padding-top: max(0.4rem, env(safe-area-inset-top)) !important; }
+body.praesi:not(.spiel) #lernen-flashcard {
+  padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right);
+}
+.sp-plus { animation: sp-plus-up 1.35s ease-out forwards !important; }
+@keyframes sp-plus-up {
+  0% { opacity: 0; transform: translate(-50%, 10px); }
+  14% { opacity: 1; transform: translate(-50%, -6px); }
+  84% { opacity: 1; transform: translate(-50%, -14px); }
+  100% { opacity: 0; transform: translate(-50%, -22px); }
+}
+.sp-pop { animation-duration: 0.5s; }
