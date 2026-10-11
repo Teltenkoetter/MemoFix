@@ -4561,7 +4561,7 @@ document.getElementById('lernkarte').addEventListener('click', e => {
       }
     });
   } else if (!isAnimating) {
-    if (spielAktiv) return;   // im Spiel geht es über „Wer hat's gewusst?“ weiter
+    if (spielAktiv) { if (spiel.warteSkip) spiel.warteSkip(); return; }   // im Spiel geht es über „Wer hat's gewusst?“ weiter
     stoppeAutoTimer();
     naechsteKarteOderEnde();
   }
@@ -5964,18 +5964,18 @@ function spT() {
     anwesend: 'present', podest: 'MemoDiver', weiterspielen: '▶ Keep playing', platz: ['🥇', '🥈', '🥉'], keinePunkte: 'Nobody scored – the class did it together!',
     belohnung: '🎁 Reward for everyone', wirMachenWeiter: 'We carry on.',
     belohnungen: [
-      'The winners suggest a video that we watch together (5 minutes max).',
-      'Three minutes of break – you choose the break song.',
-      'Everyone applauds themselves. Quiet counts too.',
-      'You wish for a new card set for the future.',
+      'The winners suggest a video (5 min max).',
+      '3 minutes of break – you choose the song.',
+      'Everyone applauds themselves.',
+      'You wish for a new card set.',
       'You decide the topic of the next round.',
-      'A quick stretch – only if the whole room feels like it.',
-      'You suggest a new reward – and we do it right away.',
-      'New extra rule for “knew it” in the next round – you invent it.',
-      'New extra rule for “did not know” in the next round – you invent it.',
+      'A quick stretch – if everyone feels like it.',
+      'You suggest a new reward – done right away.',
+      'New extra rule for “knew it” – you invent it.',
+      'New extra rule for “did not know” – you invent it.',
       'Joker: in the next round one card may be skipped.'
     ],
-    stichwort: 'Keyword', video: '🎬 Search video', neueRunde: 'New round', beenden: 'Finish',
+    stichwort: 'Keyword', video: '🎬 YouTube', neueRunde: 'New round', beenden: 'Finish',
     klassenpunkte: n => `Class: ${n} point${n !== 1 ? 's' : ''}`, danke: 'Thanks for playing!',
     hilfeTitel: `🤿 ${SPIEL_NAME} – the rules in short`,
     hilfeText: [
@@ -6008,18 +6008,18 @@ function spT() {
     anwesend: 'da', podest: 'MemoDiver', weiterspielen: '▶ Weiterspielen', platz: ['🥇', '🥈', '🥉'], keinePunkte: 'Niemand hat gepunktet – die Klasse hat es gemeinsam geschafft!',
     belohnung: '🎁 Belohnung für alle', wirMachenWeiter: 'Wir machen weiter.',
     belohnungen: [
-      'Die Gewinner schlagen ein Video vor, das wir gemeinsam anschauen (maximal 5 Minuten).',
-      'Drei Minuten Pause – ihr wählt den Pausensong.',
-      'Alle klatschen sich selbst Applaus. Leise zählt auch.',
-      'Ihr wünscht euch ein neues Kartenset für die Zukunft.',
+      'Die Gewinner schlagen ein Video vor (max. 5 Min.).',
+      '3 Minuten Pause – ihr wählt den Song.',
+      'Alle klatschen sich selbst Applaus.',
+      'Ihr wünscht euch ein neues Kartenset.',
       'Ihr bestimmt das Thema der nächsten Runde.',
-      'Kurz strecken – nur, wenn der ganze Raum Lust hat.',
-      'Ihr schlagt eine neue Belohnung vor – und wir setzen sie gleich um.',
-      'Neue Zusatzregel für „gewusst“ in der nächsten Runde – ihr erfindet sie.',
-      'Neue Zusatzregel für „nicht gewusst“ in der nächsten Runde – ihr erfindet sie.',
+      'Kurz strecken – wenn alle Lust haben.',
+      'Ihr schlagt eine neue Belohnung vor – sofort umgesetzt.',
+      'Neue Zusatzregel für „gewusst“ – ihr erfindet sie.',
+      'Neue Zusatzregel für „nicht gewusst“ – ihr erfindet sie.',
       'Joker: In der nächsten Runde darf eine Karte übersprungen werden.'
     ],
-    stichwort: 'Stichwort', video: '🎬 Video suchen', neueRunde: 'Neue Runde', beenden: 'Beenden',
+    stichwort: 'Stichwort', video: '🎬 YouTube', neueRunde: 'Neue Runde', beenden: 'Beenden',
     klassenpunkte: n => `Klasse: ${n} Punkt${n !== 1 ? 'e' : ''}`, danke: 'Danke fürs Mitspielen!',
     hilfeTitel: `🤿 ${SPIEL_NAME} – die Regeln kurz erklärt`,
     hilfeText: [
@@ -6165,6 +6165,7 @@ function spielAufraeumen() {
   if (!spielAktiv) return;
   spielAktiv = false;
   clearInterval(spiel.rollTimer);
+  clearTimeout(spiel.warteTimer); spiel.warteSkip = null;
   spielZeitStop();
   spiel.zeit = 0;
   document.body.classList.remove('spiel');
@@ -6189,7 +6190,6 @@ function spielRender() {
         <label class="sp-wuerfel-btn${spiel.wuerfel ? ' aktiv' : ''}" title="${esc(T.wuerfel)}"><input type="checkbox" data-sp="wuerfel"${spiel.wuerfel ? ' checked' : ''}><span>🎲</span></label>
       </div>
       <div class="sp-hud-r">
-        <span class="sp-klasse-chip">${esc(T.punkteK)} ${spiel.klasse}</span>
         ${spiel.verlauf.length ? `<button data-sp="undo" class="sp-hud-btn sp-rund${nameVisible ? '' : ' sp-grau'}" ${nameVisible ? '' : 'disabled'} title="${esc(T.undo)}" aria-label="${esc(T.undo)}">↶</button>` : ''}
         <button data-sp="auswertung" class="sp-hud-btn">${esc(T.auswertung)}</button>
         <button data-sp="hilfe" class="sp-hud-btn sp-rund" title="${esc(T.hilfe)}" aria-label="${esc(T.hilfe)}">?</button>
@@ -6362,7 +6362,34 @@ function spielWeiter(gewusst) {
   setTimeout(los, 380);
 }
 
+// Punkt vergeben: kurz (1,2 s) zeigen, wer ihn bekommt, dann weiter. Tipp überspringt die Wartezeit.
+function spielVergeben(namen, klasse) {
+  const T = spT();
+  spielPunkt(namen, klasse);
+  const s_ = lernKarten[lernIndex];
+  if (s_) spiel.vergeben.add(s_.id);
+  const p = document.getElementById('spiel-wer');
+  if (p) {
+    const chips = namen.map(n => {
+      const e = spielFinde(n);
+      return `<span class="sp-chip sp-pop"><b>${esc(n)}</b><span class="sp-chip-pkt">${e ? e.punkte : ''}</span><span class="sp-plus">+1</span></span>`;
+    }).join('') + (klasse ? `<span class="sp-chip sp-pop"><b>👥 ${esc(T.punkteK)}</b><span class="sp-plus">+1</span></span>` : '');
+    p.classList.remove('sp-kompakt');
+    p.innerHTML = `<div class="sp-chips sp-vergeben">${chips}</div>`;
+    p.classList.remove('hidden');
+  }
+  const los = () => { clearTimeout(spiel.warteTimer); spiel.warteSkip = null; spielWeiter(true); };
+  spiel.warteSkip = los;
+  spiel.warteTimer = setTimeout(los, 1200);
+}
+function spielChipBlinken(name) {
+  setTimeout(() => {
+    const c = [...document.querySelectorAll('#spiel-wer .sp-chip[data-name]')].find(x => x.dataset.name === name);
+    if (c) { c.classList.add('sp-chip-blink'); setTimeout(() => c.classList.remove('sp-chip-blink'), 1200); }
+  }, 60);
+}
 function spielKlick(e) {
+  if (spiel.warteSkip) { spiel.warteSkip(); return; }      // während der Haltezeit: Tipp = sofort weiter
   const el = e.target.closest('[data-sp]'); if (!el) return;
   const a = el.dataset.sp, T = spT();
   if (a === 'wuerfel') {
@@ -6392,39 +6419,28 @@ function spielKlick(e) {
   else if (a === 'wahl') {
     const name = el.dataset.name;
     const helfer = el.dataset.helfer === '1';
-    if (helfer && spiel.aktuell) spielPunkt([spiel.aktuell, name], false);
-    else spielPunkt([name], false);
-    toast(T.plusBei(helfer && spiel.aktuell ? `${spiel.aktuell} + ${name}` : name));
-    spielWeiter(true);
+    spielVergeben(helfer && spiel.aktuell ? [spiel.aktuell, name] : [name], false);
   } else if (a === 'neu') {
     spielTastatur(T.tasteTitel, '', text => {
       const person = spielNeuePerson(text); if (!person) return;
-      spielPunkt([person.name], false);
-      toast(T.plusBei(person.name));
-      spielWeiter(true);
+      spielVergeben([person.name], false);
     });
   } else if (a === 'emoji') {
     spielEmojiZeigen(em => {
       const person = spielEmojiPersonMit(em);
-      spielPunkt([person.name], false);
-      toast(T.plusBei(person.name));
-      spielWeiter(true);
+      spielVergeben([person.name], false);
     });
   } else if (a === 'hneu') {
     spielTastatur(T.tasteTitel, '', text => {
       const person = spielNeuePerson(text); if (!person) return;
-      spielPunkt([spiel.aktuell, person.name], false);
-      toast(T.plusBei(`${spiel.aktuell} + ${person.name}`));
-      spielWeiter(true);
+      spielVergeben([spiel.aktuell, person.name], false);
     });
   } else if (a === 'hemoji') {
     spielEmojiZeigen(em => {
       const person = spielEmojiPersonMit(em);
-      spielPunkt([spiel.aktuell, person.name], false);
-      toast(T.plusBei(`${spiel.aktuell} + ${person.name}`));
-      spielWeiter(true);
+      spielVergeben([spiel.aktuell, person.name], false);
     });
-  } else if (a === 'alle') { spielPunkt([], true); toast(T.plusKlasse); spielWeiter(true); }
+  } else if (a === 'alle') { spielVergeben([], true); }
   else if (a === 'niemand') { toast(T.keinPunkt); spielWeiter(false); }
 }
 
@@ -6585,16 +6601,16 @@ function spielPodium(amEnde) {
         const text = st.pool[st.i];
         const hatVideo = text === T.belohnungen[0];
         anzeige.innerHTML = `<div class="sp-idee-nr">${st.i + 1}/3</div><div class="sp-idee-text">${esc(text)}</div>
-          ${hatVideo ? `<div class="sp-video"><input id="sp-stichwort" type="text" maxlength="60" placeholder="${esc(T.stichwort)}">
-            <button class="btn-secondary" data-x="video">${esc(T.video)}</button></div>` : ''}`;
+          ${hatVideo ? `<div class="sp-video"><button class="btn-secondary" data-x="video">${esc(T.video)}</button></div>` : ''}`;
+        el.querySelector('.spiel-podium-box')?.classList.add('sp-belohnt');
       } else {
         anzeige.innerHTML = `<div class="sp-idee-nr">3/3</div><div class="sp-idee-text sp-weiter">${esc(T.wirMachenWeiter)}</div>`;
+        el.querySelector('.spiel-podium-box')?.classList.add('sp-belohnt');
         btn.remove();
       }
       st.i++;
     } else if (x === 'video') {
-      const q = el.querySelector('#sp-stichwort')?.value.trim();
-      if (q) window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(q), '_blank', 'noopener');
+      window.open('https://www.youtube.com/', '_blank', 'noopener');
     } else if (x === 'weiter') {
       el.remove();
       if (nameVisible) {                       // Auswertung kam von einer Rückseite -> nächste Vorderseite
@@ -6649,6 +6665,7 @@ function spielPersonMenue(name) {
           spiel.namen = spiel.namen.filter(n => n !== e);
         } else spielUmbenennen(e, neu);
         nachAenderung();
+        spielChipBlinken((ziel && ziel !== e) ? ziel.name : neu);
       });
     } else if (x === 'weg') {
       const andere = spielNamenDa().filter(n => n !== e);
