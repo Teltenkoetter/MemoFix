@@ -141,6 +141,10 @@ const TRANS = {
     toast_kursset_ok: (name, n, a, e, k) => `„${name}": ${n} neu, ${a} aktualisiert${e ? `, ${e} entfernt` : ''}${k ? `, ${k} lokal behalten` : ''}`,
     toast_kursset_alle: (n) => `${n} Kurs${n !== 1 ? 'sets' : 'set'} aktualisiert`,
     kursset_stand: 'Stand',
+    kursset_belegt: 'MB auf dem Gerät', kursset_wort_orange: 'groß', kursset_wort_rot: 'sehr groß',
+    kursset_entfernen_title: 'Vom Gerät entfernen', kursset_aufraeumen: '🧹 Speicher aufräumen',
+    toast_kursset_entfernt: (name, n) => `„${name}" entfernt (${n} Karten)`,
+    kursset_speicher: (u, q) => `Belegt auf diesem Gerät: ca. ${u} MB${q ? ' von ' + q : ''}`,
     kursset_laedt: (i, n) => n > 1 ? `Lädt Teil ${i}/${n} …` : 'Lädt …',
     confirm_kursset_gross: (name, mb) => `„${name}" ist ${mb} MB groß.\n\nIm Mobilfunk kann das langsam sein und Datenvolumen verbrauchen – besser im WLAN laden.\n\nJetzt laden?`, kursset_neu: 'Neu', kursset_gruppen: 'Gruppe(n)', kursset_erneut: 'Erneut laden',
     kursset_alle: 'Alle aktualisieren', kursset_anzeigen: 'Anzeigen',
@@ -388,6 +392,10 @@ const TRANS = {
     toast_kursset_ok: (name, n, a, e, k) => `"${name}": ${n} new, ${a} updated${e ? `, ${e} removed` : ''}${k ? `, ${k} kept locally` : ''}`,
     toast_kursset_alle: (n) => `${n} course set${n !== 1 ? 's' : ''} updated`,
     kursset_stand: 'As of',
+    kursset_belegt: 'MB on this device', kursset_wort_orange: 'large', kursset_wort_rot: 'very large',
+    kursset_entfernen_title: 'Remove from this device', kursset_aufraeumen: '🧹 Free up storage',
+    toast_kursset_entfernt: (name, n) => `"${name}" removed (${n} cards)`,
+    kursset_speicher: (u, q) => `Used on this device: approx. ${u} MB${q ? ' of ' + q : ''}`,
     kursset_laedt: (i, n) => n > 1 ? `Loading part ${i}/${n} …` : 'Loading …',
     confirm_kursset_gross: (name, mb) => `"${name}" is ${mb} MB.\n\nOn mobile data this can be slow and use up your data allowance – better load it on Wi-Fi.\n\nLoad now?`, kursset_neu: 'New', kursset_gruppen: 'group(s)', kursset_erneut: 'Reload',
     kursset_alle: 'Update all', kursset_anzeigen: 'Show',
@@ -718,6 +726,7 @@ function applyTranslations() {
   setTxt('kursset-titel', t('kursset_titel'));
   setTxt('kursset-desc', t('kursset_desc'));
   setTxt('btn-kursset-alle', t('kursset_alle'));
+  setTxt('btn-kursset-aufraeumen', t('kursset_aufraeumen'));
   setTxt('kursset-hinweis-link', t('kursset_anzeigen'));
 
   // Karte-Detail
@@ -739,7 +748,7 @@ function getHelpHtml() {
       ['🚦', '<strong>Course set status</strong> — ● red: not loaded yet · ✓ green: up to date · ↻ orange: update available (tap "Update" or "Update all") · learning progress and favorites are kept · cards you changed yourself or that were removed from the set: you are asked first · offline the last known status stays visible'],
       ['💾', '<strong>Back up regularly</strong> — Cards live only on this device (no sync between devices) · BACKUP → Export · "Clear browser data" deletes everything'],
       ['🔄', '<strong>After an update</strong> — close the app completely and open it again, otherwise you may still see the old version'],
-      ['🎬', '<strong>Intro video</strong> — <a href="https://www.designstrategies.org/memofix-einfuhrung/" target="_blank" rel="noopener">Watch the short tutorial</a>'],
+      ['🎬', '<strong>Intro video</strong> — <a href="#" data-video-open="BwfoIW-zeCE" data-videotitel="MemoFix – Introduction">Watch the short video</a> · <a href="https://www.designstrategies.org/memofix-einfuhrung/" target="_blank" rel="noopener">Watch it on the website</a>'],
     ]},
     { title: '🎴 Learning mode', rows: [
       ['🖼️', '<strong>Photo card: Image → Term</strong> — See the image, recall the term · Tap the card → it flips → term appears'],
@@ -795,7 +804,7 @@ function getHelpHtml() {
       ['🚦', '<strong>Kursset-Status</strong> — ● rot: noch nicht geladen · ✓ grün: aktuell · ↻ orange: Update verfügbar (auf „Aktualisieren" oder „Alle aktualisieren" tippen) · Lernstand und Favoriten bleiben erhalten · selbst geänderte oder im Set entfallene Karten: es wird vorher nachgefragt · offline bleibt der letzte bekannte Status sichtbar'],
       ['💾', '<strong>Regelmäßig sichern</strong> — Karten liegen nur auf diesem Gerät (kein Abgleich zwischen Geräten) · SICHERUNG → Exportieren · „Browserdaten löschen" entfernt alles'],
       ['🔄', '<strong>Nach einem Update</strong> — App komplett schließen und neu öffnen, sonst siehst du eventuell noch die alte Version'],
-      ['🎬', '<strong>Einführungsvideo</strong> — <a href="https://www.designstrategies.org/memofix-einfuhrung/" target="_blank" rel="noopener">Kurzes Tutorial ansehen</a>'],
+      ['🎬', '<strong>Einführungsvideo</strong> — <a href="#" data-video-open="BwfoIW-zeCE" data-videotitel="MemoFix – Einführung">Kurzes Video ansehen</a> · <a href="https://www.designstrategies.org/memofix-einfuhrung/" target="_blank" rel="noopener">Auf der Website ansehen</a>'],
     ]},
     { title: '🎴 Lernmodus', rows: [
       ['🖼️', '<strong>Foto-Karte: Bild → Begriff</strong> — Bild sehen, Begriff erinnern · Karte antippen → dreht sich um → Begriff erscheint'],
@@ -2279,7 +2288,7 @@ function karteItemHtml(s, idx, total) {
     thumb = `<div class="karte-text-thumb karte-detail-trigger" data-id="${s.id}">${esc((s.vorderseite || '').substring(0, 40))}${(s.vorderseite || '').length > 40 ? '…' : ''}</div>`;
   } else if (s.foto) {
     const multiCount = (s.fotos && s.fotos.length > 1) ? s.fotos.length : 0;
-    thumb = `<img src="${getFotoUrl(s)}" alt="${esc(kName(s))}" loading="lazy">
+    thumb = `<img src="${getFotoUrl(s)}" alt="${esc(kName(s))}" loading="lazy" decoding="async">
        <div class="karte-foto-overlay">📷</div>
        ${multiCount ? `<div class="karte-foto-multi-badge">${multiCount}</div>` : ''}
        <input type="file" accept="image/*" class="karte-foto-input" data-id="${s.id}">`;
@@ -2954,6 +2963,7 @@ function aktualisiereMischenBtn() {
 
 function starteSession(karten, shuffle = true) {
   stoppeAutoTimer();
+  try { lsStempel('kurssetZuletzt', [...new Set(karten.map(k => k.kurssetId).filter(Boolean))]); } catch (_) {}
   lernKartenOriginal = [...karten];
   lernIstGemischt    = shuffle;
   lernKarten         = shuffle ? mischen([...karten]) : [...karten];
@@ -3204,13 +3214,103 @@ function kartenFingerabdruck(k) {
 // 'rot' = nie geladen, 'gruen' = aktuell, 'orange' = Update verfügbar
 function kurssetStatus(set) {
   const sams = sammlungen.filter(x => x.kurssetId === set.id);
-  const geladen = sams.length || studenten.some(k => k.kurssetId === set.id) || sammlungen.some(x => x.id === set.id);
+  const geladen = sams.length || studenten.some(k => k.kurssetId === set.id) || sammlungen.some(x => x.id === set.id && !x.kurssetEntfernt);
   if (!geladen) return 'rot';
   if (!set.hash) return 'gruen';                       // alte index.json ohne Hash
   const gespeichert = sams.find(x => x.kurssetHash)?.kurssetHash;
   return gespeichert && gespeichert === set.hash ? 'gruen' : 'orange';   // vor dem Status-Feature geladen -> orange
 }
 const KURSSET_SYMBOL = { rot: '●', gruen: '✓', orange: '↻' };
+
+// ── Kursset: Größe, Nutzung, Entfernen ───────────────────────
+const GR_ORANGE_MB = 20, GR_ROT_MB = 40, AUFRAEUMEN_TAGE = 60;
+function groessenKlasse(mb) { return mb >= GR_ROT_MB ? 'rot' : mb >= GR_ORANGE_MB ? 'orange' : 'gruen'; }
+function lsJson(key) { try { return JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch (_) { return {}; } }
+function lsStempel(key, setIds) {
+  if (!setIds.length) return;
+  const m = lsJson(key), jetzt = new Date().toISOString();
+  setIds.forEach(id => { m[id] = jetzt; });
+  try { localStorage.setItem(key, JSON.stringify(m)); } catch (_) {}
+}
+function kurssetLetzteNutzung(setId) {
+  const z = lsJson('kurssetZuletzt')[setId], g = lsJson('kurssetGeladen')[setId];
+  const d = [z, g].filter(Boolean).map(x => new Date(x).getTime());
+  return d.length ? Math.max(...d) : null;
+}
+// Karten eines Sets auf diesem Gerät (markierte Karten; ältere Ladungen ohne Markierung: alle Karten der Sammlung)
+function kurssetKartenLokal(setId) {
+  const getaggt = studenten.filter(k => k.kurssetId === setId);
+  if (getaggt.length) return getaggt;
+  const gids = new Set(gruppen.filter(g => g.sammlungId === setId).map(g => g.id));
+  return studenten.filter(k => gids.has(k.gruppeId));
+}
+function kurssetLokalMB(setId) {
+  let bytes = 0;
+  for (const k of kurssetKartenLokal(setId)) {
+    const list = (k.fotos && k.fotos.length) ? k.fotos : (k.foto ? [k.foto] : []);
+    list.forEach(b => { bytes += b?.size || 0; });
+  }
+  return Math.round(bytes / 104857.6) / 10;   // MB mit einer Nachkommastelle
+}
+function kurssetIstGeladen(set) { return kurssetStatus(set) !== 'rot'; }
+
+// Entfernt die Karten eines Sets (eigene Karten in denselben Gruppen bleiben). Favoriten werden gemerkt.
+async function entferneKurssetDaten(set) {
+  const karten = kurssetKartenLokal(set.id);
+  const favs = karten.filter(k => k.favorit).map(k => k.id);
+  const gids = new Set(karten.map(k => k.gruppeId));
+  for (const k of karten) { await dbDelete('studenten', k.id); revokeUrl(k.id); }
+  const restKarten = studenten.filter(k => !karten.some(x => x.id === k.id));
+  const sids = new Set();
+  for (const gid of gids) {
+    const g = gruppen.find(x => x.id === gid);
+    if (g?.sammlungId) sids.add(g.sammlungId);
+    if (!restKarten.some(k => k.gruppeId === gid)) {
+      await dbDelete('gruppen', gid);
+      try { localStorage.removeItem('kartenReihenfolge-' + gid); } catch (_) {}
+      gruppenReihenfolge = gruppenReihenfolge.filter(x => x !== gid);
+    }
+  }
+  saveGruppenReihenfolge();
+  const restGruppen = gruppen.filter(g => !gids.has(g.id) || restKarten.some(k => k.gruppeId === g.id));
+  for (const sid of sids) {
+    const sam = sammlungen.find(x => x.id === sid);
+    if (sam && !restGruppen.some(g => g.sammlungId === sid)) {
+      await dbDelete('sammlungen', sid);
+      sammlungenReihenfolge = sammlungenReihenfolge.filter(x => x !== sid);
+    } else if (sam) {
+      // Sammlung bleibt (eigene Karten) -> nicht mehr als geladenes Kursset markieren
+      const rest = { ...sam, kurssetEntfernt: true };
+      delete rest.kurssetId; delete rest.kurssetHash; delete rest.kurssetStand;
+      await dbPut('sammlungen', rest);
+    }
+  }
+  saveSammlungenReihenfolge();
+  if (favs.length) {
+    const m = lsJson('kurssetFavoriten'); m[set.id] = favs;
+    try { localStorage.setItem('kurssetFavoriten', JSON.stringify(m)); } catch (_) {}
+  }
+  for (const key of ['kurssetZuletzt', 'kurssetGeladen']) {
+    const m = lsJson(key); delete m[set.id];
+    try { localStorage.setItem(key, JSON.stringify(m)); } catch (_) {}
+  }
+  return karten.length;
+}
+
+async function entferneKurssetMitRueckfrage(set) {
+  const name = (istEn() && set.name_en) ? set.name_en : (set.name || set.id);
+  const karten = kurssetKartenLokal(set.id);
+  const geaendert = karten.filter(k => k.kurssetStand && kartenFingerabdruck(k) !== k.kurssetStand).length;
+  const en = istEn();
+  const msg = en
+    ? `Remove "${name}" from this device?\n\n${karten.length} cards (${kurssetLokalMB(set.id)} MB) will be deleted. Your learning statistics stay, favorites are restored when you load the set again. You need internet to load it again.${geaendert ? `\n\n⚠️ ${geaendert} card(s) were changed by you and will be lost.` : ''}`
+    : `„${name}" vom Gerät entfernen?\n\n${karten.length} Karten (${kurssetLokalMB(set.id)} MB) werden gelöscht. Deine Lernstatistik bleibt erhalten, Favoriten werden beim erneuten Laden wiederhergestellt. Zum erneuten Laden brauchst du Internet.${geaendert ? `\n\n⚠️ ${geaendert} Karte(n) hast du selbst geändert, sie gehen verloren.` : ''}`;
+  if (!confirm(msg)) return false;
+  const n = await entferneKurssetDaten(set);
+  await ladeAlles(); renderVerwaltung(); renderLernAuswahl(); await ladeKurssetListe();
+  toast(tf('toast_kursset_entfernt', name, n));
+  return true;
+}
 
 async function ladeKurssetListe() {
   const box   = document.getElementById('kursset-liste');
@@ -3223,24 +3323,35 @@ async function ladeKurssetListe() {
   if (alle) alle.classList.add('hidden');
   if (!sets) { box.innerHTML = `<p class="kursset-hinweis">${esc(t('kursset_offline'))}</p>`; return; }
   if (!sets.length) { box.innerHTML = `<p class="kursset-hinweis">${esc(t('kursset_keine'))}</p>`; return; }
-  let updates = 0;
+  let updates = 0, geladeneSets = 0;
   const zeile = set => {
     const st    = kurssetStatus(set);
     const name  = (istEn() && set.name_en) ? set.name_en : (set.name || set.id);
     const neu   = (istEn() && set.neu_en) ? set.neu_en : (set.neu || '');
-    const meta  = [set.stand ? `${t('kursset_stand')} ${set.stand}` : '',
-                   set.karten ? tf('karte_n', set.karten) : '',
-                   set.mb ? `${set.bilder ? '🖼 ' : ''}${set.mb} MB` : '',
-                   set.gruppen ? `${set.gruppen} ${t('kursset_gruppen')}` : ''].filter(Boolean).join(' · ');
+    const gk    = groessenKlasse(set.mb || 0);
+    const wort  = gk === 'rot' ? ' · ' + t('kursset_wort_rot') : gk === 'orange' ? ' · ' + t('kursset_wort_orange') : '';
+    const lokal = st !== 'rot' ? kurssetLokalMB(set.id) : 0;
+    const metaTeile = [
+      set.stand ? esc(`${t('kursset_stand')} ${set.stand}`) : '',
+      set.karten ? esc(tf('karte_n', set.karten)) : '',
+      set.mb ? `${set.bilder ? '🖼 ' : ''}<span class="gr-${gk}">${set.mb} MB${esc(wort)}</span>` : '',
+      lokal ? esc(`${lokal} ${t('kursset_belegt')}`) : '',
+      set.gruppen ? esc(`${set.gruppen} ${t('kursset_gruppen')}`) : ''
+    ].filter(Boolean);
+    const meta = metaTeile.join(' · ');
+    if (st !== 'rot') geladeneSets++;
     const btnTxt = t(st === 'rot' ? 'kursset_laden' : st === 'orange' ? 'kursset_aktualisieren' : 'kursset_erneut');
     return `<div class="kursset-zeile">
       <div class="kursset-info">
         <strong class="ks-${st}" title="${esc(t('kursset_status_' + st))}">${KURSSET_SYMBOL[st]} ${esc(name)}</strong>
-        ${meta ? `<span>${esc(meta)}</span>` : ''}
+        ${meta ? `<span>${meta}</span>` : ''}
         ${set.beschreibung ? `<span>${esc(set.beschreibung)}</span>` : ''}
         ${neu ? `<span>${esc(t('kursset_neu'))}: ${esc(neu)}</span>` : ''}
       </div>
-      <button class="btn-secondary btn-inline" data-kursset="${esc(set.id)}">${esc(btnTxt)}</button>
+      <div class="kursset-aktionen">
+        <button class="btn-secondary btn-inline" data-kursset="${esc(set.id)}">${esc(btnTxt)}</button>
+        ${st !== 'rot' ? `<button class="btn-kursset-del" data-kursset-del="${esc(set.id)}" title="${esc(t('kursset_entfernen_title'))}" aria-label="${esc(t('kursset_entfernen_title'))}">✕</button>` : ''}
+      </div>
     </div>`;
   };
   // Baum aus pfad (Studiengang/Fach/…): Ordner zuerst, Sets ohne Pfad stehen auf oberster Ebene
@@ -3272,6 +3383,18 @@ async function ladeKurssetListe() {
     return ordner + n.sets.map(zeile).join('');
   };
   box.innerHTML = zeichne(wurzel, 1);
+  const aufr = document.getElementById('btn-kursset-aufraeumen');
+  if (aufr) aufr.classList.toggle('hidden', geladeneSets === 0);
+  box.insertAdjacentHTML('beforeend', '<p class="kursset-hinweis kursset-speicher" id="kursset-speicher"></p>');
+  try {
+    navigator.storage?.estimate?.().then(e => {
+      const el = document.getElementById('kursset-speicher');
+      if (!el || !e?.usage) return;
+      const u = Math.round(e.usage / 1048576);
+      const q = e.quota ? (e.quota >= 1073741824 ? (e.quota / 1073741824).toFixed(1) + ' GB' : Math.round(e.quota / 1048576) + ' MB') : '';
+      el.textContent = tf('kursset_speicher', u, q);
+    }).catch(() => {});
+  } catch (_) {}
   // Auf-/Zuklappen merken
   box.querySelectorAll('details.ks-ordner').forEach(d => d.addEventListener('toggle', () => {
     try {
@@ -3325,25 +3448,30 @@ async function ladeKursset(set, opt = {}) {
       const enS = {};
       ['name_en', 'zweisprachig_inhalt'].forEach(f => { if (sam[f] != null) enS[f] = sam[f]; });
       const marke = { kurssetId: set.id, kurssetHash: set.hash || '', kurssetStand: set.stand || '' };
-      await dbPut('sammlungen', vorh ? { ...vorh, name: sam.name, ...enS, ...marke } : { ...sam, ...marke });
+      const samRec = vorh ? { ...vorh, name: sam.name, ...enS, ...marke } : { ...sam, ...marke };
+      delete samRec.kurssetEntfernt;
+      await dbPut('sammlungen', samRec);
     }
     for (const g of daten.gruppen) {
       const vorh = gruppen.find(x => x.id === g.id);
       const enG = g.name_en != null ? { name_en: g.name_en } : {};
       await dbPut('gruppen', vorh ? { ...vorh, name: g.name, sammlungId: g.sammlungId, ...enG } : g);
     }
+    const gemerkteFavs = new Set(lsJson('kurssetFavoriten')[set.id] || []);
     let neu = 0, aktualisiert = 0, beibehalten = 0;
     for (const k of daten.studenten) {
       const vorh = studenten.find(x => x.id === k.id);
       if (vorh && behalten.has(k.id)) { beibehalten++; continue; }
       const rec = { ...k, ...importFotosFelder(k), kurssetId: set.id };
-      if (vorh?.favorit) rec.favorit = true;
+      if (vorh?.favorit || gemerkteFavs.has(k.id)) rec.favorit = true;
       EN_FELDER_KARTE.forEach(f => { if ((rec[f] == null || rec[f] === '') && vorh?.[f]) rec[f] = vorh[f]; });
       rec.kurssetStand = kartenFingerabdruck(rec);
       revokeUrl(k.id);
       await dbPut('studenten', rec);
       vorh ? aktualisiert++ : neu++;
     }
+    { const m = lsJson('kurssetFavoriten'); if (m[set.id]) { delete m[set.id]; try { localStorage.setItem('kurssetFavoriten', JSON.stringify(m)); } catch (_) {} } }
+    lsStempel('kurssetGeladen', [set.id]);
     let entfernt = 0;
     if (entfernen) for (const k of entfallen) { await dbDelete('studenten', k.id); revokeUrl(k.id); entfernt++; }
     await ladeAlles();
@@ -3363,6 +3491,12 @@ document.getElementById('btn-tutorial-neu')?.addEventListener('click', async () 
   toast(t('toast_tutorial_neu'));
 });
 document.getElementById('kursset-liste')?.addEventListener('click', e => {
+  const del = e.target.closest('[data-kursset-del]');
+  if (del) {
+    const setD = (document.getElementById('kursset-liste')._sets || []).find(x => x.id === del.dataset.kurssetDel);
+    if (setD) entferneKurssetMitRueckfrage(setD);
+    return;
+  }
   const btn = e.target.closest('[data-kursset]');
   if (!btn) return;
   const set = (document.getElementById('kursset-liste')._sets || []).find(x => x.id === btn.dataset.kursset);
@@ -5266,6 +5400,7 @@ const TUTORIAL_KARTEN = [
   { de: ['Willkommen bei MemoFix',
          'MemoFix trainiert aktives Erinnern: erst überlegen, dann aufdecken.\n\n- **Karte antippen** → sie dreht sich um\n- **✓ oder ✗** wertet, ob du es wusstest\n- **Wischen oder Pfeile** → vor und zurück\n- Nach der Runde: **Nachgeschaute üben**',
          'Erst überlegen, dann aufdecken – so bleibt Wissen hängen.'],
+    video: { id: 'BwfoIW-zeCE', titel: 'MemoFix – Einführung', titel_en: 'MemoFix – Introduction' },
     en: ['Welcome to MemoFix',
          'MemoFix trains active recall: think first, then reveal.\n\n- **Tap the card** → it flips\n- **✓ or ✗** rates whether you knew it\n- **Swipe or arrows** → forward and back\n- After a round: **Practise missed cards**',
          'Think first, then reveal – that is how knowledge sticks.'] },
@@ -5334,7 +5469,8 @@ async function erstelleTutorial() {
       id: `tutorial-start-${String(i + 1).padStart(2, '0')}`, gruppeId, modus: 'text',
       name: de[0], vorderseite: de[0], notiz: de[1], merke: de[2],
       name_en: en[0], vorderseite_en: en[0], notiz_en: en[1], merke_en: en[2],
-      links: [], videoId: null, videoTitel: null, foto: null, fotos: [], erstellt: now
+      links: [], videoId: TUTORIAL_KARTEN[i].video?.id || null, videoTitel: TUTORIAL_KARTEN[i].video?.titel || null,
+      foto: null, fotos: [], erstellt: now
     });
   }
   localStorage.setItem('memofix-tutorial-created', '1');
@@ -5699,5 +5835,81 @@ document.getElementById('btn-ki-briefing')?.addEventListener('click', async e =>
       setTimeout(() => URL.revokeObjectURL(url), 2000);
     }
   });
+});
+
+// ── Speicher aufräumen: Vorschlagsliste (nichts wird automatisch gelöscht) ──
+document.getElementById('btn-kursset-aufraeumen')?.addEventListener('click', () => {
+  const en = istEn();
+  const sets = (document.getElementById('kursset-liste')._sets || []).filter(kurssetIstGeladen);
+  if (!sets.length) return;
+  const jetzt = Date.now();
+  const L = en ? {
+    titel: 'Free up storage', ein: `Large sets (over ${GR_ORANGE_MB} MB) that you have not used for ${AUFRAEUMEN_TAGE} days are preselected. Nothing is deleted without your confirmation.`,
+    kein: `No suggestion: no large set has been unused for ${AUFRAEUMEN_TAGE} days. You can still remove sets manually.`,
+    heute: 'used today', vor: n => `last used ${n} days ago`, unbekannt: 'last use unknown',
+    frei: mb => `Frees approx. ${mb} MB`, los: 'Remove selected', zu: 'Close',
+    confirm: (n, mb) => `Remove ${n} course set(s) (approx. ${mb} MB) from this device?\n\nLearning statistics stay, favorites are restored on reload. You need internet to load them again.`
+  } : {
+    titel: 'Speicher aufräumen', ein: `Große Sets (über ${GR_ORANGE_MB} MB), die du seit ${AUFRAEUMEN_TAGE} Tagen nicht genutzt hast, sind vorausgewählt. Ohne deine Bestätigung wird nichts gelöscht.`,
+    kein: `Kein Vorschlag: Kein großes Set liegt seit ${AUFRAEUMEN_TAGE} Tagen brach. Du kannst Sets trotzdem von Hand entfernen.`,
+    heute: 'heute genutzt', vor: n => `zuletzt vor ${n} Tagen genutzt`, unbekannt: 'letzte Nutzung unbekannt',
+    frei: mb => `Gibt ca. ${mb} MB frei`, los: 'Ausgewählte entfernen', zu: 'Schließen',
+    confirm: (n, mb) => `${n} Kursset(s) (ca. ${mb} MB) vom Gerät entfernen?\n\nDeine Lernstatistik bleibt erhalten, Favoriten werden beim erneuten Laden wiederhergestellt. Zum erneuten Laden brauchst du Internet.`
+  };
+  const zeilen = sets.map(set => {
+    const last = kurssetLetzteNutzung(set.id);
+    const tage = last == null ? null : Math.floor((jetzt - last) / 86400000);
+    const lokal = kurssetLokalMB(set.id);
+    const vorschlag = (set.mb || 0) >= GR_ORANGE_MB && tage != null && tage >= AUFRAEUMEN_TAGE;
+    return { set, tage, lokal, vorschlag, name: (en && set.name_en) ? set.name_en : (set.name || set.id) };
+  }).sort((a, b) => b.lokal - a.lokal);
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `<div class="modal"><div class="modal-header"><h2>${esc(L.titel)}</h2>
+      <button class="btn-modal-close" data-a="zu">✕</button></div>
+    <div class="modal-body">
+      <p class="modal-hint">${esc(zeilen.some(z => z.vorschlag) ? L.ein : L.kein)}</p>
+      <div class="aufraeumen-liste">${zeilen.map((z, i) => `
+        <label class="aufraeumen-zeile">
+          <input type="checkbox" data-i="${i}"${z.vorschlag ? ' checked' : ''}>
+          <span class="aufraeumen-info"><strong>${esc(z.name)}</strong>
+            <span>${z.lokal} MB · ${esc(z.tage == null ? L.unbekannt : z.tage === 0 ? L.heute : L.vor(z.tage))}</span></span>
+        </label>`).join('')}</div>
+      <p class="modal-hint" id="aufraeumen-summe"></p>
+      <button class="btn-primary" data-a="los">${esc(L.los)}</button>
+      <button class="btn-secondary" data-a="zu" style="width:100%;margin-top:0.5rem">${esc(L.zu)}</button>
+    </div></div>`;
+  document.body.appendChild(modal);
+  const gewaehlt = () => zeilen.filter((_, i) => modal.querySelector(`input[data-i="${i}"]`).checked);
+  const summe = () => {
+    const mb = Math.round(gewaehlt().reduce((a, z) => a + z.lokal, 0) * 10) / 10;
+    modal.querySelector('#aufraeumen-summe').textContent = mb ? L.frei(mb) : '';
+    modal.querySelector('[data-a="los"]').disabled = !gewaehlt().length;
+  };
+  summe();
+  modal.addEventListener('change', summe);
+  modal.addEventListener('click', async ev => {
+    const a = ev.target.closest('[data-a]')?.dataset.a;
+    if (ev.target === modal || a === 'zu') { modal.remove(); return; }
+    if (a === 'los') {
+      const auswahl = gewaehlt();
+      if (!auswahl.length) return;
+      const mb = Math.round(auswahl.reduce((x, z) => x + z.lokal, 0) * 10) / 10;
+      if (!confirm(L.confirm(auswahl.length, mb))) return;
+      let n = 0;
+      for (const z of auswahl) n += await entferneKurssetDaten(z.set);
+      modal.remove();
+      await ladeAlles(); renderVerwaltung(); renderLernAuswahl(); await ladeKurssetListe();
+      toast(en ? `${auswahl.length} set(s) removed (${n} cards)` : `${auswahl.length} Kursset(s) entfernt (${n} Karten)`);
+    }
+  });
+});
+
+// Hilfe: Video-Link öffnet den App-eigenen Player (kein Verlassen der App)
+document.addEventListener('click', e => {
+  const a = e.target.closest?.('[data-video-open]');
+  if (!a) return;
+  e.preventDefault();
+  oeffneVideoOverlay(a.dataset.videoOpen, a.dataset.videotitel || '');
 });
 

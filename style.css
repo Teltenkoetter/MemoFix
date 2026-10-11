@@ -2127,3 +2127,25 @@ body.praesi .lernkarte-text-vorderseite img { max-width: 100%; object-fit: conta
   body:not(.praesi) .lernkarte-text-vorderseite { padding-top: 1rem; padding-bottom: 1rem; }
   body:not(.praesi) .lernkarte-text-vorderseite .lern-text-fotos { flex-basis: 110px; min-height: 110px; }
 }
+
+/* ── Kursset: Größenampel, Entfernen, Aufräumen ───────── */
+.gr-gruen  { color: #5fd38d; }
+.gr-orange { color: #ffb454; font-weight: 600; }
+.gr-rot    { color: #ff7a7a; font-weight: 700; }
+.kursset-aktionen { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; }
+.btn-kursset-del {
+  width: 34px; height: 34px; border-radius: 50%; padding: 0;
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  color: var(--muted); font-size: 0.95rem; line-height: 1; cursor: pointer;
+}
+.btn-kursset-del:active { background: rgba(255,122,122,0.18); color: #ff7a7a; }
+.kursset-speicher { margin-top: 0.6rem; font-size: 0.75rem; }
+.aufraeumen-liste { display: flex; flex-direction: column; gap: 0.4rem; margin: 0.5rem 0; }
+.aufraeumen-zeile {
+  display: flex; align-items: center; gap: 0.7rem; padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border); border-radius: 12px; background: rgba(255,255,255,0.03); cursor: pointer;
+}
+.aufraeumen-zeile input { width: 20px; height: 20px; flex-shrink: 0; }
+.aufraeumen-info { display: flex; flex-direction: column; min-width: 0; }
+.aufraeumen-info strong { font-size: 0.9rem; }
+.aufraeumen-info span { font-size: 0.75rem; color: var(--muted); }
