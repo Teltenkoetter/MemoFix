@@ -3352,6 +3352,7 @@ async function ladeKurssetListe() {
     const meta = metaTeile.join(' · ');
     if (st !== 'rot') geladeneSets++;
     const btnTxt = t(st === 'rot' ? 'kursset_laden' : st === 'orange' ? 'kursset_aktualisieren' : 'kursset_erneut');
+    const iconBtn = st === 'gruen';          // aktuell: nur ein kleines ↻ (Beschriftung als Tooltip)
     return `<div class="kursset-zeile">
       <div class="kursset-info">
         <strong class="ks-${st}" title="${esc(t('kursset_status_' + st))}">${KURSSET_SYMBOL[st]} ${esc(name)}</strong>
@@ -3360,7 +3361,7 @@ async function ladeKurssetListe() {
         ${neu ? `<span>${esc(t('kursset_neu'))}: ${esc(neu)}</span>` : ''}
       </div>
       <div class="kursset-aktionen">
-        <button class="btn-secondary btn-inline" data-kursset="${esc(set.id)}">${esc(btnTxt)}</button>
+        <button class="btn-secondary btn-inline${iconBtn ? ' btn-kursset-neu' : ''}" data-kursset="${esc(set.id)}"${iconBtn ? ` title="${esc(btnTxt)}" aria-label="${esc(btnTxt)}"` : ''}>${iconBtn ? '↻' : esc(btnTxt)}</button>
         ${st !== 'rot' ? `<button class="btn-kursset-del" data-kursset-del="${esc(set.id)}" title="${esc(t('kursset_entfernen_title'))}" aria-label="${esc(t('kursset_entfernen_title'))}">✕</button>` : ''}
       </div>
     </div>`;
