@@ -5948,6 +5948,8 @@ document.addEventListener('click', e => {
 function spT() {
   return istEn() ? {
     zweiGleiche: (n, liste) => `Two ${n}s! From now on: ${liste.join(' and ')}`,
+    unsere: 'Our', neuName2: '＋ Name', emojiSp: '＋ 🙂', einfuegen: '📋 Paste list', fuenf: '＋5 🙂', punkteK: 'Class',
+    tasteOk: 'OK', tasteAbbr: 'Cancel', tasteTitel: 'Name', leerzeichen: 'Space', einfuegenFehl: 'Pasting is not allowed here – paste into the field below.',
     leer: 'No names yet – tap 👥, or type a name when someone scores.',
     btnText: 'Learn together, playfully.',
     praeambel: 'Learn together, playfully. In Dice-Mode the dice roll you through the set.',
@@ -5982,11 +5984,14 @@ function spT() {
       '<strong>🎲 Dice-Mode</strong> calls someone at random (only those marked present). Off: everyone thinks along. <strong>Passing is allowed</strong>, asking for help too – both get the point.',
       '<strong>⏱ Countdown</strong> (30 / 20 / 10 / 5 s) is optional. Off: everyone has time. On: whoever answers within the time can get the point. With Dice-Mode it starts after the roll. At zero the card wiggles – no penalty.',
       '<strong>Whoever holds the device decides:</strong> whether an answer counts and whether there is still a point after “Time!”.',
+      '<strong>Names:</strong> type them with the on-screen keyboard, add an <strong>emoji player</strong> with one tap (no typing), or paste a list.',
       '<strong>↶ Point back</strong> takes back the last point. <strong>Nothing is saved</strong> – closing the game deletes it all.'
     ],
     losgehts: "Let's go"
   } : {
     zweiGleiche: (n, liste) => `Zweimal ${n}! Ab jetzt: ${liste.join(' und ')}`,
+    unsere: 'Unsere', neuName2: '＋ Name', emojiSp: '＋ 🙂', einfuegen: '📋 Liste einfügen', fuenf: '＋5 🙂', punkteK: 'Klasse',
+    tasteOk: 'OK', tasteAbbr: 'Abbrechen', tasteTitel: 'Name', leerzeichen: 'Leerzeichen', einfuegenFehl: 'Einfügen ist hier nicht erlaubt – bitte ins Feld darunter einfügen.',
     leer: 'Noch keine Namen – tippe auf 👥 oder trage beim ersten Punkt einen Namen ein.',
     btnText: 'Lernt gemeinsam spielerisch.',
     praeambel: 'Lernt gemeinsam spielerisch. Im Dice-Mode würfelt ihr euch durchs Set.',
@@ -6021,6 +6026,7 @@ function spT() {
       '<strong>🎲 Dice-Mode</strong> ruft zufällig jemanden auf (nur wer als anwesend markiert ist). Aus: alle denken mit. <strong>Passen ist erlaubt</strong>, Hilfe holen auch – beide bekommen den Punkt.',
       '<strong>⏱ Countdown</strong> (30 / 20 / 10 / 5 s) ist freiwillig. Aus: alle haben Zeit. An: Wer in der Zeit antwortet, kann den Punkt bekommen. Mit Dice-Mode startet er nach dem Wurf. Bei null wackelt die Karte – keine Strafe.',
       '<strong>Wer das Gerät in der Hand hat, entscheidet:</strong> ob eine Antwort zählt und ob es nach „Zeit!“ noch einen Punkt gibt.',
+      '<strong>Namen:</strong> mit der Bildschirm-Tastatur tippen, mit einem Tipp eine <strong>Emoji-Person</strong> anlegen (ohne Tippen) oder eine Liste einfügen.',
       '<strong>↶ Punkt zurück</strong> nimmt den letzten Punkt zurück. <strong>Nichts wird gespeichert</strong> – beim Schließen ist alles weg.'
     ],
     losgehts: 'Los geht\'s'
@@ -6031,12 +6037,19 @@ function spielNameNorm(n) { return String(n || '').replace(/\s+/g, ' ').trim().s
 function spielFinde(n) { const k = spielNameNorm(n).toLowerCase(); return spiel.namen.find(x => x.name.toLowerCase() === k); }
 function spielNamenDa() { return spiel.namen.filter(x => x.da).sort((a, b) => a.name.localeCompare(b.name, istEn() ? 'en' : 'de')); }
 const SPIEL_EMOJIS = ['🦊','🐼','🐸','🦄','🐙','🦁','🐧','🦉','🐝','🦋','🐢','🐳','🦒','🐨','🐯','🐰','🦔','🦩','🐌','🍀','🌵','🍉','🚀','🎈','⭐','🍕','🎸','🌈'];
-// Neue Person: gibt es den Namen schon, bekommen ALLE mit diesem Namen ein Emoji (auch die bisherige Person)
-function spielBasis(name) {
-  const n = spielNameNorm(name);
-  const e = spiel.namen.find(x => x.name.toLowerCase() === n.toLowerCase());
-  return (e && e.basis) ? e.basis : n;
+const SPIEL_AVATARE = ['🦊','🐼','🐸','🦄','🐙','🦁','🐧','🦉','🐝','🦋','🐢','🐳','🦒','🐨','🐯','🐰','🦔','🦩','🐌','🦖','🦈','🐺','🦜','🐞','🦚','🐿️','🦥','🦦','🐘','🦓'];
+
+// Emoji-Person: der Name ist nur ein Emoji (ohne Tippen)
+function spielEmojiPerson() {
+  const belegt = new Set(spiel.namen.map(e => e.name));
+  const frei = SPIEL_AVATARE.filter(em => !belegt.has(em));
+  const em = frei.length ? frei[Math.floor(Math.random() * frei.length)] : '🙂' + (spiel.namen.length + 1);
+  const e = { name: em, basis: em, punkte: 0, da: true, gewuerfelt: false };
+  spiel.namen.push(e);
+  return e;
 }
+
+// Neue Person: gibt es den Namen schon, bekommen ALLE mit diesem Namen ein Emoji (auch die bisherige Person)
 function spielUmbenennen(e, neu) {
   const alt = e.name;
   e.name = neu;
@@ -6053,21 +6066,18 @@ function spielNeuePerson(n) {
     belegt.add(`${basis.slice(0, 20)} ${em}`.toLowerCase());
     return `${basis.slice(0, 20)} ${em}`;
   };
-  if (!gleiche.length) {                    // erste Person mit diesem Namen: ohne Symbol
+  if (!gleiche.length) {
     const e = { name: basis, basis, punkte: 0, da: true, gewuerfelt: false };
     spiel.namen.push(e);
     return e;
   }
   let umbenannt = false;
-  gleiche.forEach(g => {                    // bisherige Personen ohne Symbol bekommen jetzt eins
+  gleiche.forEach(g => {
     if (g.name === (g.basis || g.name)) { spielUmbenennen(g, emoji()); umbenannt = true; }
   });
   const e = { name: emoji(), basis, punkte: 0, da: true, gewuerfelt: false };
   spiel.namen.push(e);
-  if (umbenannt) {
-    const T = spT();
-    toast(T.zweiGleiche(basis, gleiche.map(x => x.name).concat(e.name)));
-  }
+  if (umbenannt) toast(spT().zweiGleiche(basis, gleiche.map(x => x.name).concat(e.name)));
   return e;
 }
 function spielAddName(n) {
@@ -6101,31 +6111,23 @@ function spielStarten() {
   if (autoRepeat) setAutoRepeat(false);
   document.body.classList.add('spiel');
 
-  const leiste = document.createElement('div');
-  leiste.id = 'spiel-leiste'; leiste.className = 'spiel-leiste';
-  document.body.appendChild(leiste);
-
   const flash = document.getElementById('lernen-flashcard');
-  const panel = document.createElement('div');
-  panel.id = 'spiel-wer'; panel.className = 'spiel-wer hidden';
-  flash.appendChild(panel);
-  const banner = document.createElement('div');
-  banner.id = 'spiel-banner'; banner.className = 'spiel-banner hidden';
-  flash.appendChild(banner);
-  const balken = document.createElement('div');
-  balken.id = 'spiel-zeitbalken'; balken.className = 'spiel-zeitbalken hidden';
+  const area = flash.querySelector('.lern-karte-area') || flash;
+  const mk = (id, cls, parent, before) => {
+    const el = document.createElement('div');
+    el.id = id; el.className = cls;
+    if (before) parent.insertBefore(el, parent.firstChild); else parent.appendChild(el);
+    return el;
+  };
+  const hud = mk('spiel-hud', 'spiel-hud', flash, true);
+  const panel = mk('spiel-wer', 'spiel-wer hidden', flash);
+  mk('spiel-banner', 'spiel-banner hidden', area);
+  const balken = mk('spiel-zeitbalken', 'spiel-zeitbalken hidden', area);
   balken.innerHTML = '<div class="sp-fuell"></div>';
-  flash.appendChild(balken);
-  const up = document.createElement('div');
-  up.id = 'spiel-zeitup'; up.className = 'spiel-zeitup hidden'; up.textContent = '⏰';
-  (flash.querySelector('.lern-karte-area') || flash).appendChild(up);
-
-  leiste.addEventListener('click', spielKlick);
-  panel.addEventListener('click', spielKlick);
-  banner.addEventListener('click', spielKlick);
+  mk('spiel-tron', 'spiel-tron hidden', area);
+  [hud, panel, document.getElementById('spiel-banner')].forEach(el => el.addEventListener('click', spielKlick));
   spielRender();
   praesiAutofitPlanen();
-  // Regeln beim ersten Mal kurz zeigen
   let gesehen = false;
   try { gesehen = !!localStorage.getItem('spielHilfeGesehen'); } catch (_) {}
   if (!gesehen) { spielHilfe(); try { localStorage.setItem('spielHilfeGesehen', '1'); } catch (_) {} }
@@ -6139,38 +6141,37 @@ function spielAufraeumen() {
   spielZeitStop();
   spiel.zeit = 0;
   document.body.classList.remove('spiel');
-  ['spiel-leiste', 'spiel-wer', 'spiel-banner', 'spiel-zeitbalken', 'spiel-zeitup', 'spiel-podium', 'spiel-modal'].forEach(id => document.getElementById(id)?.remove());
+  ['spiel-hud', 'spiel-wer', 'spiel-banner', 'spiel-zeitbalken', 'spiel-tron', 'spiel-podium', 'spiel-modal', 'spiel-kb'].forEach(id => document.getElementById(id)?.remove());
   spiel.namen = []; spiel.verlauf = []; spiel.vergeben = new Set(); spiel.klasse = 0; spiel.aktuell = null;
 }
 
 // ── Anzeige ──────────────────────────────────────────────────
+function spielZeitText(sek) {
+  const s = Math.max(0, Math.ceil(sek));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
 function spielRender() {
   const T = spT();
-  const leiste = document.getElementById('spiel-leiste');
-  if (leiste) {
-    const da = spielNamenDa();
-    const alle = [...spiel.namen].sort((a, b) => a.name.localeCompare(b.name, istEn() ? 'en' : 'de'));
-    leiste.innerHTML = `
-      <div class="sp-kopf"><span class="sp-logo" title="${esc(T.titel)}"><span class="title-memo">Memo</span><span class="title-pix">Dive</span></span>
-        <span class="sp-kopf-btns">
-          <span id="sp-kopf-zahl" class="sp-kopf-zahl hidden"></span>
-          <button data-sp="zeit" class="sp-zeit-btn${spiel.zeit ? ' aktiv' : ''}" title="${esc(T.zeit)}" aria-label="${esc(T.zeit)}">⏱${spiel.zeit ? ' ' + spiel.zeit : ''}</button>
-          <label class="sp-wuerfel" title="${esc(T.wuerfel)}"><input type="checkbox" data-sp="wuerfel"${spiel.wuerfel ? ' checked' : ''}> <span>🎲</span></label>
-          <button data-sp="hilfe" title="${esc(T.hilfe)}" aria-label="${esc(T.hilfe)}">?</button>
-          <button data-sp="namen" title="${esc(T.namen)}" aria-label="${esc(T.namen)}">👥</button>
-        </span></div>
-      <div class="sp-liste">${alle.map(e => `
-        <div class="sp-zeile${e.da ? '' : ' sp-abwesend'}${spiel.aktuell === e.name ? ' sp-dran' : ''}">
-          <span class="sp-name">${esc(e.name)}</span><span class="sp-pkt">${e.punkte}</span></div>`).join('')
-        || `<div class="sp-leer">${esc(T.leer)}</div>`}</div>
-      <div class="sp-fuss">
-        <span class="sp-klasse">${esc(T.klassenpunkte(spiel.klasse))}</span>
-        ${spiel.verlauf.length ? `<button data-sp="undo">${esc(T.undo)}</button>` : ''}
-        <button data-sp="auswertung">${esc(T.auswertung)}</button>
+  const hud = document.getElementById('spiel-hud');
+  if (hud) {
+    hud.innerHTML = `
+      <div class="sp-hud-l">
+        <span class="sp-logo" title="${esc(T.titel)}"><span class="title-memo">Memo</span><span class="title-pix">Dive</span></span>
+        <button data-sp="zeit" class="sp-led-btn${spiel.zeit ? ' aktiv' : ''}" title="${esc(T.zeit)}" aria-label="${esc(T.zeit)}">
+          <span class="sp-led-label">Timer</span><span id="sp-led" class="sp-led">${spiel.zeit ? spielZeitText(spiel.zeit) : (istEn() ? 'off' : 'aus')}</span></button>
+        <label class="sp-wuerfel-btn${spiel.wuerfel ? ' aktiv' : ''}" title="${esc(T.wuerfel)}"><input type="checkbox" data-sp="wuerfel"${spiel.wuerfel ? ' checked' : ''}><span>🎲</span></label>
+      </div>
+      <div class="sp-hud-r">
+        <span class="sp-klasse-chip">${esc(T.punkteK)} ${spiel.klasse}</span>
+        ${spiel.verlauf.length ? `<button data-sp="undo" class="sp-hud-btn sp-rund" title="${esc(T.undo)}" aria-label="${esc(T.undo)}">↶</button>` : ''}
+        <button data-sp="auswertung" class="sp-hud-btn">${esc(T.auswertung)}</button>
+        <button data-sp="hilfe" class="sp-hud-btn sp-rund" title="${esc(T.hilfe)}" aria-label="${esc(T.hilfe)}">?</button>
+        <button data-sp="namen" class="sp-hud-btn sp-rund" title="${esc(T.namen)}" aria-label="${esc(T.namen)}">👥</button>
       </div>`;
   }
   spielRenderPanel();
   spielRenderBanner();
+  spielZeitAnzeige();
 }
 
 function spielRenderBanner() {
@@ -6180,15 +6181,12 @@ function spielRenderBanner() {
   const zeigen = dice && !nameVisible;
   b.classList.toggle('hidden', !zeigen);
   if (zeigen) b.innerHTML = `<span class="sp-banner-name">🎲 ${esc(spiel.aktuell)}</span><button data-sp="passen">${esc(T.passen)}</button>`;
-  // Countdown: Balken oben, Zahl in der Kopfzeile, nach Ablauf ⏰ in der Mitte
   const aktiv = spiel.zeit > 0 && (spiel.zeitLaeuft || spiel.zeitAbgelaufen) && !nameVisible;
   document.getElementById('spiel-zeitbalken')?.classList.toggle('hidden', !aktiv);
-  const up = document.getElementById('spiel-zeitup');
-  if (up) up.classList.toggle('hidden', !(aktiv && spiel.zeitAbgelaufen));
-  spielZeitAnzeige();
+  document.getElementById('spiel-tron')?.classList.toggle('hidden', !aktiv);
 }
 
-// ── Countdown (nur Zahl, Balken und Farbe – kein Ton) ────────
+// ── Countdown: Balken, Farbrand, digitale Anzeige (kein Ton) ──
 function spielZeitStop() {
   clearInterval(spiel.zeitTimer);
   spiel.zeitLaeuft = false; spiel.zeitAbgelaufen = false;
@@ -6196,8 +6194,9 @@ function spielZeitStop() {
   k?.classList.remove('sp-zeitrand', 'sp-warn', 'sp-wackeln', 'sp-blink');
   k?.style.removeProperty('--sp-rand');
   document.getElementById('spiel-zeitbalken')?.classList.add('hidden');
-  document.getElementById('spiel-zeitup')?.classList.add('hidden');
-  const z = document.getElementById('sp-kopf-zahl'); if (z) { z.textContent = ''; z.classList.add('hidden'); }
+  const t = document.getElementById('spiel-tron'); if (t) { t.classList.add('hidden'); t.classList.remove('sp-ende'); t.textContent = ''; }
+  const led = document.getElementById('sp-led');
+  if (led) { led.textContent = spiel.zeit ? spielZeitText(spiel.zeit) : (istEn() ? 'off' : 'aus'); led.style.color = ''; }
 }
 function spielZeitStart() {
   spielZeitStop();
@@ -6206,16 +6205,20 @@ function spielZeitStart() {
   spiel.zeitLaeuft = true;
   document.getElementById('lernkarte')?.classList.add('sp-zeitrand');
   spielRenderBanner();
+  spielZeitAnzeige();
   spiel.zeitTimer = setInterval(spielZeitTick, 100);
 }
 function spielZeitAnzeige() {
   const fill = document.querySelector('#spiel-zeitbalken .sp-fuell');
   const bar = document.getElementById('spiel-zeitbalken');
-  const zahl = document.getElementById('sp-kopf-zahl');
+  const led = document.getElementById('sp-led');
+  const tron = document.getElementById('spiel-tron');
   const k = document.getElementById('lernkarte');
-  if (!spiel.zeitLaeuft && !spiel.zeitAbgelaufen) { if (zahl) { zahl.textContent = ''; zahl.classList.add('hidden'); } return; }
+  if (!spiel.zeitLaeuft && !spiel.zeitAbgelaufen) return;
+  const mmss = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
   if (spiel.zeitAbgelaufen) {
-    if (zahl) { zahl.textContent = '0'; zahl.style.color = '#ff6b6b'; zahl.classList.remove('hidden'); }
+    if (led) { led.textContent = '0:00'; led.style.color = '#ff6b6b'; }
+    if (tron) { tron.textContent = '00:00'; tron.style.color = '#ff6b6b'; tron.classList.add('sp-ende'); }
     if (fill) fill.style.width = '0%';
     bar?.classList.remove('sp-warn');
     return;
@@ -6223,7 +6226,9 @@ function spielZeitAnzeige() {
   const rest = Math.max(0, spiel.zeitEnde - Date.now());
   const anteil = spiel.zeit ? rest / (spiel.zeit * 1000) : 0;
   const farbe = anteil > 0.5 ? '#5fd38d' : anteil > 0.25 ? '#ffb454' : '#ff6b6b';
-  if (zahl) { zahl.textContent = String(Math.ceil(rest / 1000)); zahl.style.color = farbe; zahl.classList.remove('hidden'); zahl.classList.toggle('sp-puls', rest <= 3000); }
+  const sek = Math.ceil(rest / 1000);
+  if (led) { led.textContent = spielZeitText(sek); led.style.color = farbe; }
+  if (tron) { tron.textContent = mmss(sek); tron.style.color = farbe; tron.classList.toggle('sp-puls', rest <= 3000); }
   if (fill) { fill.style.width = (anteil * 100).toFixed(1) + '%'; fill.style.background = farbe; }
   bar?.classList.toggle('sp-warn', rest <= 5000 && anteil <= 0.25);
   if (k) {
@@ -6242,11 +6247,13 @@ function spielZeitTick() {
     k?.classList.add(ruhig ? 'sp-blink' : 'sp-wackeln');
     setTimeout(() => k?.classList.remove('sp-wackeln', 'sp-blink'), 650);
     spielRenderBanner();
+    spielZeitAnzeige();
     return;
   }
   spielZeitAnzeige();
 }
 
+// ── „Wer hat's gewusst?“ ─────────────────────────────────────
 function spielRenderPanel() {
   const T = spT();
   const p = document.getElementById('spiel-wer'); if (!p) return;
@@ -6256,6 +6263,7 @@ function spielRenderPanel() {
   if (!sichtbar) return;
   const da = spielNamenDa();
   const dran = spiel.wuerfel && spiel.aktuell;
+  const chip = (e, extra = '') => `<button class="sp-chip${extra}" data-sp="wahl" data-name="${esc(e.name)}"${extra.includes('helfer') ? ' data-helfer="1"' : ''}>${esc(e.name)}${e.punkte ? `<span class="sp-chip-pkt">${e.punkte}</span>` : ''}</button>`;
   let html;
   if (dran) {
     html = `<div class="sp-frage">${esc(T.wuerfelFrage(spiel.aktuell))}</div><div class="sp-chips">
@@ -6263,17 +6271,16 @@ function spielRenderPanel() {
       <button class="sp-chip${spiel.helfer ? ' aktiv' : ''}" data-sp="helfer">${esc(T.hilfeVon)}</button>
       <button class="sp-chip" data-sp="alle">${esc(T.gruppe)}</button>
       <button class="sp-chip sp-chip-nein" data-sp="niemand">${esc(T.niemand)}</button></div>
-      ${spiel.helfer ? `<div class="sp-chips sp-chips-zwei">${da.filter(e => e.name !== spiel.aktuell).map(e =>
-          `<button class="sp-chip" data-sp="wahl" data-name="${esc(e.name)}" data-helfer="1">${esc(e.name)}</button>`).join('')}</div>` : ''}`;
+      ${spiel.helfer ? `<div class="sp-chips sp-chips-zwei">${da.filter(e => e.name !== spiel.aktuell).map(e => chip(e, ' helfer')).join('')}</div>` : ''}`;
   } else {
     html = `<div class="sp-frage">${esc(T.wer)}</div><div class="sp-chips">
-      ${da.map(e => `<button class="sp-chip" data-sp="wahl" data-name="${esc(e.name)}">${esc(e.name)}</button>`).join('')}
-      <span class="sp-neu"><input id="sp-neu" type="text" maxlength="24" placeholder="${esc(T.neuPh)}" autocomplete="off" autocapitalize="words">
-        <button class="sp-chip" data-sp="neu">${esc(T.ok)}</button></span>
+      ${da.map(e => chip(e)).join('')}
+      <button class="sp-chip sp-chip-neu" data-sp="neu">${esc(T.neuName2)}</button>
+      <button class="sp-chip sp-chip-neu" data-sp="emoji">${esc(T.emojiSp)}</button>
       <button class="sp-chip" data-sp="alle">${esc(T.gruppe)}</button>
       <button class="sp-chip sp-chip-nein" data-sp="niemand">${esc(T.niemand)}</button></div>`;
   }
-  p.classList.toggle('sp-kompakt', da.length > 12);   // viele Namen: kleinere Chips
+  p.classList.toggle('sp-kompakt', da.length > 12);
   p.innerHTML = html;
   praesiAutofitPlanen();
 }
@@ -6284,7 +6291,7 @@ function spielWuerfeln(ausser) {
   spielZeitStop();
   if (!spiel.wuerfel) { spiel.aktuell = null; spielRenderBanner(); return; }
   let pool = spielNamenDa().filter(e => !e.gewuerfelt && e.name !== ausser);
-  if (!pool.length) {                      // alle waren dran → neue Runde ohne Zurücklegen
+  if (!pool.length) {
     spiel.namen.forEach(e => { e.gewuerfelt = false; });
     pool = spielNamenDa().filter(e => e.name !== ausser);
   }
@@ -6370,9 +6377,14 @@ function spielKlick(e) {
     toast(T.plusBei(helfer && spiel.aktuell ? `${spiel.aktuell} + ${name}` : name));
     spielWeiter(true);
   } else if (a === 'neu') {
-    const inp = document.getElementById('sp-neu');
-    const person = spielNeuePerson(inp?.value);
-    if (!person) { inp?.focus(); return; }
+    spielTastatur(T.tasteTitel, '', text => {
+      const person = spielNeuePerson(text); if (!person) return;
+      spielPunkt([person.name], false);
+      toast(T.plusBei(person.name));
+      spielWeiter(true);
+    });
+  } else if (a === 'emoji') {
+    const person = spielEmojiPerson();
     spielPunkt([person.name], false);
     toast(T.plusBei(person.name));
     spielWeiter(true);
@@ -6380,14 +6392,54 @@ function spielKlick(e) {
   else if (a === 'niemand') { toast(T.keinPunkt); spielWeiter(false); }
 }
 
-// Enter im Namensfeld des Panels
-document.addEventListener('keydown', e => {
-  if (!spielAktiv) return;
-  if (e.target?.id === 'sp-neu') {
-    e.stopPropagation();
-    if (e.key === 'Enter') { e.preventDefault(); document.querySelector('#spiel-wer [data-sp="neu"]')?.click(); }
+// ── Bildschirm-Tastatur (sichtbar auch auf Monitor/Beamer; Hardware-Tastatur geht ebenfalls) ──
+function spielTastatur(titel, start, onOk) {
+  const T = spT();
+  document.getElementById('spiel-kb')?.remove();
+  let text = spielNameNorm(start || '');
+  const reihen = ['QWERTZUIOPÜ', 'ASDFGHJKLÖÄ', 'YXCVBNMß-'];
+  const kb = document.createElement('div');
+  kb.id = 'spiel-kb'; kb.className = 'spiel-kb';
+  const taste = z => `<button type="button" class="sp-taste" data-z="${z}">${z}</button>`;
+  kb.innerHTML = `<div class="sp-kb-kopf"><span class="sp-kb-titel">${esc(titel)}</span>
+      <span class="sp-kb-anzeige"><span id="sp-kb-text"></span><span class="sp-kb-cursor"></span></span></div>
+    <div class="sp-kb-reihe">${[...reihen[0]].map(taste).join('')}</div>
+    <div class="sp-kb-reihe">${[...reihen[1]].map(taste).join('')}</div>
+    <div class="sp-kb-reihe">${[...reihen[2]].map(taste).join('')}<button type="button" class="sp-taste sp-taste-breit" data-z="⌫">⌫</button></div>
+    <div class="sp-kb-reihe sp-kb-unten">
+      <button type="button" class="sp-taste sp-taste-breit sp-aus" data-z="x">${esc(T.tasteAbbr)}</button>
+      <button type="button" class="sp-taste sp-taste-leer" data-z=" ">${esc(T.leerzeichen)}</button>
+      <button type="button" class="sp-taste sp-taste-breit sp-ok" data-z="ok">${esc(T.tasteOk)}</button>
+    </div>`;
+  document.body.appendChild(kb);
+  const anz = kb.querySelector('#sp-kb-text');
+  const zeige = () => { anz.textContent = text; };
+  const schliesse = () => { document.removeEventListener('keydown', taste_, true); kb.remove(); };
+  const fertig = () => { const t = spielNameNorm(text); schliesse(); if (t) onOk(t); };
+  const tippe = z => {
+    if (z === '⌫') text = text.slice(0, -1);
+    else if (z === 'x') { schliesse(); return; }
+    else if (z === 'ok') { fertig(); return; }
+    else if (text.length < 24) {
+      const gross = !text || text.endsWith(' ') || text.endsWith('-');
+      text += (z === ' ') ? ' ' : (gross ? z.toUpperCase() : z.toLowerCase());
+    }
+    zeige();
+  };
+  function taste_(ev) {            // Hardware-Tastatur
+    ev.stopPropagation();
+    if (ev.key === 'Enter') { ev.preventDefault(); fertig(); }
+    else if (ev.key === 'Escape') { ev.preventDefault(); schliesse(); }
+    else if (ev.key === 'Backspace') { ev.preventDefault(); tippe('⌫'); }
+    else if (ev.key.length === 1 && !ev.metaKey && !ev.ctrlKey) { ev.preventDefault(); tippe(ev.key); }
   }
-}, true);
+  document.addEventListener('keydown', taste_, true);
+  kb.addEventListener('click', ev => {
+    const z = ev.target.closest('[data-z]')?.dataset.z;
+    if (z !== undefined) tippe(z);
+  });
+  zeige();
+}
 
 // ── Dialoge ──────────────────────────────────────────────────
 function spielModal(inhalt) {
@@ -6410,26 +6462,42 @@ function spielNamen(hinweis, wuerfelStarten) {
     ${hinweis ? `<p class="sp-warn">${esc(hinweis)}</p>` : ''}
     <p class="sp-hinweis">${esc(T.namenHinweis)}</p>
     <div id="sp-namen-liste" class="sp-namen-liste"></div>
-    <textarea id="sp-namen-text" rows="4" placeholder="${esc(T.namenPh)}"></textarea>
+    <div class="sp-modal-btns sp-add-btns">
+      <button class="btn-secondary" data-x="tippen">${esc(T.neuName2)}</button>
+      <button class="btn-secondary" data-x="emoji">${esc(T.emojiSp)}</button>
+      <button class="btn-secondary" data-x="fuenf">${esc(T.fuenf)}</button>
+      <button class="btn-secondary" data-x="paste">${esc(T.einfuegen)}</button>
+    </div>
+    <textarea id="sp-namen-text" rows="2" placeholder="${esc(T.namenPh)}"></textarea>
     <div class="sp-modal-btns"><button class="btn-secondary" data-x="add">${esc(T.hinzu)}</button>
     <button class="btn-primary" data-x="fertig">${esc(T.fertig)}</button></div>`);
   const liste = m.querySelector('#sp-namen-liste');
   const zeichne = () => {
     liste.innerHTML = [...spiel.namen].sort((a, b) => a.name.localeCompare(b.name)).map(e =>
-      `<button class="sp-chip${e.da ? '' : ' sp-aus'}" data-name="${esc(e.name)}">${esc(e.name)}${e.da ? '' : ' · ✗'}</button>`).join('');
+      `<button class="sp-chip${e.da ? '' : ' sp-aus'}" data-name="${esc(e.name)}">${esc(e.name)}${e.punkte ? `<span class="sp-chip-pkt">${e.punkte}</span>` : ''}${e.da ? '' : ' · ✗'}</button>`).join('');
+  };
+  const nimmTextfeld = () => {
+    const ta = m.querySelector('#sp-namen-text');
+    ta.value.split(/\n|,|;/).forEach(n => spielNeuePerson(n));
+    ta.value = '';
   };
   zeichne();
-  m.addEventListener('click', ev => {
+  m.addEventListener('click', async ev => {
     const chip = ev.target.closest('#sp-namen-liste [data-name]');
     if (chip) { const e = spielFinde(chip.dataset.name); if (e) { e.da = !e.da; zeichne(); } return; }
     const x = ev.target.closest('[data-x]')?.dataset.x;
-    if (x === 'add') {
-      const ta = m.querySelector('#sp-namen-text');
-      ta.value.split(/\n|,|;/).forEach(n => spielNeuePerson(n));
-      ta.value = ''; zeichne();
-    } else if (x === 'fertig' || ev.target === m) {
-      const ta = m.querySelector('#sp-namen-text');
-      ta.value.split(/\n|,|;/).forEach(n => spielNeuePerson(n));
+    if (x === 'tippen') spielTastatur(T.tasteTitel, '', t => { spielNeuePerson(t); zeichne(); });
+    else if (x === 'emoji') { spielEmojiPerson(); zeichne(); }
+    else if (x === 'fuenf') { for (let i = 0; i < 5; i++) spielEmojiPerson(); zeichne(); }
+    else if (x === 'paste') {
+      try {
+        const t = await navigator.clipboard.readText();
+        t.split(/\n|,|;/).forEach(n => spielNeuePerson(n));
+        zeichne();
+      } catch (_) { toast(T.einfuegenFehl); m.querySelector('#sp-namen-text').focus(); }
+    } else if (x === 'add') { nimmTextfeld(); zeichne(); }
+    else if (x === 'fertig' || ev.target === m) {
+      nimmTextfeld();
       if (wuerfelStarten && spielNamenDa().length >= 2) spiel.wuerfel = true;
       m.remove();
       spielRender();
@@ -6438,7 +6506,7 @@ function spielNamen(hinweis, wuerfelStarten) {
   });
 }
 
-// ── Podest ───────────────────────────────────────────────────
+// ── Auswertung „Unsere MemoDiver“ ────────────────────────────
 function spielPodium(amEnde) {
   const T = spT();
   const mitteImSpiel = !amEnde;
@@ -6450,23 +6518,26 @@ function spielPodium(amEnde) {
       const namen = mitPunkten.filter(e => e.punkte === p).map(e => e.name).sort();
       return `<div class="sp-platz sp-platz-${i + 1}"><div class="sp-medaille">${T.platz[i]}</div>
         <div class="sp-platz-namen">${namen.map(esc).join('<br>')}</div><div class="sp-platz-pkt">${p}</div></div>`;
-    }).join('')}</div>
-    ` : `<p class="sp-keine">${esc(T.keinePunkte)}</p>`;
+    }).join('')}</div>` : `<p class="sp-keine">${esc(T.keinePunkte)}</p>`;
   document.getElementById('spiel-podium')?.remove();
   const el = document.createElement('div');
   el.id = 'spiel-podium'; el.className = 'spiel-podium';
   el.innerHTML = `<div class="spiel-podium-box">
-      <h2><span class="title-memo">Memo</span><span class="title-pix">Diver</span></h2>${html}
-      <p class="sp-klasse-gross">${esc(T.klassenpunkte(spiel.klasse))}</p>
-      <div id="sp-belohnung" class="sp-belohnung"><button class="btn-secondary sp-belohnung-btn" data-x="belohnung">${esc(T.belohnung)}</button></div>
-      <div class="sp-modal-btns">${mitteImSpiel ? `<button class="btn-secondary" data-x="weiter">${esc(T.weiterspielen)}</button>` : ''}
-        <button class="btn-secondary" data-x="neu">${esc(T.neueRunde)}</button>
-        <button class="btn-primary" data-x="ende">${esc(T.beenden)}</button></div></div>`;
+      <div class="sp-pod-links">
+        <h2><span class="title-pix">${esc(T.unsere)}</span> <span class="title-memo">Memo</span><span class="title-pix">Diver</span></h2>
+        ${html}
+        <p class="sp-klasse-gross">${esc(T.klassenpunkte(spiel.klasse))}</p>
+      </div>
+      <div class="sp-pod-rechts">
+        <div id="sp-belohnung" class="sp-belohnung"><button class="btn-secondary sp-belohnung-btn" data-x="belohnung">${esc(T.belohnung)}</button></div>
+        <div class="sp-modal-btns">${mitteImSpiel ? `<button class="btn-secondary" data-x="weiter">${esc(T.weiterspielen)}</button>` : ''}
+          <button class="btn-secondary" data-x="neu">${esc(T.neueRunde)}</button>
+          <button class="btn-primary" data-x="ende">${esc(T.beenden)}</button></div>
+      </div></div>`;
   document.body.appendChild(el);
   el.addEventListener('click', e => {
     const x = e.target.closest('[data-x]')?.dataset.x;
     if (x === 'belohnung') {
-      // 1/3 und 2/3: Ideen, 3/3: „Wir machen weiter.“
       if (!el._bel) el._bel = { pool: [...T.belohnungen].sort(() => Math.random() - 0.5).slice(0, 2), i: 0 };
       const st = el._bel;
       const box = el.querySelector('#sp-belohnung');
