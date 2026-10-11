@@ -727,6 +727,7 @@ function applyTranslations() {
   setTxt('kursset-desc', t('kursset_desc'));
   setTxt('btn-kursset-alle', t('kursset_alle'));
   setTxt('btn-kursset-aufraeumen', t('kursset_aufraeumen'));
+  { const bt = document.querySelector('#btn-spiel .bsk-text'); if (bt) bt.textContent = spT().btnText; }
   setTxt('kursset-hinweis-link', t('kursset_anzeigen'));
 
   // Karte-Detail
@@ -766,7 +767,7 @@ function getHelpHtml() {
       ['⭐', '<strong>Favourites</strong> — Tap the star to mark a card as favourite · export as Favourites group under BACKUP'],
       ['🤏', '<strong>Zoom photos</strong> — Pinch with two fingers to zoom into a photo (also photos on the back of term cards) · drag with two fingers to pan · double-tap to reset'],
       ['⛶', '<strong>Fullscreen 16:9</strong> — Button next to "Start learning": runs your selection full-screen on a 16:9 stage with large type, no menus · ideal for projectors and oral exams · tap = reveal / next, swipe = back · ✕ ends it · real fullscreen works on iPad, not on iPhone (there the bars are hidden instead — best as home-screen app, rotate to landscape)'],
-      ['🎲', '<strong>Game</strong> — Button "🎲 Game" under "Start learning": the same stage with a score column · the group reveals a card, then you tap <em>Who knew it?</em> · +1 point · no minus points, nothing is saved · ? in the game shows the short rules'],
+      ['🤿', `<strong>${SPIEL_NAME}</strong> — green button under "Start learning": the same stage with a score column · the group reveals a card, then you tap <em>Who knew it?</em> · +1 point · no minus points, nothing is saved · 🎲 Dice-Mode calls someone at random · ⏱ optional countdown · ? in the game shows the short rules`],
       ['🗣️', '<strong>Discuss with Claude</strong> — Send the current card, or your whole selection, to Claude for a deeper conversation about the topic · copies to clipboard and opens claude.ai in a new tab'],
     ]},
     { title: '⚙️ Manage', rows: [
@@ -824,7 +825,7 @@ function getHelpHtml() {
       ['⭐', '<strong>Favoriten</strong> — Stern antippen markiert eine Karte als Favorit · unter SICHERUNG gezielt als Favoriten-Gruppe exportieren'],
       ['🤏', '<strong>Fotos zoomen</strong> — mit zwei Fingern in ein Foto hineinzoomen (auch bei Fotos auf der Rückseite von Begriff-Karten) · mit zwei Fingern verschieben · Doppeltipp setzt den Zoom zurück'],
       ['⛶', '<strong>Fullscreen 16:9</strong> — Button neben „Lernen starten": zeigt deine Auswahl im Vollbild auf einer 16:9-Bühne mit großer Schrift, ohne Menüs · ideal für Beamer und Prüfungsgespräche · Tippen = aufdecken / weiter, Wischen = zurück · ✕ beendet · Vollbild geht auf dem iPad, auf dem iPhone nicht (dort werden stattdessen alle Leisten ausgeblendet — am besten als Home-Bildschirm-App, Handy quer halten)'],
-      ['🎲', '<strong>Spiel</strong> — Button „🎲 Spiel" unter „Lernen starten": dieselbe Bühne mit Punktespalte · die Gruppe deckt eine Karte auf, du tippst <em>Wer hat\'s gewusst?</em> · +1 Punkt · keine Minuspunkte, nichts wird gespeichert · ? im Spiel zeigt die kurzen Regeln'],
+      ['🤿', `<strong>${SPIEL_NAME}</strong> — grüner Knopf unter „Lernen starten": dieselbe Bühne mit Punktespalte · die Gruppe deckt eine Karte auf, du tippst <em>Wer hat\'s gewusst?</em> · +1 Punkt · keine Minuspunkte, nichts wird gespeichert · 🎲 Dice-Mode ruft zufällig jemanden auf · ⏱ optionaler Countdown · ? im Spiel zeigt die kurzen Regeln`],
       ['🗣️', '<strong>Mit Claude besprechen</strong> — aktuelle Karte oder die ganze Auswahl an Claude übergeben, um das Thema im Gespräch zu vertiefen · kopiert in die Zwischenablage und öffnet claude.ai in neuem Tab'],
     ]},
     { title: '⚙️ Verwaltung', rows: [
@@ -4384,8 +4385,11 @@ document.getElementById('btn-lernen-start').addEventListener('click', starteAusA
 
 // ── Fullscreen 16:9 (Präsentationsansicht für Beamer/Prüfungsgespräche) ──
 let praesentationAktiv = false;
+const SPIEL_NAME = 'MemoDive';
 let spielAktiv = false;
-const spiel = { namen: [], klasse: 0, wuerfel: false, aktuell: null, helfer: false, vergeben: new Set(), verlauf: [], rollTimer: 0 };
+const spiel = { namen: [], klasse: 0, wuerfel: false, aktuell: null, helfer: false, vergeben: new Set(), verlauf: [], rollTimer: 0,
+  zeit: 0, zeitEnde: 0, zeitTimer: 0, zeitLaeuft: false, zeitAbgelaufen: false };
+const SPIEL_ZEITEN = [0, 30, 20, 10, 5];   // aus → langsam → schnell
 
 let praesiFaktor = 1;   // Auto-Verkleinerung für lange Rückseiten (1 = volle Größe)
 let praesiBasis  = 16;
@@ -5438,10 +5442,10 @@ const TUTORIAL_KARTEN = [
          'Under **LEARN** you choose groups and mode:\n\n- **Normal**: term or image first · **Reversed**: info first\n- **Timer** flips cards automatically, **Autorepeat** loops\n- **⭐** marks favorites, **Weakest** practises what you often missed',
          'Short rounds, repeated often, beat one long session.'] },
   { de: ['Beamer-Modus',
-         'Mit **Fullscreen 16:9** (auf der Seite LERNEN) füllt die Karte den ganzen Bildschirm – ideal für Beamer und Prüfungsgespräche.\n\n- **Leertaste** deckt auf, **Pfeiltasten** blättern\n- **✕** oben rechts oder **Esc** beendet\n- Lange Texte passen sich automatisch an\n- **🎲 Spiel** macht daraus ein gemeinsames Punktespiel für die Gruppe',
+         'Mit **Fullscreen 16:9** (auf der Seite LERNEN) füllt die Karte den ganzen Bildschirm – ideal für Beamer und Prüfungsgespräche.\n\n- **Leertaste** deckt auf, **Pfeiltasten** blättern\n- **✕** oben rechts oder **Esc** beendet\n- Lange Texte passen sich automatisch an\n- **🤿 MemoDive** macht daraus ein gemeinsames Punktespiel für die Gruppe',
          'Kein Scrollen: Die Schrift wird so gewählt, dass alles auf den Bildschirm passt.'],
     en: ['Presentation mode',
-         'With **Fullscreen 16:9** (on the LEARN page) the card fills the whole screen – ideal for projectors and oral exams.\n\n- **Space** reveals, **arrow keys** flip through\n- **✕** top right or **Esc** exits\n- Long texts adapt automatically\n- **🎲 Game** turns it into a shared points game for the group',
+         'With **Fullscreen 16:9** (on the LEARN page) the card fills the whole screen – ideal for projectors and oral exams.\n\n- **Space** reveals, **arrow keys** flip through\n- **✕** top right or **Esc** exits\n- Long texts adapt automatically\n- **🤿 MemoDive** turns it into a shared points game for the group',
          'No scrolling: the font size is chosen so everything fits on screen.'] },
   { de: ['Eigene Karten',
          'In **VERWALTUNG** legst du mit **＋** neue Karten an.\n\n- **Bild vorn**: erst das Bild, dann der Begriff\n- **Begriff vorn, Bild hinten**: erst der Begriff, dann Text, Notiz und Bilder\n- **Merke** = Kernaussage als farbiger Kasten\n- Mehrere Fotos pro Karte möglich',
@@ -5953,43 +5957,49 @@ const SPIEL_TROPHAEN = {
 function spT() {
   return istEn() ? {
     leer: 'No names yet – tap 👥, or type a name when someone scores.',
-    titel: '🎲 Game', hilfe: 'Rules', namen: 'Names', wuerfel: '🎲 Dice', klasse: 'Class', undo: '↶ Undo', auswertung: '🏁 Results',
+    btnText: 'Learn together, playfully. In Dice-Mode the dice decide who is next.',
+    titel: SPIEL_NAME, hilfe: 'Rules', namen: 'Names', wuerfel: '🎲 Dice-Mode', zeit: 'Countdown', zeitUp: '⏰ Time!', klasse: 'Class', undo: '↶ Undo', auswertung: '🏁 Results',
     wer: "Who knew it?", wuerfelFrage: n => `🎲 ${n} – knew it?`, gewusst: n => `✓ ${n}`, hilfeVon: '🤝 with help from…',
     gruppe: '👥 Everyone', niemand: '✗ Nobody', neuName: '＋ Name', neuPh: 'Name', ok: 'OK', passen: '↻ Pass',
     plusBei: n => `+1 ${n}`, plusKlasse: '+1 Class', keinPunkt: 'No point – on to the next card',
-    namenTitel: 'Names', namenHinweis: 'One name per line. Nicknames are fine. Tap a name to mark it as absent. Nothing is saved.',
+    namenTitel: 'Names', namenHinweis: 'One name per line. Nicknames are fine. Tap a name to mark it as absent. If a name already exists, another person is added with an emoji (e.g. Anna 🦊). Nothing is saved.',
     namenPh: 'Anna\nBen\nCem', hinzu: 'Add', fertig: 'Done', zuWenig: 'The dice need at least two names present.',
     anwesend: 'present', podest: 'Podium', platz: ['🥇', '🥈', '🥉'], keinePunkte: 'Nobody scored – the class did it together!',
-    stichwort: 'Keyword for the video', video: '🎬 Search video', neueRunde: 'New round', beenden: 'Finish',
+    stichwort: 'Keyword', video: '🎬 Search video', neueRunde: 'New round', beenden: 'Finish',
     klassenpunkte: n => `Class: ${n} point${n !== 1 ? 's' : ''}`, danke: 'Thanks for playing!',
-    hilfeTitel: '🎲 Game – the rules in short',
+    hilfeTitel: `🤿 ${SPIEL_NAME} – the rules in short`,
     hilfeText: [
       'A card appears: <strong>think first, then answer.</strong> Nobody has to be fast.',
       'Reveal the back (tap or space). The group looks at it together.',
       'Is the answer right? Tap <strong>Who knew it?</strong> → +1 point. If not: <strong>✗ Nobody</strong> – no minus points, on to the next card.',
       '<strong>👥 Everyone</strong> = the whole group knew it → class point.',
-      '<strong>🎲 Dice</strong> calls someone at random (only those marked present). <strong>Passing is allowed</strong>, asking for help too – both get the point.',
+      '<strong>🎲 Dice-Mode</strong> calls someone at random (only those marked present). Off: everyone thinks along. <strong>Passing is allowed</strong>, asking for help too – both get the point.',
+      '<strong>⏱ Countdown</strong> (30 / 20 / 10 / 5 s) is optional. Off: everyone has time. On: whoever answers within the time can get the point. With Dice-Mode it starts after the roll. At zero the card wiggles – no penalty.',
+      '<strong>Whoever holds the device decides:</strong> whether an answer counts and whether there is still a point after “Time!”.',
       '<strong>↶ Undo</strong> takes back the last point. <strong>Nothing is saved</strong> – closing the game deletes it all.'
     ],
     losgehts: "Let's go"
   } : {
     leer: 'Noch keine Namen – tippe auf 👥 oder trage beim ersten Punkt einen Namen ein.',
-    titel: '🎲 Spiel', hilfe: 'Regeln', namen: 'Namen', wuerfel: '🎲 Würfel', klasse: 'Klasse', undo: '↶ Zurück', auswertung: '🏁 Auswertung',
+    btnText: 'Lernt gemeinsam spielerisch. Im Dice-Mode würfelt ihr euch durchs Set.',
+    titel: SPIEL_NAME, hilfe: 'Regeln', namen: 'Namen', wuerfel: '🎲 Dice-Mode', zeit: 'Countdown', zeitUp: '⏰ Zeit!', klasse: 'Klasse', undo: '↶ Zurück', auswertung: '🏁 Auswertung',
     wer: "Wer hat's gewusst?", wuerfelFrage: n => `🎲 ${n} – gewusst?`, gewusst: n => `✓ ${n}`, hilfeVon: '🤝 mit Hilfe von…',
     gruppe: '👥 Alle', niemand: '✗ Niemand', neuName: '＋ Name', neuPh: 'Name', ok: 'OK', passen: '↻ Passen',
     plusBei: n => `+1 ${n}`, plusKlasse: '+1 Klasse', keinPunkt: 'Kein Punkt – weiter zur nächsten Karte',
-    namenTitel: 'Namen', namenHinweis: 'Ein Name pro Zeile, Spitznamen sind okay. Antippen markiert jemanden als abwesend. Nichts wird gespeichert.',
+    namenTitel: 'Namen', namenHinweis: 'Ein Name pro Zeile, Spitznamen sind okay. Antippen markiert jemanden als abwesend. Gibt es einen Namen schon, wird eine weitere Person mit Emoji angelegt (z. B. Anna 🦊). Nichts wird gespeichert.',
     namenPh: 'Anna\nBen\nCem', hinzu: 'Hinzufügen', fertig: 'Fertig', zuWenig: 'Für den Würfel müssen mindestens zwei Namen anwesend sein.',
     anwesend: 'da', podest: 'Podest', platz: ['🥇', '🥈', '🥉'], keinePunkte: 'Niemand hat gepunktet – die Klasse hat es gemeinsam geschafft!',
-    stichwort: 'Stichwort für das Video', video: '🎬 Video suchen', neueRunde: 'Neue Runde', beenden: 'Beenden',
+    stichwort: 'Stichwort', video: '🎬 Video suchen', neueRunde: 'Neue Runde', beenden: 'Beenden',
     klassenpunkte: n => `Klasse: ${n} Punkt${n !== 1 ? 'e' : ''}`, danke: 'Danke fürs Mitspielen!',
-    hilfeTitel: '🎲 Spiel – die Regeln kurz erklärt',
+    hilfeTitel: `🤿 ${SPIEL_NAME} – die Regeln kurz erklärt`,
     hilfeText: [
       'Eine Karte erscheint: <strong>erst überlegen, dann antworten.</strong> Niemand muss schnell sein.',
       'Rückseite aufdecken (Tippen oder Leertaste). Die Gruppe schaut sie gemeinsam an.',
       'Stimmt die Antwort? Tippe <strong>Wer hat\'s gewusst?</strong> → +1 Punkt. Wenn nicht: <strong>✗ Niemand</strong> – keine Minuspunkte, weiter zur nächsten Karte.',
       '<strong>👥 Alle</strong> = die ganze Gruppe wusste es → Klassenpunkt.',
-      '<strong>🎲 Würfel</strong> ruft zufällig jemanden auf (nur wer als anwesend markiert ist). <strong>Passen ist erlaubt</strong>, Hilfe holen auch – beide bekommen den Punkt.',
+      '<strong>🎲 Dice-Mode</strong> ruft zufällig jemanden auf (nur wer als anwesend markiert ist). Aus: alle denken mit. <strong>Passen ist erlaubt</strong>, Hilfe holen auch – beide bekommen den Punkt.',
+      '<strong>⏱ Countdown</strong> (30 / 20 / 10 / 5 s) ist freiwillig. Aus: alle haben Zeit. An: Wer in der Zeit antwortet, kann den Punkt bekommen. Mit Dice-Mode startet er nach dem Wurf. Bei null wackelt die Karte – keine Strafe.',
+      '<strong>Wer das Gerät in der Hand hat, entscheidet:</strong> ob eine Antwort zählt und ob es nach „Zeit!“ noch einen Punkt gibt.',
       '<strong>↶ Zurück</strong> nimmt den letzten Punkt zurück. <strong>Nichts wird gespeichert</strong> – beim Schließen ist alles weg.'
     ],
     losgehts: 'Los geht\'s'
@@ -5999,6 +6009,17 @@ function spT() {
 function spielNameNorm(n) { return String(n || '').replace(/\s+/g, ' ').trim().slice(0, 24); }
 function spielFinde(n) { const k = spielNameNorm(n).toLowerCase(); return spiel.namen.find(x => x.name.toLowerCase() === k); }
 function spielNamenDa() { return spiel.namen.filter(x => x.da).sort((a, b) => a.name.localeCompare(b.name, istEn() ? 'en' : 'de')); }
+const SPIEL_EMOJIS = ['🦊','🐼','🐸','🦄','🐙','🦁','🐧','🦉','🐝','🦋','🐢','🐳','🦒','🐨','🐯','🐰','🦔','🦩','🐌','🍀','🌵','🍉','🚀','🎈','⭐','🍕','🎸','🌈'];
+// Neue Person: gibt es den Namen schon, wird ein Emoji angehängt (zwei Personen mit gleichem Namen)
+function spielNeuePerson(n) {
+  let name = spielNameNorm(n); if (!name) return null;
+  if (spielFinde(name)) {
+    const frei = SPIEL_EMOJIS.filter(em => !spielFinde(`${name} ${em}`));
+    const em = frei.length ? frei[Math.floor(Math.random() * frei.length)] : String(spiel.namen.length + 1);
+    name = spielNameNorm(`${name.slice(0, 20)} ${em}`);
+  }
+  return spielAddName(name);
+}
 function spielAddName(n) {
   const name = spielNameNorm(n); if (!name) return null;
   let e = spielFinde(name);
@@ -6025,7 +6046,7 @@ function spielStarten() {
   if (spielAktiv) return;
   spielAktiv = true;
   spiel.namen = []; spiel.klasse = 0; spiel.wuerfel = false; spiel.aktuell = null; spiel.helfer = false;
-  spiel.vergeben = new Set(); spiel.verlauf = [];
+  spiel.vergeben = new Set(); spiel.verlauf = []; spiel.zeit = 0;
   if (timerSekunden) setTimerSekunden(0);
   if (autoRepeat) setAutoRepeat(false);
   document.body.classList.add('spiel');
@@ -6041,6 +6062,13 @@ function spielStarten() {
   const banner = document.createElement('div');
   banner.id = 'spiel-banner'; banner.className = 'spiel-banner hidden';
   flash.appendChild(banner);
+  const balken = document.createElement('div');
+  balken.id = 'spiel-zeitbalken'; balken.className = 'spiel-zeitbalken hidden';
+  balken.innerHTML = '<div class="sp-fuell"></div>';
+  flash.appendChild(balken);
+  const zahl = document.createElement('div');
+  zahl.id = 'spiel-zahl'; zahl.className = 'spiel-zahl hidden';
+  flash.appendChild(zahl);
 
   leiste.addEventListener('click', spielKlick);
   panel.addEventListener('click', spielKlick);
@@ -6058,8 +6086,10 @@ function spielAufraeumen() {
   if (!spielAktiv) return;
   spielAktiv = false;
   clearInterval(spiel.rollTimer);
+  spielZeitStop();
+  spiel.zeit = 0;
   document.body.classList.remove('spiel');
-  ['spiel-leiste', 'spiel-wer', 'spiel-banner', 'spiel-podium', 'spiel-modal'].forEach(id => document.getElementById(id)?.remove());
+  ['spiel-leiste', 'spiel-wer', 'spiel-banner', 'spiel-zeitbalken', 'spiel-zahl', 'spiel-podium', 'spiel-modal'].forEach(id => document.getElementById(id)?.remove());
   spiel.namen = []; spiel.verlauf = []; spiel.vergeben = new Set(); spiel.klasse = 0; spiel.aktuell = null;
 }
 
@@ -6071,12 +6101,13 @@ function spielRender() {
     const da = spielNamenDa();
     const alle = [...spiel.namen].sort((a, b) => a.name.localeCompare(b.name, istEn() ? 'en' : 'de'));
     leiste.innerHTML = `
-      <div class="sp-kopf"><strong>${esc(T.titel)}</strong>
+      <div class="sp-kopf"><span class="sp-logo" title="${esc(T.titel)}"><span class="title-memo">Memo</span><span class="title-pix">Dive</span></span>
         <span class="sp-kopf-btns">
+          <button data-sp="zeit" class="sp-zeit-btn${spiel.zeit ? ' aktiv' : ''}" title="${esc(T.zeit)}" aria-label="${esc(T.zeit)}">⏱${spiel.zeit ? ' ' + spiel.zeit : ''}</button>
+          <label class="sp-wuerfel" title="${esc(T.wuerfel)}"><input type="checkbox" data-sp="wuerfel"${spiel.wuerfel ? ' checked' : ''}> <span>🎲</span></label>
           <button data-sp="hilfe" title="${esc(T.hilfe)}" aria-label="${esc(T.hilfe)}">?</button>
           <button data-sp="namen" title="${esc(T.namen)}" aria-label="${esc(T.namen)}">👥</button>
         </span></div>
-      <label class="sp-wuerfel"><input type="checkbox" data-sp="wuerfel"${spiel.wuerfel ? ' checked' : ''}> <span>${esc(T.wuerfel)}</span></label>
       <div class="sp-liste">${alle.map(e => `
         <div class="sp-zeile${e.da ? '' : ' sp-abwesend'}${spiel.aktuell === e.name ? ' sp-dran' : ''}">
           <span class="sp-name">${esc(e.name)}</span><span class="sp-pkt">${e.punkte}</span></div>`).join('')
@@ -6094,9 +6125,65 @@ function spielRender() {
 function spielRenderBanner() {
   const T = spT();
   const b = document.getElementById('spiel-banner'); if (!b) return;
-  const zeigen = spiel.wuerfel && spiel.aktuell && !nameVisible;
+  const dice = spiel.wuerfel && spiel.aktuell;
+  const zeigen = dice && !nameVisible;
   b.classList.toggle('hidden', !zeigen);
   if (zeigen) b.innerHTML = `<span class="sp-banner-name">🎲 ${esc(spiel.aktuell)}</span><button data-sp="passen">${esc(T.passen)}</button>`;
+  // Countdown-Elemente (Balken oben + Zahl) sichtbar, solange die Vorderseite offen ist
+  const zeit = spiel.zeit > 0 && (spiel.zeitLaeuft || spiel.zeitAbgelaufen) && !nameVisible;
+  document.getElementById('spiel-zeitbalken')?.classList.toggle('hidden', !zeit);
+  document.getElementById('spiel-zahl')?.classList.toggle('hidden', !zeit);
+  if (zeit) spielZeitAnzeige();
+}
+
+// ── Countdown (nur Zahl, Ring und Farbe – kein Ton) ──────────
+function spielZeitStop() {
+  clearInterval(spiel.zeitTimer);
+  spiel.zeitLaeuft = false; spiel.zeitAbgelaufen = false;
+  const k = document.getElementById('lernkarte');
+  k?.classList.remove('sp-zeit', 'sp-warn', 'sp-wackeln', 'sp-blink');
+  document.getElementById('spiel-zeitbalken')?.classList.add('hidden');
+  document.getElementById('spiel-zahl')?.classList.add('hidden');
+}
+function spielZeitStart() {
+  spielZeitStop();
+  if (!spielAktiv || !spiel.zeit || nameVisible) { spielRenderBanner(); return; }
+  spiel.zeitEnde = Date.now() + spiel.zeit * 1000;
+  spiel.zeitLaeuft = true;
+  spielRenderBanner();
+  spiel.zeitTimer = setInterval(spielZeitTick, 100);
+}
+function spielZeitAnzeige() {
+  const fill = document.querySelector('#spiel-zeitbalken .sp-fuell'), zahl = document.getElementById('spiel-zahl');
+  const bar = document.getElementById('spiel-zeitbalken');
+  const k = document.getElementById('lernkarte');
+  if (spiel.zeitAbgelaufen) {
+    if (zahl) { zahl.textContent = spT().zeitUp; zahl.classList.add('sp-ende'); }
+    if (fill) { fill.style.width = '0%'; }
+    bar?.classList.remove('sp-warn');
+    return;
+  }
+  const rest = Math.max(0, spiel.zeitEnde - Date.now());
+  const anteil = spiel.zeit ? rest / (spiel.zeit * 1000) : 0;
+  const farbe = anteil > 0.5 ? '#5fd38d' : anteil > 0.25 ? '#ffb454' : '#ff6b6b';
+  if (zahl) { zahl.textContent = String(Math.ceil(rest / 1000)); zahl.classList.remove('sp-ende'); zahl.style.color = farbe; }
+  if (fill) { fill.style.width = (anteil * 100).toFixed(1) + '%'; fill.style.background = farbe; }
+  bar?.classList.toggle('sp-warn', rest <= 5000 && anteil <= 0.25);
+}
+function spielZeitTick() {
+  if (!spielAktiv || nameVisible) { spielZeitStop(); spielRenderBanner(); return; }
+  if (Date.now() >= spiel.zeitEnde) {
+    clearInterval(spiel.zeitTimer);
+    spiel.zeitLaeuft = false; spiel.zeitAbgelaufen = true;
+    const k = document.getElementById('lernkarte');
+    document.getElementById('spiel-zeitbalken')?.classList.remove('sp-warn');
+    const ruhig = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    k?.classList.add(ruhig ? 'sp-blink' : 'sp-wackeln');
+    setTimeout(() => k?.classList.remove('sp-wackeln', 'sp-blink'), 650);
+    spielRenderBanner();
+    return;
+  }
+  spielZeitAnzeige();
 }
 
 function spielRenderPanel() {
@@ -6125,6 +6212,7 @@ function spielRenderPanel() {
       <button class="sp-chip" data-sp="alle">${esc(T.gruppe)}</button>
       <button class="sp-chip sp-chip-nein" data-sp="niemand">${esc(T.niemand)}</button></div>`;
   }
+  p.classList.toggle('sp-kompakt', da.length > 12);   // viele Namen: kleinere Chips
   p.innerHTML = html;
   praesiAutofitPlanen();
 }
@@ -6132,6 +6220,7 @@ function spielRenderPanel() {
 // ── Würfel ───────────────────────────────────────────────────
 function spielWuerfeln(ausser) {
   clearInterval(spiel.rollTimer);
+  spielZeitStop();
   if (!spiel.wuerfel) { spiel.aktuell = null; spielRenderBanner(); return; }
   let pool = spielNamenDa().filter(e => !e.gewuerfelt && e.name !== ausser);
   if (!pool.length) {                      // alle waren dran → neue Runde ohne Zurücklegen
@@ -6154,21 +6243,25 @@ function spielWuerfeln(ausser) {
       clearInterval(spiel.rollTimer);
       ziel.gewuerfelt = true;
       spielRender();
+      if (spiel.zeit) spielZeitStart();
     }
   }, 85);
 }
 
 function spielKarteAngezeigt() {
   if (!spielAktiv) return;
+  spielZeitStop();
   spiel.helfer = false;
   spiel.aktuell = null;
   spielRender();
   if (spiel.wuerfel) spielWuerfeln();
+  else if (spiel.zeit) spielZeitStart();
   praesiAutofitPlanen();
 }
 function spielAufgedeckt() {
   if (!spielAktiv) return;
   clearInterval(spiel.rollTimer);
+  spielZeitStop();
   spielRender();
   praesiAutofitPlanen();
 }
@@ -6196,6 +6289,12 @@ function spielKlick(e) {
     spiel.wuerfel = an;
     spiel.aktuell = null;
     if (an && !nameVisible) spielWuerfeln(); else spielRender();
+  } else if (a === 'zeit') {
+    const i = SPIEL_ZEITEN.indexOf(spiel.zeit);
+    spiel.zeit = SPIEL_ZEITEN[(i + 1) % SPIEL_ZEITEN.length];
+    spielRender();
+    if (!spiel.zeit) { spielZeitStop(); spielRenderBanner(); }
+    else if (!nameVisible && !(spiel.wuerfel && !spiel.aktuell)) spielZeitStart();
   } else if (a === 'hilfe') spielHilfe();
   else if (a === 'namen') spielNamen();
   else if (a === 'undo') spielUndo();
@@ -6211,10 +6310,10 @@ function spielKlick(e) {
     spielWeiter(true);
   } else if (a === 'neu') {
     const inp = document.getElementById('sp-neu');
-    const name = spielNameNorm(inp?.value);
-    if (!name) { inp?.focus(); return; }
-    spielPunkt([name], false);
-    toast(T.plusBei(name));
+    const person = spielNeuePerson(inp?.value);
+    if (!person) { inp?.focus(); return; }
+    spielPunkt([person.name], false);
+    toast(T.plusBei(person.name));
     spielWeiter(true);
   } else if (a === 'alle') { spielPunkt([], true); toast(T.plusKlasse); spielWeiter(true); }
   else if (a === 'niemand') { toast(T.keinPunkt); spielWeiter(false); }
@@ -6265,11 +6364,11 @@ function spielNamen(hinweis, wuerfelStarten) {
     const x = ev.target.closest('[data-x]')?.dataset.x;
     if (x === 'add') {
       const ta = m.querySelector('#sp-namen-text');
-      ta.value.split(/\n|,|;/).forEach(n => spielAddName(n));
+      ta.value.split(/\n|,|;/).forEach(n => spielNeuePerson(n));
       ta.value = ''; zeichne();
     } else if (x === 'fertig' || ev.target === m) {
       const ta = m.querySelector('#sp-namen-text');
-      ta.value.split(/\n|,|;/).forEach(n => spielAddName(n));
+      ta.value.split(/\n|,|;/).forEach(n => spielNeuePerson(n));
       if (wuerfelStarten && spielNamenDa().length >= 2) spiel.wuerfel = true;
       m.remove();
       spielRender();
@@ -6282,6 +6381,7 @@ function spielNamen(hinweis, wuerfelStarten) {
 function spielPodium() {
   const T = spT();
   clearInterval(spiel.rollTimer);
+  spielZeitStop();
   const mitPunkten = spiel.namen.filter(e => e.punkte > 0);
   const stufen = [...new Set(mitPunkten.map(e => e.punkte))].sort((a, b) => b - a).slice(0, 3);
   const trophae = (SPIEL_TROPHAEN[istEn() ? 'en' : 'de'])[Math.floor(Math.random() * SPIEL_TROPHAEN.de.length)];

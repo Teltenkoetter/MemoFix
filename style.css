@@ -2285,3 +2285,95 @@ body.spiel.praesi .lern-karte-area { flex: 1 1 auto; height: auto; min-height: 0
   background: rgba(255,255,255,0.05); color: var(--text); font-family: inherit; font-size: 0.95rem;
 }
 .sp-video button { margin: 0; white-space: nowrap; }
+
+/* Spiel: Eingabefelder mindestens 16 px (verhindert das Hineinzoomen auf dem iPhone),
+   Namens-Chips scrollen bei sehr vielen Teilnehmenden */
+.sp-neu input, .sp-video input, #sp-namen-text { font-size: 17px; }
+.spiel-wer .sp-chips { max-height: 34dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.sp-kopf-btns { align-items: center; }
+.sp-kopf .sp-wuerfel {
+  display: inline-flex; align-items: center; gap: 0.25rem; padding: 0 0.45rem; height: 32px;
+  border-radius: 999px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); font-size: 1rem;
+}
+.sp-kopf .sp-wuerfel input { width: 16px; height: 16px; }
+.sp-kopf strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.spiel-wer.sp-kompakt .sp-chip { min-height: 38px; padding: 0.3rem 0.75rem; font-size: 0.85rem; }
+.spiel-wer.sp-kompakt .sp-chips { max-height: 27dvh; gap: 0.35rem; }
+.spiel-wer.sp-kompakt .sp-neu input { min-height: 38px; }
+
+/* ── MemoDive: grüne Karte unter „Lernen starten" ─────── */
+.btn-spiel-karte {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0.15rem; width: 100%;
+  margin-top: 0.6rem; padding: 0.7rem 0.9rem; text-align: left; font-family: inherit; cursor: pointer;
+  color: var(--text); border-radius: 14px;
+  background: linear-gradient(180deg, rgba(95,211,141,0.16), rgba(95,211,141,0.07));
+  border: 1px solid rgba(95,211,141,0.55);
+}
+.btn-spiel-karte:active { transform: scale(0.99); }
+.btn-spiel-karte:disabled { opacity: 0.35; cursor: not-allowed; }
+.bsk-titel { font-size: 1rem; font-weight: 800; letter-spacing: 0.2px; }
+.bsk-titel b { font-weight: 800; }
+.bsk-text { font-size: 0.8rem; line-height: 1.35; color: rgba(255,255,255,0.78); }
+
+.sp-logo { font-size: 1.05rem; font-weight: 300; letter-spacing: 0.2px; white-space: nowrap; }
+.sp-logo b { font-weight: 800; }
+.sp-zeit-btn {
+  height: 32px; padding: 0 0.55rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.06); color: var(--text); font-size: 0.9rem; white-space: nowrap;
+}
+.sp-zeit-btn.aktiv { border-color: #ffb454; color: #ffb454; font-weight: 700; }
+.sp-kopf-btns { gap: 0.3rem; }
+
+/* Countdown: Zahl + Ring im Banner, Farbrand an der Karte */
+.sp-zeit { position: relative; display: inline-flex; align-items: center; justify-content: center; min-width: 48px; height: 48px; }
+.sp-zeit svg { transform: rotate(-90deg); position: absolute; inset: 0; }
+.sp-ring-bg { fill: none; stroke: rgba(255,255,255,0.15); stroke-width: 4; }
+.sp-ring { fill: none; stroke: var(--sp-rand, #5fd38d); stroke-width: 4; stroke-linecap: round;
+  stroke-dasharray: 113; stroke-dashoffset: 0; transition: stroke-dashoffset 0.1s linear; }
+.sp-zahl { position: relative; font-size: 1.25rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.sp-zahl.sp-ende { font-size: 1.1rem; color: #ff6b6b; white-space: nowrap; margin-left: 0.4rem; }
+.spiel-banner:has(.sp-zahl.sp-ende) .sp-zeit { min-width: 0; width: auto; }
+.spiel-banner:has(.sp-zahl.sp-ende) .sp-zeit svg { display: none; }
+body.spiel #lernkarte.sp-zeit { box-shadow: inset 0 0 0 4px var(--sp-rand, #5fd38d); }
+body.spiel #lernkarte.sp-warn { animation: sp-puls 0.8s ease-in-out infinite; }
+@keyframes sp-puls { 0%,100% { box-shadow: inset 0 0 0 4px #ff6b6b, inset 0 0 0 0 rgba(255,107,107,0); }
+                     50% { box-shadow: inset 0 0 0 4px #ff6b6b, inset 0 0 60px 0 rgba(255,107,107,0.25); } }
+body.spiel #lernkarte.sp-wackeln { animation: sp-wackeln 0.55s ease-in-out 1; box-shadow: inset 0 0 0 4px #ff6b6b; }
+@keyframes sp-wackeln { 0%,100% { transform: translateX(0) rotate(0); } 15% { transform: translateX(-10px) rotate(-0.8deg); }
+  30% { transform: translateX(9px) rotate(0.7deg); } 45% { transform: translateX(-7px) rotate(-0.5deg); }
+  60% { transform: translateX(5px) rotate(0.4deg); } 80% { transform: translateX(-2px); } }
+body.spiel #lernkarte.sp-blink { animation: sp-blink 0.6s ease-in-out 1; }
+@keyframes sp-blink { 0%,100% { box-shadow: inset 0 0 0 4px #ff6b6b; } 50% { box-shadow: inset 0 0 0 10px #ff6b6b; } }
+@media (prefers-reduced-motion: reduce) { body.spiel #lernkarte.sp-warn { animation: none; } }
+
+/* ── MemoDive: Korrekturen (Countdown als Balken, Logo, ⏱-Knopf) ── */
+.bsk-titel { font-weight: 400; }
+.bsk-titel .title-memo { font-weight: 700; }
+.bsk-titel .title-pix  { font-weight: 300; color: var(--text-dim); }
+.sp-logo { font-weight: 400; }
+.sp-logo .title-memo { font-weight: 700; }
+.sp-logo .title-pix  { font-weight: 300; color: var(--text-dim); }
+/* Knopf ⏱: abgerundetes Rechteck, wächst mit der Zahl */
+.sp-kopf-btns .sp-zeit-btn {
+  width: auto; min-width: 44px; height: 32px; padding: 0 0.7rem; border-radius: 12px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+/* Countdown: dünner Balken am oberen Kartenrand + Zahl */
+.spiel-zeitbalken { position: absolute; top: 0; left: 0; right: 0; height: 8px; z-index: 31; background: rgba(255,255,255,0.12); }
+.spiel-zeitbalken.hidden, .spiel-zahl.hidden { display: none; }
+.sp-fuell { height: 100%; width: 100%; background: #5fd38d; transition: width 0.1s linear, background-color 0.3s; border-radius: 0 4px 4px 0; }
+.spiel-zeitbalken.sp-warn { animation: sp-balken-puls 0.8s ease-in-out infinite; }
+@keyframes sp-balken-puls { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+.spiel-zahl {
+  position: absolute; top: 18px; right: 64px; z-index: 31;
+  font-size: 2.6rem; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.6); pointer-events: none;
+}
+.spiel-zahl.sp-ende { font-size: 1.3rem; font-weight: 700; color: #ff6b6b !important; padding-top: 0.35rem; }
+body.spiel #lernkarte.sp-zeit, body.spiel #lernkarte.sp-warn { box-shadow: none; animation: none; }
+@media (orientation: landscape) {
+  body.spiel .spiel-zeitbalken { right: var(--spiel-w); }
+  body.spiel .spiel-zahl { right: calc(var(--spiel-w) + 64px); }
+}
