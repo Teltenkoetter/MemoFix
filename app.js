@@ -5948,6 +5948,7 @@ document.addEventListener('click', e => {
 function spT() {
   return istEn() ? {
     zweiGleiche: (n, liste) => `Two ${n}s! From now on: ${liste.join(' and ')}`,
+    dasBistDu: 'That is you!', anderes: '↻ Another', weiterGehts: 'On we go', eureTiere: 'Your animals', beendenFrage: 'End the game? The points will be lost.',
     unsere: 'Our', neuName2: '＋ Name', emojiSp: '＋ 🙂', einfuegen: '📋 Paste list', fuenf: '＋5 🙂', punkteK: 'Class',
     tasteOk: 'OK', tasteAbbr: 'Cancel', tasteTitel: 'Name', leerzeichen: 'Space', einfuegenFehl: 'Pasting is not allowed here – paste into the field below.',
     leer: 'No names yet – tap 👥, or type a name when someone scores.',
@@ -5990,6 +5991,7 @@ function spT() {
     losgehts: "Let's go"
   } : {
     zweiGleiche: (n, liste) => `Zweimal ${n}! Ab jetzt: ${liste.join(' und ')}`,
+    dasBistDu: 'Das bist du!', anderes: '↻ Anderes', weiterGehts: 'Weiter geht\'s', eureTiere: 'Eure Tiere', beendenFrage: 'Spiel beenden? Die Punkte gehen verloren.',
     unsere: 'Unsere', neuName2: '＋ Name', emojiSp: '＋ 🙂', einfuegen: '📋 Liste einfügen', fuenf: '＋5 🙂', punkteK: 'Klasse',
     tasteOk: 'OK', tasteAbbr: 'Abbrechen', tasteTitel: 'Name', leerzeichen: 'Leerzeichen', einfuegenFehl: 'Einfügen ist hier nicht erlaubt – bitte ins Feld darunter einfügen.',
     leer: 'Noch keine Namen – tippe auf 👥 oder trage beim ersten Punkt einen Namen ein.',
@@ -6040,13 +6042,38 @@ const SPIEL_EMOJIS = ['🦊','🐼','🐸','🦄','🐙','🦁','🐧','🦉','�
 const SPIEL_AVATARE = ['🦊','🐼','🐸','🦄','🐙','🦁','🐧','🦉','🐝','🦋','🐢','🐳','🦒','🐨','🐯','🐰','🦔','🦩','🐌','🦖','🦈','🐺','🦜','🐞','🦚','🐿️','🦥','🦦','🐘','🦓'];
 
 // Emoji-Person: der Name ist nur ein Emoji (ohne Tippen)
-function spielEmojiPerson() {
+function spielFreiesEmoji(ausser) {
   const belegt = new Set(spiel.namen.map(e => e.name));
-  const frei = SPIEL_AVATARE.filter(em => !belegt.has(em));
-  const em = frei.length ? frei[Math.floor(Math.random() * frei.length)] : '🙂' + (spiel.namen.length + 1);
+  const frei = SPIEL_AVATARE.filter(em => !belegt.has(em) && em !== ausser);
+  return frei.length ? frei[Math.floor(Math.random() * frei.length)] : '🙂' + (spiel.namen.length + 1);
+}
+function spielEmojiPersonMit(em) {
   const e = { name: em, basis: em, punkte: 0, da: true, gewuerfelt: false };
   spiel.namen.push(e);
   return e;
+}
+function spielEmojiPerson() { return spielEmojiPersonMit(spielFreiesEmoji()); }
+// Zeigt das gezogene Emoji groß; „Anderes“ zieht neu, „Weiter geht's“ übernimmt
+function spielEmojiZeigen(onOk, mehrere) {
+  const T = spT();
+  document.getElementById('spiel-emoji')?.remove();
+  let em = mehrere ? mehrere : spielFreiesEmoji();
+  const m = document.createElement('div');
+  m.id = 'spiel-emoji'; m.className = 'spiel-modal sp-emoji-modal';
+  document.body.appendChild(m);
+  const zeichne = () => {
+    m.innerHTML = `<div class="spiel-modal-box sp-emoji-box">
+      <div class="sp-emoji-titel">${esc(mehrere ? T.eureTiere : T.dasBistDu)}</div>
+      <div class="sp-emoji-gross">${mehrere ? em.join(' ') : em}</div>
+      <div class="sp-modal-btns">${mehrere ? '' : `<button class="btn-secondary" data-x="anderes">${esc(T.anderes)}</button>`}
+        <button class="btn-primary" data-x="ok">${esc(T.weiterGehts)}</button></div></div>`;
+  };
+  zeichne();
+  m.addEventListener('click', ev => {
+    const x = ev.target.closest('[data-x]')?.dataset.x;
+    if (x === 'anderes') { em = spielFreiesEmoji(em); zeichne(); }
+    else if (x === 'ok') { m.remove(); onOk(em); }
+  });
 }
 
 // Neue Person: gibt es den Namen schon, bekommen ALLE mit diesem Namen ein Emoji (auch die bisherige Person)
@@ -6122,8 +6149,6 @@ function spielStarten() {
   const hud = mk('spiel-hud', 'spiel-hud', flash, true);
   const panel = mk('spiel-wer', 'spiel-wer hidden', flash);
   mk('spiel-banner', 'spiel-banner hidden', area);
-  const balken = mk('spiel-zeitbalken', 'spiel-zeitbalken hidden', area);
-  balken.innerHTML = '<div class="sp-fuell"></div>';
   mk('spiel-tron', 'spiel-tron hidden', area);
   [hud, panel, document.getElementById('spiel-banner')].forEach(el => el.addEventListener('click', spielKlick));
   spielRender();
@@ -6141,7 +6166,7 @@ function spielAufraeumen() {
   spielZeitStop();
   spiel.zeit = 0;
   document.body.classList.remove('spiel');
-  ['spiel-hud', 'spiel-wer', 'spiel-banner', 'spiel-zeitbalken', 'spiel-tron', 'spiel-podium', 'spiel-modal', 'spiel-kb'].forEach(id => document.getElementById(id)?.remove());
+  ['spiel-hud', 'spiel-wer', 'spiel-banner', 'spiel-zeitbalken', 'spiel-tron', 'spiel-podium', 'spiel-modal', 'spiel-kb', 'spiel-emoji'].forEach(id => document.getElementById(id)?.remove());
   spiel.namen = []; spiel.verlauf = []; spiel.vergeben = new Set(); spiel.klasse = 0; spiel.aktuell = null;
 }
 
@@ -6167,6 +6192,7 @@ function spielRender() {
         <button data-sp="auswertung" class="sp-hud-btn">${esc(T.auswertung)}</button>
         <button data-sp="hilfe" class="sp-hud-btn sp-rund" title="${esc(T.hilfe)}" aria-label="${esc(T.hilfe)}">?</button>
         <button data-sp="namen" class="sp-hud-btn sp-rund" title="${esc(T.namen)}" aria-label="${esc(T.namen)}">👥</button>
+        <button data-sp="beenden" class="sp-hud-btn sp-rund" title="${esc(T.beenden)}" aria-label="${esc(T.beenden)}">✕</button>
       </div>`;
   }
   spielRenderPanel();
@@ -6181,9 +6207,6 @@ function spielRenderBanner() {
   const zeigen = dice && !nameVisible;
   b.classList.toggle('hidden', !zeigen);
   if (zeigen) b.innerHTML = `<span class="sp-banner-name">🎲 ${esc(spiel.aktuell)}</span><button data-sp="passen">${esc(T.passen)}</button>`;
-  const aktiv = spiel.zeit > 0 && (spiel.zeitLaeuft || spiel.zeitAbgelaufen) && !nameVisible;
-  document.getElementById('spiel-zeitbalken')?.classList.toggle('hidden', !aktiv);
-  document.getElementById('spiel-tron')?.classList.toggle('hidden', !aktiv);
 }
 
 // ── Countdown: Balken, Farbrand, digitale Anzeige (kein Ton) ──
@@ -6191,9 +6214,7 @@ function spielZeitStop() {
   clearInterval(spiel.zeitTimer);
   spiel.zeitLaeuft = false; spiel.zeitAbgelaufen = false;
   const k = document.getElementById('lernkarte');
-  k?.classList.remove('sp-zeitrand', 'sp-warn', 'sp-wackeln', 'sp-blink');
-  k?.style.removeProperty('--sp-rand');
-  document.getElementById('spiel-zeitbalken')?.classList.add('hidden');
+  k?.classList.remove('sp-wackeln', 'sp-blink');
   const t = document.getElementById('spiel-tron'); if (t) { t.classList.add('hidden'); t.classList.remove('sp-ende'); t.textContent = ''; }
   const led = document.getElementById('sp-led');
   if (led) { led.textContent = spiel.zeit ? spielZeitText(spiel.zeit) : (istEn() ? 'off' : 'aus'); led.style.color = ''; }
@@ -6203,37 +6224,27 @@ function spielZeitStart() {
   if (!spielAktiv || !spiel.zeit || nameVisible) { spielRenderBanner(); return; }
   spiel.zeitEnde = Date.now() + spiel.zeit * 1000;
   spiel.zeitLaeuft = true;
-  document.getElementById('lernkarte')?.classList.add('sp-zeitrand');
   spielRenderBanner();
   spielZeitAnzeige();
   spiel.zeitTimer = setInterval(spielZeitTick, 100);
 }
 function spielZeitAnzeige() {
-  const fill = document.querySelector('#spiel-zeitbalken .sp-fuell');
-  const bar = document.getElementById('spiel-zeitbalken');
   const led = document.getElementById('sp-led');
   const tron = document.getElementById('spiel-tron');
-  const k = document.getElementById('lernkarte');
   if (!spiel.zeitLaeuft && !spiel.zeitAbgelaufen) return;
-  const mmss = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  const mmss = s_ => `${String(Math.floor(s_ / 60)).padStart(2, '0')}:${String(s_ % 60).padStart(2, '0')}`;
   if (spiel.zeitAbgelaufen) {
-    if (led) { led.textContent = '0:00'; led.style.color = '#ff6b6b'; }
-    if (tron) { tron.textContent = '00:00'; tron.style.color = '#ff6b6b'; tron.classList.add('sp-ende'); }
-    if (fill) fill.style.width = '0%';
-    bar?.classList.remove('sp-warn');
+    if (led) led.textContent = '0:00';
+    if (tron) { tron.textContent = '00:00'; tron.classList.remove('hidden'); tron.classList.add('sp-ende'); }
     return;
   }
   const rest = Math.max(0, spiel.zeitEnde - Date.now());
-  const anteil = spiel.zeit ? rest / (spiel.zeit * 1000) : 0;
-  const farbe = anteil > 0.5 ? '#5fd38d' : anteil > 0.25 ? '#ffb454' : '#ff6b6b';
   const sek = Math.ceil(rest / 1000);
-  if (led) { led.textContent = spielZeitText(sek); led.style.color = farbe; }
-  if (tron) { tron.textContent = mmss(sek); tron.style.color = farbe; tron.classList.toggle('sp-puls', rest <= 3000); }
-  if (fill) { fill.style.width = (anteil * 100).toFixed(1) + '%'; fill.style.background = farbe; }
-  bar?.classList.toggle('sp-warn', rest <= 5000 && anteil <= 0.25);
-  if (k) {
-    k.style.setProperty('--sp-rand', farbe);
-    k.classList.toggle('sp-warn', rest <= 5000 && anteil <= 0.25);
+  if (led) led.textContent = spielZeitText(sek);
+  if (tron) {
+    const zeigen = sek <= 3;                 // große Anzeige nur in den letzten 3 Sekunden
+    tron.classList.toggle('hidden', !zeigen);
+    if (zeigen) tron.textContent = mmss(sek);
   }
 }
 function spielZeitTick() {
@@ -6242,7 +6253,6 @@ function spielZeitTick() {
     clearInterval(spiel.zeitTimer);
     spiel.zeitLaeuft = false; spiel.zeitAbgelaufen = true;
     const k = document.getElementById('lernkarte');
-    document.getElementById('spiel-zeitbalken')?.classList.remove('sp-warn');
     const ruhig = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     k?.classList.add(ruhig ? 'sp-blink' : 'sp-wackeln');
     setTimeout(() => k?.classList.remove('sp-wackeln', 'sp-blink'), 650);
@@ -6271,7 +6281,9 @@ function spielRenderPanel() {
       <button class="sp-chip${spiel.helfer ? ' aktiv' : ''}" data-sp="helfer">${esc(T.hilfeVon)}</button>
       <button class="sp-chip" data-sp="alle">${esc(T.gruppe)}</button>
       <button class="sp-chip sp-chip-nein" data-sp="niemand">${esc(T.niemand)}</button></div>
-      ${spiel.helfer ? `<div class="sp-chips sp-chips-zwei">${da.filter(e => e.name !== spiel.aktuell).map(e => chip(e, ' helfer')).join('')}</div>` : ''}`;
+      ${spiel.helfer ? `<div class="sp-chips sp-chips-zwei">${da.filter(e => e.name !== spiel.aktuell).map(e => chip(e, ' helfer')).join('')}
+        <button class="sp-chip sp-chip-neu" data-sp="hneu">${esc(T.neuName2)}</button>
+        <button class="sp-chip sp-chip-neu" data-sp="hemoji">${esc(T.emojiSp)}</button></div>` : ''}`;
   } else {
     html = `<div class="sp-frage">${esc(T.wer)}</div><div class="sp-chips">
       ${da.map(e => chip(e)).join('')}
@@ -6366,6 +6378,10 @@ function spielKlick(e) {
   } else if (a === 'hilfe') spielHilfe();
   else if (a === 'namen') spielNamen();
   else if (a === 'undo') spielUndo();
+  else if (a === 'beenden') {
+    const hatPunkte = spiel.klasse > 0 || spiel.namen.some(n => n.punkte > 0);
+    if (!hatPunkte || confirm(T.beendenFrage)) document.getElementById('btn-beenden').click();
+  }
   else if (a === 'auswertung') spielPodium();
   else if (a === 'passen') { const alt = spiel.aktuell; const e0 = spielFinde(alt); if (e0) e0.gewuerfelt = false; spielWuerfeln(alt); }
   else if (a === 'helfer') { spiel.helfer = !spiel.helfer; spielRenderPanel(); }
@@ -6384,16 +6400,32 @@ function spielKlick(e) {
       spielWeiter(true);
     });
   } else if (a === 'emoji') {
-    const person = spielEmojiPerson();
-    spielPunkt([person.name], false);
-    toast(T.plusBei(person.name));
-    spielWeiter(true);
+    spielEmojiZeigen(em => {
+      const person = spielEmojiPersonMit(em);
+      spielPunkt([person.name], false);
+      toast(T.plusBei(person.name));
+      spielWeiter(true);
+    });
+  } else if (a === 'hneu') {
+    spielTastatur(T.tasteTitel, '', text => {
+      const person = spielNeuePerson(text); if (!person) return;
+      spielPunkt([spiel.aktuell, person.name], false);
+      toast(T.plusBei(`${spiel.aktuell} + ${person.name}`));
+      spielWeiter(true);
+    });
+  } else if (a === 'hemoji') {
+    spielEmojiZeigen(em => {
+      const person = spielEmojiPersonMit(em);
+      spielPunkt([spiel.aktuell, person.name], false);
+      toast(T.plusBei(`${spiel.aktuell} + ${person.name}`));
+      spielWeiter(true);
+    });
   } else if (a === 'alle') { spielPunkt([], true); toast(T.plusKlasse); spielWeiter(true); }
   else if (a === 'niemand') { toast(T.keinPunkt); spielWeiter(false); }
 }
 
 // ── Bildschirm-Tastatur (sichtbar auch auf Monitor/Beamer; Hardware-Tastatur geht ebenfalls) ──
-function spielTastatur(titel, start, onOk) {
+function spielTastatur(titel, start, onOk, opt = {}) {
   const T = spT();
   document.getElementById('spiel-kb')?.remove();
   let text = spielNameNorm(start || '');
@@ -6407,7 +6439,7 @@ function spielTastatur(titel, start, onOk) {
     <div class="sp-kb-reihe">${[...reihen[1]].map(taste).join('')}</div>
     <div class="sp-kb-reihe">${[...reihen[2]].map(taste).join('')}<button type="button" class="sp-taste sp-taste-breit" data-z="⌫">⌫</button></div>
     <div class="sp-kb-reihe sp-kb-unten">
-      <button type="button" class="sp-taste sp-taste-breit sp-aus" data-z="x">${esc(T.tasteAbbr)}</button>
+      <button type="button" class="sp-taste sp-taste-breit sp-aus" data-z="x">${esc(opt.mehrfach ? T.fertig : T.tasteAbbr)}</button>
       <button type="button" class="sp-taste sp-taste-leer" data-z=" ">${esc(T.leerzeichen)}</button>
       <button type="button" class="sp-taste sp-taste-breit sp-ok" data-z="ok">${esc(T.tasteOk)}</button>
     </div>`;
@@ -6415,7 +6447,11 @@ function spielTastatur(titel, start, onOk) {
   const anz = kb.querySelector('#sp-kb-text');
   const zeige = () => { anz.textContent = text; };
   const schliesse = () => { document.removeEventListener('keydown', taste_, true); kb.remove(); };
-  const fertig = () => { const t = spielNameNorm(text); schliesse(); if (t) onOk(t); };
+  const fertig = () => {
+    const t = spielNameNorm(text);
+    if (opt.mehrfach) { if (t) { onOk(t); text = ''; zeige(); } return; }   // Mehrfach: Name übernehmen, Tastatur bleibt offen
+    schliesse(); if (t) onOk(t);
+  };
   const tippe = z => {
     if (z === '⌫') text = text.slice(0, -1);
     else if (z === 'x') { schliesse(); return; }
@@ -6468,36 +6504,33 @@ function spielNamen(hinweis, wuerfelStarten) {
       <button class="btn-secondary" data-x="fuenf">${esc(T.fuenf)}</button>
       <button class="btn-secondary" data-x="paste">${esc(T.einfuegen)}</button>
     </div>
-    <textarea id="sp-namen-text" rows="2" placeholder="${esc(T.namenPh)}"></textarea>
-    <div class="sp-modal-btns"><button class="btn-secondary" data-x="add">${esc(T.hinzu)}</button>
-    <button class="btn-primary" data-x="fertig">${esc(T.fertig)}</button></div>`);
+    <div class="sp-modal-btns"><button class="btn-primary" data-x="fertig">${esc(T.fertig)}</button></div>`);
   const liste = m.querySelector('#sp-namen-liste');
   const zeichne = () => {
     liste.innerHTML = [...spiel.namen].sort((a, b) => a.name.localeCompare(b.name)).map(e =>
       `<button class="sp-chip${e.da ? '' : ' sp-aus'}" data-name="${esc(e.name)}">${esc(e.name)}${e.punkte ? `<span class="sp-chip-pkt">${e.punkte}</span>` : ''}${e.da ? '' : ' · ✗'}</button>`).join('');
   };
-  const nimmTextfeld = () => {
-    const ta = m.querySelector('#sp-namen-text');
-    ta.value.split(/\n|,|;/).forEach(n => spielNeuePerson(n));
-    ta.value = '';
-  };
+  const tippen = () => spielTastatur(T.tasteTitel, '', t => { spielNeuePerson(t); zeichne(); }, { mehrfach: true });
   zeichne();
   m.addEventListener('click', async ev => {
     const chip = ev.target.closest('#sp-namen-liste [data-name]');
     if (chip) { const e = spielFinde(chip.dataset.name); if (e) { e.da = !e.da; zeichne(); } return; }
     const x = ev.target.closest('[data-x]')?.dataset.x;
-    if (x === 'tippen') spielTastatur(T.tasteTitel, '', t => { spielNeuePerson(t); zeichne(); });
-    else if (x === 'emoji') { spielEmojiPerson(); zeichne(); }
-    else if (x === 'fuenf') { for (let i = 0; i < 5; i++) spielEmojiPerson(); zeichne(); }
+    if (x === 'tippen') tippen();
+    else if (x === 'emoji') spielEmojiZeigen(em => { spielEmojiPersonMit(em); zeichne(); });
+    else if (x === 'fuenf') {
+      const neu = [];
+      for (let i = 0; i < 5; i++) { const em = spielFreiesEmoji(); spielEmojiPersonMit(em); neu.push(em); }
+      zeichne();
+      spielEmojiZeigen(() => {}, neu);
+    }
     else if (x === 'paste') {
       try {
         const t = await navigator.clipboard.readText();
         t.split(/\n|,|;/).forEach(n => spielNeuePerson(n));
         zeichne();
-      } catch (_) { toast(T.einfuegenFehl); m.querySelector('#sp-namen-text').focus(); }
-    } else if (x === 'add') { nimmTextfeld(); zeichne(); }
-    else if (x === 'fertig' || ev.target === m) {
-      nimmTextfeld();
+      } catch (_) { toast(T.einfuegenFehl); tippen(); }
+    } else if (x === 'fertig' || ev.target === m) {
       if (wuerfelStarten && spielNamenDa().length >= 2) spiel.wuerfel = true;
       m.remove();
       spielRender();

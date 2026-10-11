@@ -2524,3 +2524,21 @@ body.spiel .spiel-zeitbalken { right: 0 !important; }
   display: block; width: 100%; margin: 0.6rem 0 0; padding: 0.65rem 0.9rem; text-align: center;
   border-radius: 14px; background: rgba(255,255,255,0.04); font-size: 0.85rem; color: var(--text-dim);
 }
+
+/* ── MemoDive: schlicht (kein Farbrand, kein Balken), ✕ in der Leiste ── */
+body.spiel #btn-beenden { display: none !important; }
+.spiel-hud { padding-right: 0.7rem !important; }
+.spiel-zeitbalken { display: none !important; }
+body.spiel #lernkarte.sp-zeitrand, body.spiel #lernkarte.sp-warn { box-shadow: none !important; animation: none !important; }
+body.spiel #lernkarte.sp-wackeln { box-shadow: none !important; }
+.spiel-tron {
+  color: #cfcfcf !important; opacity: 0.2; text-shadow: 0 0 18px rgba(255,255,255,0.35); -webkit-text-stroke: 1px rgba(255,255,255,0.6);
+}
+.spiel-tron.sp-puls { animation: none; }
+.spiel-tron.sp-ende { opacity: 0.28; }
+.sp-led { color: var(--text) !important; }
+.sp-pod-links h2 { text-align: left !important; }
+.sp-emoji-box { text-align: center; max-width: 420px; }
+.sp-emoji-titel { font-size: 1.1rem; color: var(--text-dim); margin-bottom: 0.4rem; }
+.sp-emoji-gross { font-size: 6.5rem; line-height: 1.1; margin: 0.4rem 0 0.9rem; word-spacing: 0.15em; }
+.sp-emoji-modal { z-index: 930; }
