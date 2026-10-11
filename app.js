@@ -2936,7 +2936,7 @@ function naechsteKarteOderEnde() {
 
 async function zeigeEnde() {
   stoppeAutoTimer();
-  if (spielAktiv) { spielPodium(); return; }   // Spiel: Podest statt Ergebnis-Seite, keine Statistik
+  if (spielAktiv) { spielPodium(true); return; }   // Spiel: Auswertung statt Ergebnis-Seite, keine Statistik
   gebeWakeLockFrei();
   if (!autoRepeat) beendePraesentation();
   await speichereSitzung();
@@ -5945,28 +5945,19 @@ document.addEventListener('click', e => {
 // ============================================================
 
 
-const SPIEL_TROPHAEN = {
-  de: ['Meister:in der Luftschlösser', 'Hüter:in des Goldenen Radiergummis', 'Professor:in für angewandtes Raten',
-       'Ritter:in der verlorenen Layer', 'Königin / König der Fußnoten', 'Ehren-Pixelschubser:in',
-       'Großmeister:in von Strg + Z', 'Flüsterer:in der Maßstabsleiste', 'Kaiser:in der Kantenglättung', 'Bürgermeister:in von Rendering-Town'],
-  en: ['Master of Castles in the Air', 'Keeper of the Golden Eraser', 'Professor of Applied Guessing',
-       'Knight of the Lost Layers', 'Queen / King of Footnotes', 'Honorary Pixel Pusher',
-       'Grandmaster of Ctrl + Z', 'Whisperer of the Scale Bar', 'Emperor of Anti-Aliasing', 'Mayor of Render Town']
-};
-
 function spT() {
   return istEn() ? {
     zweiGleiche: (n, liste) => `Two ${n}s! From now on: ${liste.join(' and ')}`,
     leer: 'No names yet – tap 👥, or type a name when someone scores.',
     btnText: 'Learn together, playfully.',
     praeambel: 'Learn together, playfully. In Dice-Mode the dice roll you through the set.',
-    titel: SPIEL_NAME, hilfe: 'Rules', namen: 'Names', wuerfel: '🎲 Dice-Mode', zeit: 'Countdown', zeitUp: '⏰ Time!', klasse: 'Class', undo: '↶ Undo', auswertung: '🏁 Results',
+    titel: SPIEL_NAME, hilfe: 'Rules', namen: 'Names', wuerfel: '🎲 Dice-Mode', zeit: 'Countdown', zeitUp: '⏰ Time!', klasse: 'Class', undo: '↶ Point back', auswertung: '🏁 Results',
     wer: "Who knew it?", wuerfelFrage: n => `🎲 ${n} – knew it?`, gewusst: n => `✓ ${n}`, hilfeVon: '🤝 with help from…',
     gruppe: '👥 Everyone', niemand: '✗ Nobody', neuName: '＋ Name', neuPh: 'Name', ok: 'OK', passen: '↻ Pass',
     plusBei: n => `+1 ${n}`, plusKlasse: '+1 Class', keinPunkt: 'No point – on to the next card',
     namenTitel: 'Names', namenHinweis: 'One name per line. Nicknames are fine. Tap a name to mark it as absent. If a name already exists, another person is added with an emoji (e.g. Anna 🦊). Nothing is saved.',
     namenPh: 'Anna\nBen\nCem', hinzu: 'Add', fertig: 'Done', zuWenig: 'The dice need at least two names present.',
-    anwesend: 'present', podest: 'Podium', platz: ['🥇', '🥈', '🥉'], keinePunkte: 'Nobody scored – the class did it together!',
+    anwesend: 'present', podest: 'MemoDiver', weiterspielen: '▶ Keep playing', platz: ['🥇', '🥈', '🥉'], keinePunkte: 'Nobody scored – the class did it together!',
     belohnung: '🎁 Reward for everyone', wirMachenWeiter: 'We carry on.',
     belohnungen: [
       'The winners suggest a video that we watch together (5 minutes max).',
@@ -5991,7 +5982,7 @@ function spT() {
       '<strong>🎲 Dice-Mode</strong> calls someone at random (only those marked present). Off: everyone thinks along. <strong>Passing is allowed</strong>, asking for help too – both get the point.',
       '<strong>⏱ Countdown</strong> (30 / 20 / 10 / 5 s) is optional. Off: everyone has time. On: whoever answers within the time can get the point. With Dice-Mode it starts after the roll. At zero the card wiggles – no penalty.',
       '<strong>Whoever holds the device decides:</strong> whether an answer counts and whether there is still a point after “Time!”.',
-      '<strong>↶ Undo</strong> takes back the last point. <strong>Nothing is saved</strong> – closing the game deletes it all.'
+      '<strong>↶ Point back</strong> takes back the last point. <strong>Nothing is saved</strong> – closing the game deletes it all.'
     ],
     losgehts: "Let's go"
   } : {
@@ -5999,13 +5990,13 @@ function spT() {
     leer: 'Noch keine Namen – tippe auf 👥 oder trage beim ersten Punkt einen Namen ein.',
     btnText: 'Lernt gemeinsam spielerisch.',
     praeambel: 'Lernt gemeinsam spielerisch. Im Dice-Mode würfelt ihr euch durchs Set.',
-    titel: SPIEL_NAME, hilfe: 'Regeln', namen: 'Namen', wuerfel: '🎲 Dice-Mode', zeit: 'Countdown', zeitUp: '⏰ Zeit!', klasse: 'Klasse', undo: '↶ Zurück', auswertung: '🏁 Auswertung',
+    titel: SPIEL_NAME, hilfe: 'Regeln', namen: 'Namen', wuerfel: '🎲 Dice-Mode', zeit: 'Countdown', zeitUp: '⏰ Zeit!', klasse: 'Klasse', undo: '↶ Punkt zurück', auswertung: '🏁 Auswertung',
     wer: "Wer hat's gewusst?", wuerfelFrage: n => `🎲 ${n} – gewusst?`, gewusst: n => `✓ ${n}`, hilfeVon: '🤝 mit Hilfe von…',
     gruppe: '👥 Alle', niemand: '✗ Niemand', neuName: '＋ Name', neuPh: 'Name', ok: 'OK', passen: '↻ Passen',
     plusBei: n => `+1 ${n}`, plusKlasse: '+1 Klasse', keinPunkt: 'Kein Punkt – weiter zur nächsten Karte',
     namenTitel: 'Namen', namenHinweis: 'Ein Name pro Zeile, Spitznamen sind okay. Antippen markiert jemanden als abwesend. Gibt es einen Namen schon, wird eine weitere Person mit Emoji angelegt (z. B. Anna 🦊). Nichts wird gespeichert.',
     namenPh: 'Anna\nBen\nCem', hinzu: 'Hinzufügen', fertig: 'Fertig', zuWenig: 'Für den Würfel müssen mindestens zwei Namen anwesend sein.',
-    anwesend: 'da', podest: 'Podest', platz: ['🥇', '🥈', '🥉'], keinePunkte: 'Niemand hat gepunktet – die Klasse hat es gemeinsam geschafft!',
+    anwesend: 'da', podest: 'MemoDiver', weiterspielen: '▶ Weiterspielen', platz: ['🥇', '🥈', '🥉'], keinePunkte: 'Niemand hat gepunktet – die Klasse hat es gemeinsam geschafft!',
     belohnung: '🎁 Belohnung für alle', wirMachenWeiter: 'Wir machen weiter.',
     belohnungen: [
       'Die Gewinner schlagen ein Video vor, das wir gemeinsam anschauen (maximal 5 Minuten).',
@@ -6030,7 +6021,7 @@ function spT() {
       '<strong>🎲 Dice-Mode</strong> ruft zufällig jemanden auf (nur wer als anwesend markiert ist). Aus: alle denken mit. <strong>Passen ist erlaubt</strong>, Hilfe holen auch – beide bekommen den Punkt.',
       '<strong>⏱ Countdown</strong> (30 / 20 / 10 / 5 s) ist freiwillig. Aus: alle haben Zeit. An: Wer in der Zeit antwortet, kann den Punkt bekommen. Mit Dice-Mode startet er nach dem Wurf. Bei null wackelt die Karte – keine Strafe.',
       '<strong>Wer das Gerät in der Hand hat, entscheidet:</strong> ob eine Antwort zählt und ob es nach „Zeit!“ noch einen Punkt gibt.',
-      '<strong>↶ Zurück</strong> nimmt den letzten Punkt zurück. <strong>Nichts wird gespeichert</strong> – beim Schließen ist alles weg.'
+      '<strong>↶ Punkt zurück</strong> nimmt den letzten Punkt zurück. <strong>Nichts wird gespeichert</strong> – beim Schließen ist alles weg.'
     ],
     losgehts: 'Los geht\'s'
   };
@@ -6125,9 +6116,9 @@ function spielStarten() {
   balken.id = 'spiel-zeitbalken'; balken.className = 'spiel-zeitbalken hidden';
   balken.innerHTML = '<div class="sp-fuell"></div>';
   flash.appendChild(balken);
-  const zahl = document.createElement('div');
-  zahl.id = 'spiel-zahl'; zahl.className = 'spiel-zahl hidden';
-  flash.appendChild(zahl);
+  const up = document.createElement('div');
+  up.id = 'spiel-zeitup'; up.className = 'spiel-zeitup hidden'; up.textContent = '⏰';
+  (flash.querySelector('.lern-karte-area') || flash).appendChild(up);
 
   leiste.addEventListener('click', spielKlick);
   panel.addEventListener('click', spielKlick);
@@ -6148,7 +6139,7 @@ function spielAufraeumen() {
   spielZeitStop();
   spiel.zeit = 0;
   document.body.classList.remove('spiel');
-  ['spiel-leiste', 'spiel-wer', 'spiel-banner', 'spiel-zeitbalken', 'spiel-zahl', 'spiel-podium', 'spiel-modal'].forEach(id => document.getElementById(id)?.remove());
+  ['spiel-leiste', 'spiel-wer', 'spiel-banner', 'spiel-zeitbalken', 'spiel-zeitup', 'spiel-podium', 'spiel-modal'].forEach(id => document.getElementById(id)?.remove());
   spiel.namen = []; spiel.verlauf = []; spiel.vergeben = new Set(); spiel.klasse = 0; spiel.aktuell = null;
 }
 
@@ -6162,6 +6153,7 @@ function spielRender() {
     leiste.innerHTML = `
       <div class="sp-kopf"><span class="sp-logo" title="${esc(T.titel)}"><span class="title-memo">Memo</span><span class="title-pix">Dive</span></span>
         <span class="sp-kopf-btns">
+          <span id="sp-kopf-zahl" class="sp-kopf-zahl hidden"></span>
           <button data-sp="zeit" class="sp-zeit-btn${spiel.zeit ? ' aktiv' : ''}" title="${esc(T.zeit)}" aria-label="${esc(T.zeit)}">⏱${spiel.zeit ? ' ' + spiel.zeit : ''}</button>
           <label class="sp-wuerfel" title="${esc(T.wuerfel)}"><input type="checkbox" data-sp="wuerfel"${spiel.wuerfel ? ' checked' : ''}> <span>🎲</span></label>
           <button data-sp="hilfe" title="${esc(T.hilfe)}" aria-label="${esc(T.hilfe)}">?</button>
@@ -6173,7 +6165,7 @@ function spielRender() {
         || `<div class="sp-leer">${esc(T.leer)}</div>`}</div>
       <div class="sp-fuss">
         <span class="sp-klasse">${esc(T.klassenpunkte(spiel.klasse))}</span>
-        <button data-sp="undo"${spiel.verlauf.length ? '' : ' disabled'}>${esc(T.undo)}</button>
+        ${spiel.verlauf.length ? `<button data-sp="undo">${esc(T.undo)}</button>` : ''}
         <button data-sp="auswertung">${esc(T.auswertung)}</button>
       </div>`;
   }
@@ -6188,14 +6180,15 @@ function spielRenderBanner() {
   const zeigen = dice && !nameVisible;
   b.classList.toggle('hidden', !zeigen);
   if (zeigen) b.innerHTML = `<span class="sp-banner-name">🎲 ${esc(spiel.aktuell)}</span><button data-sp="passen">${esc(T.passen)}</button>`;
-  // Countdown-Elemente (Balken oben + Zahl) sichtbar, solange die Vorderseite offen ist
-  const zeit = spiel.zeit > 0 && (spiel.zeitLaeuft || spiel.zeitAbgelaufen) && !nameVisible;
-  document.getElementById('spiel-zeitbalken')?.classList.toggle('hidden', !zeit);
-  document.getElementById('spiel-zahl')?.classList.toggle('hidden', !zeit);
-  if (zeit) spielZeitAnzeige();
+  // Countdown: Balken oben, Zahl in der Kopfzeile, nach Ablauf ⏰ in der Mitte
+  const aktiv = spiel.zeit > 0 && (spiel.zeitLaeuft || spiel.zeitAbgelaufen) && !nameVisible;
+  document.getElementById('spiel-zeitbalken')?.classList.toggle('hidden', !aktiv);
+  const up = document.getElementById('spiel-zeitup');
+  if (up) up.classList.toggle('hidden', !(aktiv && spiel.zeitAbgelaufen));
+  spielZeitAnzeige();
 }
 
-// ── Countdown (nur Zahl, Ring und Farbe – kein Ton) ──────────
+// ── Countdown (nur Zahl, Balken und Farbe – kein Ton) ────────
 function spielZeitStop() {
   clearInterval(spiel.zeitTimer);
   spiel.zeitLaeuft = false; spiel.zeitAbgelaufen = false;
@@ -6203,7 +6196,8 @@ function spielZeitStop() {
   k?.classList.remove('sp-zeitrand', 'sp-warn', 'sp-wackeln', 'sp-blink');
   k?.style.removeProperty('--sp-rand');
   document.getElementById('spiel-zeitbalken')?.classList.add('hidden');
-  document.getElementById('spiel-zahl')?.classList.add('hidden');
+  document.getElementById('spiel-zeitup')?.classList.add('hidden');
+  const z = document.getElementById('sp-kopf-zahl'); if (z) { z.textContent = ''; z.classList.add('hidden'); }
 }
 function spielZeitStart() {
   spielZeitStop();
@@ -6215,25 +6209,26 @@ function spielZeitStart() {
   spiel.zeitTimer = setInterval(spielZeitTick, 100);
 }
 function spielZeitAnzeige() {
-  const fill = document.querySelector('#spiel-zeitbalken .sp-fuell'), zahl = document.getElementById('spiel-zahl');
+  const fill = document.querySelector('#spiel-zeitbalken .sp-fuell');
   const bar = document.getElementById('spiel-zeitbalken');
+  const zahl = document.getElementById('sp-kopf-zahl');
   const k = document.getElementById('lernkarte');
+  if (!spiel.zeitLaeuft && !spiel.zeitAbgelaufen) { if (zahl) { zahl.textContent = ''; zahl.classList.add('hidden'); } return; }
   if (spiel.zeitAbgelaufen) {
-    if (zahl) { zahl.textContent = spT().zeitUp; zahl.classList.add('sp-ende'); }
-    if (fill) { fill.style.width = '0%'; }
+    if (zahl) { zahl.textContent = '0'; zahl.style.color = '#ff6b6b'; zahl.classList.remove('hidden'); }
+    if (fill) fill.style.width = '0%';
     bar?.classList.remove('sp-warn');
     return;
   }
   const rest = Math.max(0, spiel.zeitEnde - Date.now());
   const anteil = spiel.zeit ? rest / (spiel.zeit * 1000) : 0;
   const farbe = anteil > 0.5 ? '#5fd38d' : anteil > 0.25 ? '#ffb454' : '#ff6b6b';
-  if (zahl) { zahl.textContent = String(Math.ceil(rest / 1000)); zahl.classList.remove('sp-ende'); zahl.style.color = farbe; }
+  if (zahl) { zahl.textContent = String(Math.ceil(rest / 1000)); zahl.style.color = farbe; zahl.classList.remove('hidden'); zahl.classList.toggle('sp-puls', rest <= 3000); }
   if (fill) { fill.style.width = (anteil * 100).toFixed(1) + '%'; fill.style.background = farbe; }
   bar?.classList.toggle('sp-warn', rest <= 5000 && anteil <= 0.25);
   if (k) {
     k.style.setProperty('--sp-rand', farbe);
     k.classList.toggle('sp-warn', rest <= 5000 && anteil <= 0.25);
-    zahl?.classList.toggle('sp-puls', rest <= 3000);
   }
 }
 function spielZeitTick() {
@@ -6444,53 +6439,56 @@ function spielNamen(hinweis, wuerfelStarten) {
 }
 
 // ── Podest ───────────────────────────────────────────────────
-function spielPodium() {
+function spielPodium(amEnde) {
   const T = spT();
+  const mitteImSpiel = !amEnde;
   clearInterval(spiel.rollTimer);
   spielZeitStop();
   const mitPunkten = spiel.namen.filter(e => e.punkte > 0);
   const stufen = [...new Set(mitPunkten.map(e => e.punkte))].sort((a, b) => b - a).slice(0, 3);
-  const trophae = (SPIEL_TROPHAEN[istEn() ? 'en' : 'de'])[Math.floor(Math.random() * SPIEL_TROPHAEN.de.length)];
   const html = stufen.length ? `<div class="sp-podest">${stufen.map((p, i) => {
       const namen = mitPunkten.filter(e => e.punkte === p).map(e => e.name).sort();
       return `<div class="sp-platz sp-platz-${i + 1}"><div class="sp-medaille">${T.platz[i]}</div>
         <div class="sp-platz-namen">${namen.map(esc).join('<br>')}</div><div class="sp-platz-pkt">${p}</div></div>`;
     }).join('')}</div>
-    <div class="sp-trophae">🏆 ${esc(trophae)}</div>` : `<p class="sp-keine">${esc(T.keinePunkte)}</p>`;
+    ` : `<p class="sp-keine">${esc(T.keinePunkte)}</p>`;
   document.getElementById('spiel-podium')?.remove();
   const el = document.createElement('div');
   el.id = 'spiel-podium'; el.className = 'spiel-podium';
   el.innerHTML = `<div class="spiel-podium-box">
-      <h2>${esc(T.podest)}</h2>${html}
+      <h2><span class="title-memo">Memo</span><span class="title-pix">Diver</span></h2>${html}
       <p class="sp-klasse-gross">${esc(T.klassenpunkte(spiel.klasse))}</p>
       <div id="sp-belohnung" class="sp-belohnung"><button class="btn-secondary sp-belohnung-btn" data-x="belohnung">${esc(T.belohnung)}</button></div>
-      <div class="sp-modal-btns"><button class="btn-secondary" data-x="neu">${esc(T.neueRunde)}</button>
+      <div class="sp-modal-btns">${mitteImSpiel ? `<button class="btn-secondary" data-x="weiter">${esc(T.weiterspielen)}</button>` : ''}
+        <button class="btn-secondary" data-x="neu">${esc(T.neueRunde)}</button>
         <button class="btn-primary" data-x="ende">${esc(T.beenden)}</button></div></div>`;
   document.body.appendChild(el);
   el.addEventListener('click', e => {
     const x = e.target.closest('[data-x]')?.dataset.x;
     if (x === 'belohnung') {
-      // Jeder Tipp zeigt die nächste Idee (1, 2, 3), danach „Wir machen weiter.“
-      if (!el._bel) el._bel = { pool: [...T.belohnungen].sort(() => Math.random() - 0.5).slice(0, 3), i: 0 };
+      // 1/3 und 2/3: Ideen, 3/3: „Wir machen weiter.“
+      if (!el._bel) el._bel = { pool: [...T.belohnungen].sort(() => Math.random() - 0.5).slice(0, 2), i: 0 };
       const st = el._bel;
       const box = el.querySelector('#sp-belohnung');
       const btn = box.querySelector('[data-x="belohnung"]');
       const anzeige = box.querySelector('.sp-idee') || box.insertAdjacentElement('afterbegin', Object.assign(document.createElement('div'), { className: 'sp-idee' }));
-      if (st.i < 3) {
+      if (st.i < 2) {
         const text = st.pool[st.i];
         const hatVideo = text === T.belohnungen[0];
-        anzeige.innerHTML = `<div class="sp-idee-nr">${st.i + 1}</div><div class="sp-idee-text">${esc(text)}</div>
+        anzeige.innerHTML = `<div class="sp-idee-nr">${st.i + 1}/3</div><div class="sp-idee-text">${esc(text)}</div>
           ${hatVideo ? `<div class="sp-video"><input id="sp-stichwort" type="text" maxlength="60" placeholder="${esc(T.stichwort)}">
             <button class="btn-secondary" data-x="video">${esc(T.video)}</button></div>` : ''}`;
-        st.i++;
       } else {
-        anzeige.innerHTML = `<div class="sp-idee-text sp-weiter">${esc(T.wirMachenWeiter)}</div>`;
-        st.i++;
+        anzeige.innerHTML = `<div class="sp-idee-nr">3/3</div><div class="sp-idee-text sp-weiter">${esc(T.wirMachenWeiter)}</div>`;
         btn.remove();
       }
+      st.i++;
     } else if (x === 'video') {
       const q = el.querySelector('#sp-stichwort')?.value.trim();
       if (q) window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(q), '_blank', 'noopener');
+    } else if (x === 'weiter') {
+      el.remove();
+      spielRender();
     } else if (x === 'neu') {
       spiel.namen.forEach(n => { n.punkte = 0; n.gewuerfelt = false; });
       spiel.klasse = 0; spiel.verlauf = []; spiel.vergeben = new Set(); spiel.aktuell = null;

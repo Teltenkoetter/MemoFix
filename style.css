@@ -2398,3 +2398,23 @@ body.spiel #lernkarte.sp-warn { animation: sp-puls 0.7s ease-in-out infinite; }
 .btn-spiel-karte { flex-wrap: nowrap; align-items: center; padding: 0.7rem 0.8rem; gap: 0.6rem; }
 .btn-spiel-karte .bsk-titel { white-space: nowrap; flex: 0 0 auto; }
 .btn-spiel-karte .bsk-text { flex: 1 1 auto; min-width: 0; font-size: 0.76rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── MemoDive: Zahl neben ⏱, ⏰ in der Mitte, Doppeltipp-Zoom aus ── */
+.sp-kopf-zahl {
+  min-width: 1.6em; text-align: center; font-size: 1.5rem; font-weight: 800; line-height: 1;
+  font-variant-numeric: tabular-nums; text-shadow: none;
+}
+.sp-kopf-zahl.hidden { display: none; }
+.sp-kopf-zahl.sp-puls { animation: sp-zahl-puls 0.5s ease-in-out infinite; }
+.spiel-zahl { display: none !important; }
+.spiel-zeitup {
+  position: absolute; inset: 0; z-index: 32; display: flex; align-items: center; justify-content: center;
+  font-size: 7rem; line-height: 1; pointer-events: none; animation: sp-zeitup 0.6s ease-out 1;
+}
+.spiel-zeitup.hidden { display: none; }
+@keyframes sp-zeitup { 0% { transform: scale(0.3) rotate(-20deg); opacity: 0; } 60% { transform: scale(1.15) rotate(8deg); opacity: 1; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+body.spiel, body.spiel * { touch-action: manipulation; }
+.spiel-podium-box h2 { font-size: 1.6rem; }
+.spiel-podium-box h2 .title-memo { font-weight: 700; }
+.spiel-podium-box h2 .title-pix { font-weight: 300; color: var(--text-dim); }
+.sp-modal-btns { flex-wrap: wrap; }
