@@ -2542,3 +2542,12 @@ body.spiel #lernkarte.sp-wackeln { box-shadow: none !important; }
 .sp-emoji-titel { font-size: 1.1rem; color: var(--text-dim); margin-bottom: 0.4rem; }
 .sp-emoji-gross { font-size: 6.5rem; line-height: 1.1; margin: 0.4rem 0 0.9rem; word-spacing: 0.15em; }
 .sp-emoji-modal { z-index: 930; }
+
+/* ── Feinschliff: feste Breite, keine Textauswahl, ausgegrautes ↶ ── */
+.sp-led { min-width: 3.6em !important; display: inline-block; }
+.sp-led-btn { min-width: 9.4em; justify-content: center; }
+body.spiel, body.spiel * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+body.spiel input, body.spiel textarea { -webkit-user-select: text; user-select: text; }
+.sp-hud-btn.sp-grau, .sp-hud-btn:disabled { opacity: 0.3; pointer-events: none; }
+.sp-menue-btns { flex-wrap: wrap; justify-content: center; }
+#spiel-menue { z-index: 925; }

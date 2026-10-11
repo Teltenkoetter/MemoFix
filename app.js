@@ -5948,6 +5948,7 @@ document.addEventListener('click', e => {
 function spT() {
   return istEn() ? {
     zweiGleiche: (n, liste) => `Two ${n}s! From now on: ${liste.join(' and ')}`,
+    umbenennen: '✎ Rename', entfernen: '🗑 Remove', abbr: 'Cancel', punkteUebertragen: n => `${n} point${n !== 1 ? 's' : ''} – give to:`, verwerfen: 'Discard points', entfernenFrage: n => `Remove “${n}”?`,
     dasBistDu: 'That is you!', anderes: '↻ Another', weiterGehts: 'On we go', eureTiere: 'Your animals', beendenFrage: 'End the game? The points will be lost.',
     unsere: 'Our', neuName2: '＋ Name', emojiSp: '＋ 🙂', einfuegen: '📋 Paste list', fuenf: '＋5 🙂', punkteK: 'Class',
     tasteOk: 'OK', tasteAbbr: 'Cancel', tasteTitel: 'Name', leerzeichen: 'Space', einfuegenFehl: 'Pasting is not allowed here – paste into the field below.',
@@ -5983,14 +5984,15 @@ function spT() {
       'Is the answer right? Tap <strong>Who knew it?</strong> → +1 point. If not: <strong>✗ Nobody</strong> – no minus points, on to the next card.',
       '<strong>👥 Everyone</strong> = the whole group knew it → class point.',
       '<strong>🎲 Dice-Mode</strong> calls someone at random (only those marked present). Off: everyone thinks along. <strong>Passing is allowed</strong>, asking for help too – both get the point.',
-      '<strong>⏱ Countdown</strong> (30 / 20 / 10 / 5 s) is optional. Off: everyone has time. On: whoever answers within the time can get the point. With Dice-Mode it starts after the roll. At zero the card wiggles – no penalty.',
+      '<strong>⏱ Countdown</strong> (30 / 20 / 10 / 5 s) is optional. Off: everyone has time. On: whoever answers within the time can get the point. With Dice-Mode it starts after the roll. A tap on the time ends it right away. At zero the card wiggles – no penalty.',
       '<strong>Whoever holds the device decides:</strong> whether an answer counts and whether there is still a point after “Time!”.',
-      '<strong>Names:</strong> type them with the on-screen keyboard, add an <strong>emoji player</strong> with one tap (no typing), or paste a list.',
-      '<strong>↶ Point back</strong> takes back the last point. <strong>Nothing is saved</strong> – closing the game deletes it all.'
+      '<strong>Names:</strong> type them with the on-screen keyboard, add an <strong>emoji player</strong> with one tap (no typing), or paste a list. <strong>Press a name for a moment</strong> to rename or remove it – its points can be passed on.',
+      '<strong>↶ Point back</strong> takes back the last point (active on the back of a card). <strong>Nothing is saved</strong> – closing the game deletes it all.'
     ],
     losgehts: "Let's go"
   } : {
     zweiGleiche: (n, liste) => `Zweimal ${n}! Ab jetzt: ${liste.join(' und ')}`,
+    umbenennen: '✎ Umbenennen', entfernen: '🗑 Entfernen', abbr: 'Abbrechen', punkteUebertragen: n => `${n} Punkt${n !== 1 ? 'e' : ''} – übertragen an:`, verwerfen: 'Punkte verwerfen', entfernenFrage: n => `„${n}“ entfernen?`,
     dasBistDu: 'Das bist du!', anderes: '↻ Anderes', weiterGehts: 'Weiter geht\'s', eureTiere: 'Eure Tiere', beendenFrage: 'Spiel beenden? Die Punkte gehen verloren.',
     unsere: 'Unsere', neuName2: '＋ Name', emojiSp: '＋ 🙂', einfuegen: '📋 Liste einfügen', fuenf: '＋5 🙂', punkteK: 'Klasse',
     tasteOk: 'OK', tasteAbbr: 'Abbrechen', tasteTitel: 'Name', leerzeichen: 'Leerzeichen', einfuegenFehl: 'Einfügen ist hier nicht erlaubt – bitte ins Feld darunter einfügen.',
@@ -6026,10 +6028,10 @@ function spT() {
       'Stimmt die Antwort? Tippe <strong>Wer hat\'s gewusst?</strong> → +1 Punkt. Wenn nicht: <strong>✗ Niemand</strong> – keine Minuspunkte, weiter zur nächsten Karte.',
       '<strong>👥 Alle</strong> = die ganze Gruppe wusste es → Klassenpunkt.',
       '<strong>🎲 Dice-Mode</strong> ruft zufällig jemanden auf (nur wer als anwesend markiert ist). Aus: alle denken mit. <strong>Passen ist erlaubt</strong>, Hilfe holen auch – beide bekommen den Punkt.',
-      '<strong>⏱ Countdown</strong> (30 / 20 / 10 / 5 s) ist freiwillig. Aus: alle haben Zeit. An: Wer in der Zeit antwortet, kann den Punkt bekommen. Mit Dice-Mode startet er nach dem Wurf. Bei null wackelt die Karte – keine Strafe.',
+      '<strong>⏱ Countdown</strong> (30 / 20 / 10 / 5 s) ist freiwillig. Aus: alle haben Zeit. An: Wer in der Zeit antwortet, kann den Punkt bekommen. Mit Dice-Mode startet er nach dem Wurf. Ein Tipp auf die Zeit beendet ihn sofort. Bei null wackelt die Karte – keine Strafe.',
       '<strong>Wer das Gerät in der Hand hat, entscheidet:</strong> ob eine Antwort zählt und ob es nach „Zeit!“ noch einen Punkt gibt.',
-      '<strong>Namen:</strong> mit der Bildschirm-Tastatur tippen, mit einem Tipp eine <strong>Emoji-Person</strong> anlegen (ohne Tippen) oder eine Liste einfügen.',
-      '<strong>↶ Punkt zurück</strong> nimmt den letzten Punkt zurück. <strong>Nichts wird gespeichert</strong> – beim Schließen ist alles weg.'
+      '<strong>Namen:</strong> mit der Bildschirm-Tastatur tippen, mit einem Tipp eine <strong>Emoji-Person</strong> anlegen (ohne Tippen) oder eine Liste einfügen. <strong>Einen Namen kurz gedrückt halten</strong> zum Umbenennen oder Entfernen – die Punkte lassen sich übertragen.',
+      '<strong>↶ Punkt zurück</strong> nimmt den letzten Punkt zurück (aktiv auf der Rückseite einer Karte). <strong>Nichts wird gespeichert</strong> – beim Schließen ist alles weg.'
     ],
     losgehts: 'Los geht\'s'
   };
@@ -6166,7 +6168,7 @@ function spielAufraeumen() {
   spielZeitStop();
   spiel.zeit = 0;
   document.body.classList.remove('spiel');
-  ['spiel-hud', 'spiel-wer', 'spiel-banner', 'spiel-zeitbalken', 'spiel-tron', 'spiel-podium', 'spiel-modal', 'spiel-kb', 'spiel-emoji'].forEach(id => document.getElementById(id)?.remove());
+  ['spiel-hud', 'spiel-wer', 'spiel-banner', 'spiel-zeitbalken', 'spiel-tron', 'spiel-podium', 'spiel-modal', 'spiel-kb', 'spiel-emoji', 'spiel-menue'].forEach(id => document.getElementById(id)?.remove());
   spiel.namen = []; spiel.verlauf = []; spiel.vergeben = new Set(); spiel.klasse = 0; spiel.aktuell = null;
 }
 
@@ -6188,7 +6190,7 @@ function spielRender() {
       </div>
       <div class="sp-hud-r">
         <span class="sp-klasse-chip">${esc(T.punkteK)} ${spiel.klasse}</span>
-        ${spiel.verlauf.length ? `<button data-sp="undo" class="sp-hud-btn sp-rund" title="${esc(T.undo)}" aria-label="${esc(T.undo)}">↶</button>` : ''}
+        ${spiel.verlauf.length ? `<button data-sp="undo" class="sp-hud-btn sp-rund${nameVisible ? '' : ' sp-grau'}" ${nameVisible ? '' : 'disabled'} title="${esc(T.undo)}" aria-label="${esc(T.undo)}">↶</button>` : ''}
         <button data-sp="auswertung" class="sp-hud-btn">${esc(T.auswertung)}</button>
         <button data-sp="hilfe" class="sp-hud-btn sp-rund" title="${esc(T.hilfe)}" aria-label="${esc(T.hilfe)}">?</button>
         <button data-sp="namen" class="sp-hud-btn sp-rund" title="${esc(T.namen)}" aria-label="${esc(T.namen)}">👥</button>
@@ -6247,19 +6249,19 @@ function spielZeitAnzeige() {
     if (zeigen) tron.textContent = mmss(sek);
   }
 }
+function spielZeitAbgelaufen() {
+  clearInterval(spiel.zeitTimer);
+  spiel.zeitLaeuft = false; spiel.zeitAbgelaufen = true;
+  const k = document.getElementById('lernkarte');
+  const ruhig = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  k?.classList.add(ruhig ? 'sp-blink' : 'sp-wackeln');
+  setTimeout(() => k?.classList.remove('sp-wackeln', 'sp-blink'), 650);
+  spielRenderBanner();
+  spielZeitAnzeige();
+}
 function spielZeitTick() {
   if (!spielAktiv || nameVisible) { spielZeitStop(); spielRenderBanner(); return; }
-  if (Date.now() >= spiel.zeitEnde) {
-    clearInterval(spiel.zeitTimer);
-    spiel.zeitLaeuft = false; spiel.zeitAbgelaufen = true;
-    const k = document.getElementById('lernkarte');
-    const ruhig = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    k?.classList.add(ruhig ? 'sp-blink' : 'sp-wackeln');
-    setTimeout(() => k?.classList.remove('sp-wackeln', 'sp-blink'), 650);
-    spielRenderBanner();
-    spielZeitAnzeige();
-    return;
-  }
+  if (Date.now() >= spiel.zeitEnde) { spielZeitAbgelaufen(); return; }
   spielZeitAnzeige();
 }
 
@@ -6369,6 +6371,8 @@ function spielKlick(e) {
     spiel.wuerfel = an;
     spiel.aktuell = null;
     if (an && !nameVisible) spielWuerfeln(); else spielRender();
+  } else if (a === 'zeit' && spiel.zeitLaeuft) {
+    spielZeitAbgelaufen();        // Countdown läuft: Tipp auf die Zahl beendet ihn sofort
   } else if (a === 'zeit') {
     const i = SPIEL_ZEITEN.indexOf(spiel.zeit);
     spiel.zeit = SPIEL_ZEITEN[(i + 1) % SPIEL_ZEITEN.length];
@@ -6511,10 +6515,11 @@ function spielNamen(hinweis, wuerfelStarten) {
       `<button class="sp-chip${e.da ? '' : ' sp-aus'}" data-name="${esc(e.name)}">${esc(e.name)}${e.punkte ? `<span class="sp-chip-pkt">${e.punkte}</span>` : ''}${e.da ? '' : ' · ✗'}</button>`).join('');
   };
   const tippen = () => spielTastatur(T.tasteTitel, '', t => { spielNeuePerson(t); zeichne(); }, { mehrfach: true });
+  m.addEventListener('sp-neu', zeichne);
   zeichne();
   m.addEventListener('click', async ev => {
     const chip = ev.target.closest('#sp-namen-liste [data-name]');
-    if (chip) { const e = spielFinde(chip.dataset.name); if (e) { e.da = !e.da; zeichne(); } return; }
+    if (chip) { const e = spielFinde(chip.dataset.name); if (e) { e.da = !e.da; zeichne(); } return; }   // (langes Drücken: Menü)
     const x = ev.target.closest('[data-x]')?.dataset.x;
     if (x === 'tippen') tippen();
     else if (x === 'emoji') spielEmojiZeigen(em => { spielEmojiPersonMit(em); zeichne(); });
@@ -6592,7 +6597,13 @@ function spielPodium(amEnde) {
       if (q) window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(q), '_blank', 'noopener');
     } else if (x === 'weiter') {
       el.remove();
-      spielRender();
+      if (nameVisible) {                       // Auswertung kam von einer Rückseite -> nächste Vorderseite
+        const s_ = lernKarten[lernIndex];
+        if (s_) spiel.vergeben.add(s_.id);
+        if (aktuelleWertung === 'gewusst') document.getElementById('lern-feedback').click();
+        if (lernIndex < lernKarten.length - 1) { stoppeAutoTimer(); lernIndex++; zeigeKarte(); }
+        else naechsteKarteOderEnde();
+      } else spielRender();
     } else if (x === 'neu') {
       spiel.namen.forEach(n => { n.punkte = 0; n.gewuerfelt = false; });
       spiel.klasse = 0; spiel.verlauf = []; spiel.vergeben = new Set(); spiel.aktuell = null;
@@ -6608,3 +6619,87 @@ function spielPodium(amEnde) {
 document.addEventListener('keydown', e => {
   if (spielAktiv && e.target?.id === 'sp-stichwort') e.stopPropagation();
 }, true);
+
+// ── Lang drücken auf einen Namen: umbenennen oder entfernen (Punkte können übertragen werden) ──
+function spielPersonMenue(name) {
+  const T = spT();
+  const e = spielFinde(name); if (!e) return;
+  document.getElementById('spiel-menue')?.remove();
+  const m = document.createElement('div');
+  m.id = 'spiel-menue'; m.className = 'spiel-modal sp-emoji-modal';
+  m.innerHTML = `<div class="spiel-modal-box sp-emoji-box">
+    <div class="sp-emoji-titel">${esc(e.name)}${e.punkte ? ` · ${e.punkte}` : ''}</div>
+    <div class="sp-modal-btns sp-menue-btns">
+      <button class="btn-secondary" data-x="umb">${esc(T.umbenennen)}</button>
+      <button class="btn-secondary" data-x="weg">${esc(T.entfernen)}</button>
+      <button class="btn-secondary" data-x="zu">${esc(T.abbr)}</button></div></div>`;
+  document.body.appendChild(m);
+  const schliesse = () => m.remove();
+  const nachAenderung = () => { spielRender(); if (document.getElementById('spiel-modal')) { /* Namensdialog neu zeichnen */ document.getElementById('spiel-modal').dispatchEvent(new Event('sp-neu')); } };
+  m.addEventListener('click', ev => {
+    const x = ev.target.closest('[data-x]')?.dataset.x;
+    if (ev.target === m || x === 'zu') { schliesse(); return; }
+    if (x === 'umb') {
+      schliesse();
+      spielTastatur(T.tasteTitel, e.name, neu => {
+        const ziel = spielFinde(neu);
+        if (ziel && ziel !== e) {                 // gibt es schon: Personen zusammenführen
+          ziel.punkte += e.punkte;
+          spiel.verlauf.forEach(v => { v.namen = v.namen.map(n => n === e.name ? ziel.name : n); });
+          spiel.namen = spiel.namen.filter(n => n !== e);
+        } else spielUmbenennen(e, neu);
+        nachAenderung();
+      });
+    } else if (x === 'weg') {
+      const andere = spielNamenDa().filter(n => n !== e);
+      if (!e.punkte || !andere.length && !e.punkte) { entfernePerson(e, null); schliesse(); nachAenderung(); return; }
+      // Punkte übertragen: an vorhandene Person, neuen Namen oder verwerfen
+      m.querySelector('.spiel-modal-box').innerHTML = `<div class="sp-emoji-titel">${esc(T.punkteUebertragen(e.punkte))}</div>
+        <div class="sp-chips sp-chips-zwei">${andere.map(n => `<button class="sp-chip" data-x="an" data-name="${esc(n.name)}">${esc(n.name)}</button>`).join('')}
+          <button class="sp-chip sp-chip-neu" data-x="neuer">${esc(T.neuName2)}</button>
+          <button class="sp-chip sp-chip-nein" data-x="verwerfen">${esc(T.verwerfen)}</button>
+          <button class="sp-chip" data-x="zu">${esc(T.abbr)}</button></div>`;
+    } else if (x === 'an') {
+      entfernePerson(e, ev.target.closest('[data-name]').dataset.name); schliesse(); nachAenderung();
+    } else if (x === 'verwerfen') {
+      entfernePerson(e, null); schliesse(); nachAenderung();
+    } else if (x === 'neuer') {
+      schliesse();
+      spielTastatur(T.tasteTitel, '', t => { const p = spielNeuePerson(t); if (p) entfernePerson(e, p.name); nachAenderung(); });
+    }
+  });
+}
+function entfernePerson(e, zielName) {
+  const ziel = zielName ? spielFinde(zielName) : null;
+  if (ziel) { ziel.punkte += e.punkte; }
+  spiel.verlauf.forEach(v => { v.namen = ziel ? v.namen.map(n => n === e.name ? ziel.name : n) : v.namen.filter(n => n !== e.name); });
+  if (spiel.aktuell === e.name) spiel.aktuell = null;
+  spiel.namen = spiel.namen.filter(n => n !== e);
+}
+// Lang drücken (≈ 0,55 s) auf einen Namens-Chip
+(function () {
+  let timer = 0, startX = 0, startY = 0, unterdrueckeKlick = false;
+  const abbrechen = () => { clearTimeout(timer); timer = 0; };
+  document.addEventListener('pointerdown', ev => {
+    if (!spielAktiv) return;
+    unterdrueckeKlick = false;
+    const chip = ev.target.closest?.('.sp-chip[data-name]');
+    if (!chip) return;
+    startX = ev.clientX; startY = ev.clientY;
+    abbrechen();
+    timer = setTimeout(() => {
+      timer = 0; unterdrueckeKlick = true;
+      setTimeout(() => { unterdrueckeKlick = false; }, 1200);
+      if (navigator.vibrate) { try { navigator.vibrate(15); } catch (_) {} }
+      spielPersonMenue(chip.dataset.name);
+    }, 550);
+  }, true);
+  document.addEventListener('pointermove', ev => {
+    if (timer && (Math.abs(ev.clientX - startX) > 10 || Math.abs(ev.clientY - startY) > 10)) abbrechen();
+  }, true);
+  ['pointerup', 'pointercancel'].forEach(t => document.addEventListener(t, abbrechen, true));
+  document.addEventListener('click', ev => {         // der Klick nach einem langen Druck zählt nicht als Punkt
+    if (unterdrueckeKlick) { unterdrueckeKlick = false; ev.stopPropagation(); ev.preventDefault(); }
+  }, true);
+  document.addEventListener('contextmenu', ev => { if (spielAktiv) ev.preventDefault(); });
+})();
