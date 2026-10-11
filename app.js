@@ -748,7 +748,8 @@ function getHelpHtml() {
       ['🚦', '<strong>Course set status</strong> — ● red: not loaded yet · ✓ green: up to date · ↻ orange: update available (tap "Update" or "Update all") · learning progress and favorites are kept · cards you changed yourself or that were removed from the set: you are asked first · offline the last known status stays visible'],
       ['💾', '<strong>Back up regularly</strong> — Cards live only on this device (no sync between devices) · BACKUP → Export · "Clear browser data" deletes everything'],
       ['🔄', '<strong>After an update</strong> — close the app completely and open it again, otherwise you may still see the old version'],
-      ['🎬', '<strong>Intro video</strong> — <a href="#" data-video-open="BwfoIW-zeCE" data-videotitel="MemoFix – Introduction">Watch the short video</a> · <a href="https://www.designstrategies.org/memofix-einfuhrung/" target="_blank" rel="noopener">Watch it on the website</a>'],
+      ['🎬', '<strong>Intro video</strong> — <a href="#" data-video-open="BwfoIW-zeCE" data-videotitel="MemoFix – Introduction" data-videoformat="hochkant">Watch the short video</a>'],
+      ['🌐', '<strong>Website</strong> — <a href="https://www.designstrategies.org" target="_blank" rel="noopener">designstrategies.org</a>'],
     ]},
     { title: '🎴 Learning mode', rows: [
       ['🖼️', '<strong>Photo card: Image → Term</strong> — See the image, recall the term · Tap the card → it flips → term appears'],
@@ -765,6 +766,7 @@ function getHelpHtml() {
       ['⭐', '<strong>Favourites</strong> — Tap the star to mark a card as favourite · export as Favourites group under BACKUP'],
       ['🤏', '<strong>Zoom photos</strong> — Pinch with two fingers to zoom into a photo (also photos on the back of term cards) · drag with two fingers to pan · double-tap to reset'],
       ['⛶', '<strong>Fullscreen 16:9</strong> — Button next to "Start learning": runs your selection full-screen on a 16:9 stage with large type, no menus · ideal for projectors and oral exams · tap = reveal / next, swipe = back · ✕ ends it · real fullscreen works on iPad, not on iPhone (there the bars are hidden instead — best as home-screen app, rotate to landscape)'],
+      ['🎲', '<strong>Game</strong> — Button "🎲 Game" under "Start learning": the same stage with a score column · the group reveals a card, then you tap <em>Who knew it?</em> · +1 point · no minus points, nothing is saved · ? in the game shows the short rules'],
       ['🗣️', '<strong>Discuss with Claude</strong> — Send the current card, or your whole selection, to Claude for a deeper conversation about the topic · copies to clipboard and opens claude.ai in a new tab'],
     ]},
     { title: '⚙️ Manage', rows: [
@@ -804,7 +806,8 @@ function getHelpHtml() {
       ['🚦', '<strong>Kursset-Status</strong> — ● rot: noch nicht geladen · ✓ grün: aktuell · ↻ orange: Update verfügbar (auf „Aktualisieren" oder „Alle aktualisieren" tippen) · Lernstand und Favoriten bleiben erhalten · selbst geänderte oder im Set entfallene Karten: es wird vorher nachgefragt · offline bleibt der letzte bekannte Status sichtbar'],
       ['💾', '<strong>Regelmäßig sichern</strong> — Karten liegen nur auf diesem Gerät (kein Abgleich zwischen Geräten) · SICHERUNG → Exportieren · „Browserdaten löschen" entfernt alles'],
       ['🔄', '<strong>Nach einem Update</strong> — App komplett schließen und neu öffnen, sonst siehst du eventuell noch die alte Version'],
-      ['🎬', '<strong>Einführungsvideo</strong> — <a href="#" data-video-open="BwfoIW-zeCE" data-videotitel="MemoFix – Einführung">Kurzes Video ansehen</a> · <a href="https://www.designstrategies.org/memofix-einfuhrung/" target="_blank" rel="noopener">Auf der Website ansehen</a>'],
+      ['🎬', '<strong>Einführungsvideo</strong> — <a href="#" data-video-open="BwfoIW-zeCE" data-videotitel="MemoFix – Einführung" data-videoformat="hochkant">Kurzes Video ansehen</a>'],
+      ['🌐', '<strong>Website</strong> — <a href="https://www.designstrategies.org" target="_blank" rel="noopener">designstrategies.org</a>'],
     ]},
     { title: '🎴 Lernmodus', rows: [
       ['🖼️', '<strong>Foto-Karte: Bild → Begriff</strong> — Bild sehen, Begriff erinnern · Karte antippen → dreht sich um → Begriff erscheint'],
@@ -821,6 +824,7 @@ function getHelpHtml() {
       ['⭐', '<strong>Favoriten</strong> — Stern antippen markiert eine Karte als Favorit · unter SICHERUNG gezielt als Favoriten-Gruppe exportieren'],
       ['🤏', '<strong>Fotos zoomen</strong> — mit zwei Fingern in ein Foto hineinzoomen (auch bei Fotos auf der Rückseite von Begriff-Karten) · mit zwei Fingern verschieben · Doppeltipp setzt den Zoom zurück'],
       ['⛶', '<strong>Fullscreen 16:9</strong> — Button neben „Lernen starten": zeigt deine Auswahl im Vollbild auf einer 16:9-Bühne mit großer Schrift, ohne Menüs · ideal für Beamer und Prüfungsgespräche · Tippen = aufdecken / weiter, Wischen = zurück · ✕ beendet · Vollbild geht auf dem iPad, auf dem iPhone nicht (dort werden stattdessen alle Leisten ausgeblendet — am besten als Home-Bildschirm-App, Handy quer halten)'],
+      ['🎲', '<strong>Spiel</strong> — Button „🎲 Spiel" unter „Lernen starten": dieselbe Bühne mit Punktespalte · die Gruppe deckt eine Karte auf, du tippst <em>Wer hat\'s gewusst?</em> · +1 Punkt · keine Minuspunkte, nichts wird gespeichert · ? im Spiel zeigt die kurzen Regeln'],
       ['🗣️', '<strong>Mit Claude besprechen</strong> — aktuelle Karte oder die ganze Auswahl an Claude übergeben, um das Thema im Gespräch zu vertiefen · kopiert in die Zwischenablage und öffnet claude.ai in neuem Tab'],
     ]},
     { title: '⚙️ Verwaltung', rows: [
@@ -1083,7 +1087,7 @@ function showVideo(elId, s) {
   if (!s?.videoId) { el.classList.add('hidden'); el.innerHTML = ''; return; }
   if (s.videoTitel) {
     // Embedding erlaubt → Inline-Player
-    el.innerHTML = `<button class="video-play-btn" data-videoid="${esc(s.videoId)}" data-videotitel="${esc(s.videoTitel)}"><span class="video-play-btn-icon">▶</span><span class="video-play-btn-label">${esc(s.videoTitel)}</span></button>`;
+    el.innerHTML = `<button class="video-play-btn" data-videoid="${esc(s.videoId)}" data-videotitel="${esc(s.videoTitel)}"${s.videoFormat ? ` data-videoformat="${esc(s.videoFormat)}"` : ''}><span class="video-play-btn-icon">▶</span><span class="video-play-btn-label">${esc(s.videoTitel)}</span></button>`;
   } else {
     // Embedding gesperrt → Link zu YouTube
     const ytUrl = `https://www.youtube.com/watch?v=${esc(s.videoId)}`;
@@ -1116,13 +1120,14 @@ function resetScrollIndikatoren() {
 document.getElementById('lernkarte-text-vorderseite')
   .addEventListener('scroll', updateScrollIndikatoren, { passive: true });
 
-function oeffneVideoOverlay(videoId, titel) {
+function oeffneVideoOverlay(videoId, titel, format) {
   // Frischen iframe erstellen — iOS Safari friert alte iframes ein
   const wrap = document.getElementById('video-iframe-wrap');
   const oldIframe = document.getElementById('video-iframe');
   if (oldIframe) oldIframe.remove();
 
   const overlay = document.getElementById('video-overlay');
+  wrap.classList.toggle('hochkant', format === 'hochkant');
   overlay.classList.remove('hidden');
   document.getElementById('video-overlay-title').textContent = titel || '';
   document.body.style.overflow = 'hidden';
@@ -2605,6 +2610,8 @@ function updateLernStartBtn() {
   else btn.textContent = label;
   const fs = document.getElementById('btn-fullscreen169');
   if (fs) fs.disabled = total === 0;
+  const sp = document.getElementById('btn-spiel');
+  if (sp) sp.disabled = total === 0;
 }
 
 // ============================================================
@@ -2841,6 +2848,7 @@ function zeigeKarte() {
     aufdeckBtn.textContent = t('begriff_zeigen');
   }
   starteAutoTimer();
+  if (spielAktiv) spielKarteAngezeigt();
 }
 
 function zeigeName(wertung) {
@@ -2904,6 +2912,7 @@ function zeigeName(wertung) {
   // Favorit-Button im Header: Zustand nach Aufdecken aktualisieren
   const lernFavBtn = document.getElementById('btn-lern-favorit');
   if (lernFavBtn) { lernFavBtn.classList.toggle('aktiv', !!s.favorit); }
+  if (spielAktiv) spielAufgedeckt();
 }
 
 function naechsteKarteOderEnde() {
@@ -2926,6 +2935,7 @@ function naechsteKarteOderEnde() {
 
 async function zeigeEnde() {
   stoppeAutoTimer();
+  if (spielAktiv) { spielPodium(); return; }   // Spiel: Podest statt Ergebnis-Seite, keine Statistik
   gebeWakeLockFrei();
   if (!autoRepeat) beendePraesentation();
   await speichereSitzung();
@@ -4160,7 +4170,7 @@ function handleVideoPlayClick(e) {
   if (!btn) return;
   const videoId    = btn.dataset.videoid;
   const videoTitel = btn.dataset.videotitel;
-  if (videoId) oeffneVideoOverlay(videoId, videoTitel);
+  if (videoId) oeffneVideoOverlay(videoId, videoTitel, btn.dataset.videoformat || '');
 }
 document.getElementById('lernen-flashcard').addEventListener('click', handleVideoPlayClick);
 document.getElementById('karte-detail-overlay').addEventListener('click', handleVideoPlayClick);
@@ -4374,6 +4384,8 @@ document.getElementById('btn-lernen-start').addEventListener('click', starteAusA
 
 // ── Fullscreen 16:9 (Präsentationsansicht für Beamer/Prüfungsgespräche) ──
 let praesentationAktiv = false;
+let spielAktiv = false;
+const spiel = { namen: [], klasse: 0, wuerfel: false, aktuell: null, helfer: false, vergeben: new Set(), verlauf: [], rollTimer: 0 };
 
 let praesiFaktor = 1;   // Auto-Verkleinerung für lange Rückseiten (1 = volle Größe)
 let praesiBasis  = 16;
@@ -4382,8 +4394,12 @@ let praesiBasis  = 16;
 // zur 16:9-Fläche, die in den Bildschirm passt — auf einem 16:9-Bildschirm ist alles wie zuvor.
 function praesiMasse() {
   const vv = window.visualViewport;
-  const w  = Math.round(vv?.width  || window.innerWidth);
-  const h  = Math.round(vv?.height || window.innerHeight);
+  let w  = Math.round(vv?.width  || window.innerWidth);
+  let h  = Math.round(vv?.height || window.innerHeight);
+  if (document.body.classList.contains('spiel')) {      // Spiel: nur die Kartenfläche zählt
+    const ar = document.querySelector('#lernen-flashcard .lern-karte-area')?.getBoundingClientRect();
+    if (ar && ar.width > 50 && ar.height > 50) { w = Math.round(ar.width); h = Math.round(ar.height); }
+  }
   const ref = Math.min(h, w * 9 / 16);              // Referenzhöhe für die Schriftgröße
   const basis = Math.max(14, ref / 18);
   // Mindestschrift: 28 px Fließtext bei 1280 px Breite (Fließtext = 1.05 rem), proportional skaliert
@@ -4464,6 +4480,7 @@ function betretePraesentation() {
 }
 
 function beendePraesentation() {
+  if (spielAktiv) spielAufraeumen();
   if (!praesentationAktiv) return;
   praesentationAktiv = false;
   document.body.classList.remove('praesi');
@@ -4477,6 +4494,9 @@ function beendePraesentation() {
 
 document.getElementById('btn-fullscreen169').addEventListener('click', () => {
   if (starteAusAuswahl()) betretePraesentation();
+});
+document.getElementById('btn-spiel')?.addEventListener('click', () => {
+  if (starteAusAuswahl()) { betretePraesentation(); spielStarten(); }
 });
 window.addEventListener('resize', praesiAutofitPlanen);
 window.addEventListener('orientationchange', praesiAutofitPlanen);
@@ -4537,6 +4557,7 @@ document.getElementById('lernkarte').addEventListener('click', e => {
       }
     });
   } else if (!isAnimating) {
+    if (spielAktiv) return;   // im Spiel geht es über „Wer hat's gewusst?“ weiter
     stoppeAutoTimer();
     naechsteKarteOderEnde();
   }
@@ -5400,7 +5421,7 @@ const TUTORIAL_KARTEN = [
   { de: ['Willkommen bei MemoFix',
          'MemoFix trainiert aktives Erinnern: erst überlegen, dann aufdecken.\n\n- **Karte antippen** → sie dreht sich um\n- **✓ oder ✗** wertet, ob du es wusstest\n- **Wischen oder Pfeile** → vor und zurück\n- Nach der Runde: **Nachgeschaute üben**',
          'Erst überlegen, dann aufdecken – so bleibt Wissen hängen.'],
-    video: { id: 'BwfoIW-zeCE', titel: 'MemoFix – Einführung', titel_en: 'MemoFix – Introduction' },
+    video: { id: 'BwfoIW-zeCE', titel: 'MemoFix – Einführung', titel_en: 'MemoFix – Introduction', format: 'hochkant' },
     en: ['Welcome to MemoFix',
          'MemoFix trains active recall: think first, then reveal.\n\n- **Tap the card** → it flips\n- **✓ or ✗** rates whether you knew it\n- **Swipe or arrows** → forward and back\n- After a round: **Practise missed cards**',
          'Think first, then reveal – that is how knowledge sticks.'] },
@@ -5417,10 +5438,10 @@ const TUTORIAL_KARTEN = [
          'Under **LEARN** you choose groups and mode:\n\n- **Normal**: term or image first · **Reversed**: info first\n- **Timer** flips cards automatically, **Autorepeat** loops\n- **⭐** marks favorites, **Weakest** practises what you often missed',
          'Short rounds, repeated often, beat one long session.'] },
   { de: ['Beamer-Modus',
-         'Mit **Fullscreen 16:9** (auf der Seite LERNEN) füllt die Karte den ganzen Bildschirm – ideal für Beamer und Prüfungsgespräche.\n\n- **Leertaste** deckt auf, **Pfeiltasten** blättern\n- **✕** oben rechts oder **Esc** beendet\n- Lange Texte passen sich automatisch an',
+         'Mit **Fullscreen 16:9** (auf der Seite LERNEN) füllt die Karte den ganzen Bildschirm – ideal für Beamer und Prüfungsgespräche.\n\n- **Leertaste** deckt auf, **Pfeiltasten** blättern\n- **✕** oben rechts oder **Esc** beendet\n- Lange Texte passen sich automatisch an\n- **🎲 Spiel** macht daraus ein gemeinsames Punktespiel für die Gruppe',
          'Kein Scrollen: Die Schrift wird so gewählt, dass alles auf den Bildschirm passt.'],
     en: ['Presentation mode',
-         'With **Fullscreen 16:9** (on the LEARN page) the card fills the whole screen – ideal for projectors and oral exams.\n\n- **Space** reveals, **arrow keys** flip through\n- **✕** top right or **Esc** exits\n- Long texts adapt automatically',
+         'With **Fullscreen 16:9** (on the LEARN page) the card fills the whole screen – ideal for projectors and oral exams.\n\n- **Space** reveals, **arrow keys** flip through\n- **✕** top right or **Esc** exits\n- Long texts adapt automatically\n- **🎲 Game** turns it into a shared points game for the group',
          'No scrolling: the font size is chosen so everything fits on screen.'] },
   { de: ['Eigene Karten',
          'In **VERWALTUNG** legst du mit **＋** neue Karten an.\n\n- **Bild vorn**: erst das Bild, dann der Begriff\n- **Begriff vorn, Bild hinten**: erst der Begriff, dann Text, Notiz und Bilder\n- **Merke** = Kernaussage als farbiger Kasten\n- Mehrere Fotos pro Karte möglich',
@@ -5470,6 +5491,7 @@ async function erstelleTutorial() {
       name: de[0], vorderseite: de[0], notiz: de[1], merke: de[2],
       name_en: en[0], vorderseite_en: en[0], notiz_en: en[1], merke_en: en[2],
       links: [], videoId: TUTORIAL_KARTEN[i].video?.id || null, videoTitel: TUTORIAL_KARTEN[i].video?.titel || null,
+      ...(TUTORIAL_KARTEN[i].video?.format ? { videoFormat: TUTORIAL_KARTEN[i].video.format } : {}),
       foto: null, fotos: [], erstellt: now
     });
   }
@@ -5910,6 +5932,393 @@ document.addEventListener('click', e => {
   const a = e.target.closest?.('[data-video-open]');
   if (!a) return;
   e.preventDefault();
-  oeffneVideoOverlay(a.dataset.videoOpen, a.dataset.videotitel || '');
+  oeffneVideoOverlay(a.dataset.videoOpen, a.dataset.videotitel || '', a.dataset.videoformat || '');
 });
 
+
+// ============================================================
+// SPIEL (Homo Ludens): Präsentationsmodus + Punktespalte, nichts wird gespeichert
+// ============================================================
+
+
+const SPIEL_TROPHAEN = {
+  de: ['Meister:in der Luftschlösser', 'Hüter:in des Goldenen Radiergummis', 'Professor:in für angewandtes Raten',
+       'Ritter:in der verlorenen Layer', 'Königin / König der Fußnoten', 'Ehren-Pixelschubser:in',
+       'Großmeister:in von Strg + Z', 'Flüsterer:in der Maßstabsleiste', 'Kaiser:in der Kantenglättung', 'Bürgermeister:in von Rendering-Town'],
+  en: ['Master of Castles in the Air', 'Keeper of the Golden Eraser', 'Professor of Applied Guessing',
+       'Knight of the Lost Layers', 'Queen / King of Footnotes', 'Honorary Pixel Pusher',
+       'Grandmaster of Ctrl + Z', 'Whisperer of the Scale Bar', 'Emperor of Anti-Aliasing', 'Mayor of Render Town']
+};
+
+function spT() {
+  return istEn() ? {
+    leer: 'No names yet – tap 👥, or type a name when someone scores.',
+    titel: '🎲 Game', hilfe: 'Rules', namen: 'Names', wuerfel: '🎲 Dice', klasse: 'Class', undo: '↶ Undo', auswertung: '🏁 Results',
+    wer: "Who knew it?", wuerfelFrage: n => `🎲 ${n} – knew it?`, gewusst: n => `✓ ${n}`, hilfeVon: '🤝 with help from…',
+    gruppe: '👥 Everyone', niemand: '✗ Nobody', neuName: '＋ Name', neuPh: 'Name', ok: 'OK', passen: '↻ Pass',
+    plusBei: n => `+1 ${n}`, plusKlasse: '+1 Class', keinPunkt: 'No point – on to the next card',
+    namenTitel: 'Names', namenHinweis: 'One name per line. Nicknames are fine. Tap a name to mark it as absent. Nothing is saved.',
+    namenPh: 'Anna\nBen\nCem', hinzu: 'Add', fertig: 'Done', zuWenig: 'The dice need at least two names present.',
+    anwesend: 'present', podest: 'Podium', platz: ['🥇', '🥈', '🥉'], keinePunkte: 'Nobody scored – the class did it together!',
+    stichwort: 'Keyword for the video', video: '🎬 Search video', neueRunde: 'New round', beenden: 'Finish',
+    klassenpunkte: n => `Class: ${n} point${n !== 1 ? 's' : ''}`, danke: 'Thanks for playing!',
+    hilfeTitel: '🎲 Game – the rules in short',
+    hilfeText: [
+      'A card appears: <strong>think first, then answer.</strong> Nobody has to be fast.',
+      'Reveal the back (tap or space). The group looks at it together.',
+      'Is the answer right? Tap <strong>Who knew it?</strong> → +1 point. If not: <strong>✗ Nobody</strong> – no minus points, on to the next card.',
+      '<strong>👥 Everyone</strong> = the whole group knew it → class point.',
+      '<strong>🎲 Dice</strong> calls someone at random (only those marked present). <strong>Passing is allowed</strong>, asking for help too – both get the point.',
+      '<strong>↶ Undo</strong> takes back the last point. <strong>Nothing is saved</strong> – closing the game deletes it all.'
+    ],
+    losgehts: "Let's go"
+  } : {
+    leer: 'Noch keine Namen – tippe auf 👥 oder trage beim ersten Punkt einen Namen ein.',
+    titel: '🎲 Spiel', hilfe: 'Regeln', namen: 'Namen', wuerfel: '🎲 Würfel', klasse: 'Klasse', undo: '↶ Zurück', auswertung: '🏁 Auswertung',
+    wer: "Wer hat's gewusst?", wuerfelFrage: n => `🎲 ${n} – gewusst?`, gewusst: n => `✓ ${n}`, hilfeVon: '🤝 mit Hilfe von…',
+    gruppe: '👥 Alle', niemand: '✗ Niemand', neuName: '＋ Name', neuPh: 'Name', ok: 'OK', passen: '↻ Passen',
+    plusBei: n => `+1 ${n}`, plusKlasse: '+1 Klasse', keinPunkt: 'Kein Punkt – weiter zur nächsten Karte',
+    namenTitel: 'Namen', namenHinweis: 'Ein Name pro Zeile, Spitznamen sind okay. Antippen markiert jemanden als abwesend. Nichts wird gespeichert.',
+    namenPh: 'Anna\nBen\nCem', hinzu: 'Hinzufügen', fertig: 'Fertig', zuWenig: 'Für den Würfel müssen mindestens zwei Namen anwesend sein.',
+    anwesend: 'da', podest: 'Podest', platz: ['🥇', '🥈', '🥉'], keinePunkte: 'Niemand hat gepunktet – die Klasse hat es gemeinsam geschafft!',
+    stichwort: 'Stichwort für das Video', video: '🎬 Video suchen', neueRunde: 'Neue Runde', beenden: 'Beenden',
+    klassenpunkte: n => `Klasse: ${n} Punkt${n !== 1 ? 'e' : ''}`, danke: 'Danke fürs Mitspielen!',
+    hilfeTitel: '🎲 Spiel – die Regeln kurz erklärt',
+    hilfeText: [
+      'Eine Karte erscheint: <strong>erst überlegen, dann antworten.</strong> Niemand muss schnell sein.',
+      'Rückseite aufdecken (Tippen oder Leertaste). Die Gruppe schaut sie gemeinsam an.',
+      'Stimmt die Antwort? Tippe <strong>Wer hat\'s gewusst?</strong> → +1 Punkt. Wenn nicht: <strong>✗ Niemand</strong> – keine Minuspunkte, weiter zur nächsten Karte.',
+      '<strong>👥 Alle</strong> = die ganze Gruppe wusste es → Klassenpunkt.',
+      '<strong>🎲 Würfel</strong> ruft zufällig jemanden auf (nur wer als anwesend markiert ist). <strong>Passen ist erlaubt</strong>, Hilfe holen auch – beide bekommen den Punkt.',
+      '<strong>↶ Zurück</strong> nimmt den letzten Punkt zurück. <strong>Nichts wird gespeichert</strong> – beim Schließen ist alles weg.'
+    ],
+    losgehts: 'Los geht\'s'
+  };
+}
+
+function spielNameNorm(n) { return String(n || '').replace(/\s+/g, ' ').trim().slice(0, 24); }
+function spielFinde(n) { const k = spielNameNorm(n).toLowerCase(); return spiel.namen.find(x => x.name.toLowerCase() === k); }
+function spielNamenDa() { return spiel.namen.filter(x => x.da).sort((a, b) => a.name.localeCompare(b.name, istEn() ? 'en' : 'de')); }
+function spielAddName(n) {
+  const name = spielNameNorm(n); if (!name) return null;
+  let e = spielFinde(name);
+  if (!e) { e = { name, punkte: 0, da: true, gewuerfelt: false }; spiel.namen.push(e); }
+  return e;
+}
+
+function spielPunkt(namen, klasse) {
+  const eintrag = { namen: [], klasse: 0 };
+  namen.forEach(n => { const e = spielAddName(n); if (e) { e.punkte++; eintrag.namen.push(e.name); } });
+  if (klasse) { spiel.klasse++; eintrag.klasse = 1; }
+  spiel.verlauf.push(eintrag);
+  spielRender();
+}
+function spielUndo() {
+  const l = spiel.verlauf.pop(); if (!l) return;
+  l.namen.forEach(n => { const e = spielFinde(n); if (e && e.punkte > 0) e.punkte--; });
+  if (l.klasse && spiel.klasse > 0) spiel.klasse--;
+  spielRender();
+}
+
+// ── Aufbau / Abbau ───────────────────────────────────────────
+function spielStarten() {
+  if (spielAktiv) return;
+  spielAktiv = true;
+  spiel.namen = []; spiel.klasse = 0; spiel.wuerfel = false; spiel.aktuell = null; spiel.helfer = false;
+  spiel.vergeben = new Set(); spiel.verlauf = [];
+  if (timerSekunden) setTimerSekunden(0);
+  if (autoRepeat) setAutoRepeat(false);
+  document.body.classList.add('spiel');
+
+  const leiste = document.createElement('div');
+  leiste.id = 'spiel-leiste'; leiste.className = 'spiel-leiste';
+  document.body.appendChild(leiste);
+
+  const flash = document.getElementById('lernen-flashcard');
+  const panel = document.createElement('div');
+  panel.id = 'spiel-wer'; panel.className = 'spiel-wer hidden';
+  flash.appendChild(panel);
+  const banner = document.createElement('div');
+  banner.id = 'spiel-banner'; banner.className = 'spiel-banner hidden';
+  flash.appendChild(banner);
+
+  leiste.addEventListener('click', spielKlick);
+  panel.addEventListener('click', spielKlick);
+  banner.addEventListener('click', spielKlick);
+  spielRender();
+  praesiAutofitPlanen();
+  // Regeln beim ersten Mal kurz zeigen
+  let gesehen = false;
+  try { gesehen = !!localStorage.getItem('spielHilfeGesehen'); } catch (_) {}
+  if (!gesehen) { spielHilfe(); try { localStorage.setItem('spielHilfeGesehen', '1'); } catch (_) {} }
+  spielKarteAngezeigt();
+}
+
+function spielAufraeumen() {
+  if (!spielAktiv) return;
+  spielAktiv = false;
+  clearInterval(spiel.rollTimer);
+  document.body.classList.remove('spiel');
+  ['spiel-leiste', 'spiel-wer', 'spiel-banner', 'spiel-podium', 'spiel-modal'].forEach(id => document.getElementById(id)?.remove());
+  spiel.namen = []; spiel.verlauf = []; spiel.vergeben = new Set(); spiel.klasse = 0; spiel.aktuell = null;
+}
+
+// ── Anzeige ──────────────────────────────────────────────────
+function spielRender() {
+  const T = spT();
+  const leiste = document.getElementById('spiel-leiste');
+  if (leiste) {
+    const da = spielNamenDa();
+    const alle = [...spiel.namen].sort((a, b) => a.name.localeCompare(b.name, istEn() ? 'en' : 'de'));
+    leiste.innerHTML = `
+      <div class="sp-kopf"><strong>${esc(T.titel)}</strong>
+        <span class="sp-kopf-btns">
+          <button data-sp="hilfe" title="${esc(T.hilfe)}" aria-label="${esc(T.hilfe)}">?</button>
+          <button data-sp="namen" title="${esc(T.namen)}" aria-label="${esc(T.namen)}">👥</button>
+        </span></div>
+      <label class="sp-wuerfel"><input type="checkbox" data-sp="wuerfel"${spiel.wuerfel ? ' checked' : ''}> <span>${esc(T.wuerfel)}</span></label>
+      <div class="sp-liste">${alle.map(e => `
+        <div class="sp-zeile${e.da ? '' : ' sp-abwesend'}${spiel.aktuell === e.name ? ' sp-dran' : ''}">
+          <span class="sp-name">${esc(e.name)}</span><span class="sp-pkt">${e.punkte}</span></div>`).join('')
+        || `<div class="sp-leer">${esc(T.leer)}</div>`}</div>
+      <div class="sp-fuss">
+        <span class="sp-klasse">${esc(T.klassenpunkte(spiel.klasse))}</span>
+        <button data-sp="undo"${spiel.verlauf.length ? '' : ' disabled'}>${esc(T.undo)}</button>
+        <button data-sp="auswertung">${esc(T.auswertung)}</button>
+      </div>`;
+  }
+  spielRenderPanel();
+  spielRenderBanner();
+}
+
+function spielRenderBanner() {
+  const T = spT();
+  const b = document.getElementById('spiel-banner'); if (!b) return;
+  const zeigen = spiel.wuerfel && spiel.aktuell && !nameVisible;
+  b.classList.toggle('hidden', !zeigen);
+  if (zeigen) b.innerHTML = `<span class="sp-banner-name">🎲 ${esc(spiel.aktuell)}</span><button data-sp="passen">${esc(T.passen)}</button>`;
+}
+
+function spielRenderPanel() {
+  const T = spT();
+  const p = document.getElementById('spiel-wer'); if (!p) return;
+  const s = lernKarten[lernIndex];
+  const sichtbar = nameVisible && s && !spiel.vergeben.has(s.id);
+  p.classList.toggle('hidden', !sichtbar);
+  if (!sichtbar) return;
+  const da = spielNamenDa();
+  const dran = spiel.wuerfel && spiel.aktuell;
+  let html;
+  if (dran) {
+    html = `<div class="sp-frage">${esc(T.wuerfelFrage(spiel.aktuell))}</div><div class="sp-chips">
+      <button class="sp-chip sp-chip-gross" data-sp="wahl" data-name="${esc(spiel.aktuell)}">${esc(T.gewusst(spiel.aktuell))}</button>
+      <button class="sp-chip${spiel.helfer ? ' aktiv' : ''}" data-sp="helfer">${esc(T.hilfeVon)}</button>
+      <button class="sp-chip" data-sp="alle">${esc(T.gruppe)}</button>
+      <button class="sp-chip sp-chip-nein" data-sp="niemand">${esc(T.niemand)}</button></div>
+      ${spiel.helfer ? `<div class="sp-chips sp-chips-zwei">${da.filter(e => e.name !== spiel.aktuell).map(e =>
+          `<button class="sp-chip" data-sp="wahl" data-name="${esc(e.name)}" data-helfer="1">${esc(e.name)}</button>`).join('')}</div>` : ''}`;
+  } else {
+    html = `<div class="sp-frage">${esc(T.wer)}</div><div class="sp-chips">
+      ${da.map(e => `<button class="sp-chip" data-sp="wahl" data-name="${esc(e.name)}">${esc(e.name)}</button>`).join('')}
+      <span class="sp-neu"><input id="sp-neu" type="text" maxlength="24" placeholder="${esc(T.neuPh)}" autocomplete="off" autocapitalize="words">
+        <button class="sp-chip" data-sp="neu">${esc(T.ok)}</button></span>
+      <button class="sp-chip" data-sp="alle">${esc(T.gruppe)}</button>
+      <button class="sp-chip sp-chip-nein" data-sp="niemand">${esc(T.niemand)}</button></div>`;
+  }
+  p.innerHTML = html;
+  praesiAutofitPlanen();
+}
+
+// ── Würfel ───────────────────────────────────────────────────
+function spielWuerfeln(ausser) {
+  clearInterval(spiel.rollTimer);
+  if (!spiel.wuerfel) { spiel.aktuell = null; spielRenderBanner(); return; }
+  let pool = spielNamenDa().filter(e => !e.gewuerfelt && e.name !== ausser);
+  if (!pool.length) {                      // alle waren dran → neue Runde ohne Zurücklegen
+    spiel.namen.forEach(e => { e.gewuerfelt = false; });
+    pool = spielNamenDa().filter(e => e.name !== ausser);
+  }
+  if (!pool.length) pool = spielNamenDa();
+  if (!pool.length) { spiel.aktuell = null; spielRender(); return; }
+  const ziel = pool[Math.floor(Math.random() * pool.length)];
+  const alle = spielNamenDa();
+  let n = 0;
+  const b = document.getElementById('spiel-banner');
+  b?.classList.remove('hidden');
+  spiel.rollTimer = setInterval(() => {
+    n++;
+    const zeige = n >= 14 ? ziel : alle[Math.floor(Math.random() * alle.length)];
+    spiel.aktuell = zeige.name;
+    if (b) b.innerHTML = `<span class="sp-banner-name sp-rollt">🎲 ${esc(zeige.name)}</span>`;
+    if (n >= 14) {
+      clearInterval(spiel.rollTimer);
+      ziel.gewuerfelt = true;
+      spielRender();
+    }
+  }, 85);
+}
+
+function spielKarteAngezeigt() {
+  if (!spielAktiv) return;
+  spiel.helfer = false;
+  spiel.aktuell = null;
+  spielRender();
+  if (spiel.wuerfel) spielWuerfeln();
+  praesiAutofitPlanen();
+}
+function spielAufgedeckt() {
+  if (!spielAktiv) return;
+  clearInterval(spiel.rollTimer);
+  spielRender();
+  praesiAutofitPlanen();
+}
+
+// ── Aktionen ─────────────────────────────────────────────────
+function spielWeiter(gewusst) {
+  const s = lernKarten[lernIndex];
+  if (s) spiel.vergeben.add(s.id);
+  const soll = gewusst ? 'gewusst' : 'nicht';
+  if (aktuelleWertung && aktuelleWertung !== soll) document.getElementById('lern-feedback').click();
+  document.getElementById('spiel-wer')?.classList.add('hidden');
+  const los = (versuche = 0) => {
+    if (isAnimating && versuche < 10) { setTimeout(() => los(versuche + 1), 150); return; }
+    naechsteKarteOderEnde();
+  };
+  setTimeout(los, 380);
+}
+
+function spielKlick(e) {
+  const el = e.target.closest('[data-sp]'); if (!el) return;
+  const a = el.dataset.sp, T = spT();
+  if (a === 'wuerfel') {
+    const an = el.checked;
+    if (an && spielNamenDa().length < 2) { el.checked = false; spielNamen(T.zuWenig, true); return; }
+    spiel.wuerfel = an;
+    spiel.aktuell = null;
+    if (an && !nameVisible) spielWuerfeln(); else spielRender();
+  } else if (a === 'hilfe') spielHilfe();
+  else if (a === 'namen') spielNamen();
+  else if (a === 'undo') spielUndo();
+  else if (a === 'auswertung') spielPodium();
+  else if (a === 'passen') { const alt = spiel.aktuell; const e0 = spielFinde(alt); if (e0) e0.gewuerfelt = false; spielWuerfeln(alt); }
+  else if (a === 'helfer') { spiel.helfer = !spiel.helfer; spielRenderPanel(); }
+  else if (a === 'wahl') {
+    const name = el.dataset.name;
+    const helfer = el.dataset.helfer === '1';
+    if (helfer && spiel.aktuell) spielPunkt([spiel.aktuell, name], false);
+    else spielPunkt([name], false);
+    toast(T.plusBei(helfer && spiel.aktuell ? `${spiel.aktuell} + ${name}` : name));
+    spielWeiter(true);
+  } else if (a === 'neu') {
+    const inp = document.getElementById('sp-neu');
+    const name = spielNameNorm(inp?.value);
+    if (!name) { inp?.focus(); return; }
+    spielPunkt([name], false);
+    toast(T.plusBei(name));
+    spielWeiter(true);
+  } else if (a === 'alle') { spielPunkt([], true); toast(T.plusKlasse); spielWeiter(true); }
+  else if (a === 'niemand') { toast(T.keinPunkt); spielWeiter(false); }
+}
+
+// Enter im Namensfeld des Panels
+document.addEventListener('keydown', e => {
+  if (!spielAktiv) return;
+  if (e.target?.id === 'sp-neu') {
+    e.stopPropagation();
+    if (e.key === 'Enter') { e.preventDefault(); document.querySelector('#spiel-wer [data-sp="neu"]')?.click(); }
+  }
+}, true);
+
+// ── Dialoge ──────────────────────────────────────────────────
+function spielModal(inhalt) {
+  document.getElementById('spiel-modal')?.remove();
+  const m = document.createElement('div');
+  m.id = 'spiel-modal'; m.className = 'spiel-modal';
+  m.innerHTML = `<div class="spiel-modal-box">${inhalt}</div>`;
+  document.body.appendChild(m);
+  return m;
+}
+function spielHilfe() {
+  const T = spT();
+  const m = spielModal(`<h3>${esc(T.hilfeTitel)}</h3><ol class="sp-regeln">${T.hilfeText.map(x => `<li>${x}</li>`).join('')}</ol>
+    <button class="btn-primary" data-x="zu">${esc(T.losgehts)}</button>`);
+  m.addEventListener('click', e => { if (e.target === m || e.target.closest('[data-x="zu"]')) m.remove(); });
+}
+function spielNamen(hinweis, wuerfelStarten) {
+  const T = spT();
+  const m = spielModal(`<h3>${esc(T.namenTitel)}</h3>
+    ${hinweis ? `<p class="sp-warn">${esc(hinweis)}</p>` : ''}
+    <p class="sp-hinweis">${esc(T.namenHinweis)}</p>
+    <div id="sp-namen-liste" class="sp-namen-liste"></div>
+    <textarea id="sp-namen-text" rows="4" placeholder="${esc(T.namenPh)}"></textarea>
+    <div class="sp-modal-btns"><button class="btn-secondary" data-x="add">${esc(T.hinzu)}</button>
+    <button class="btn-primary" data-x="fertig">${esc(T.fertig)}</button></div>`);
+  const liste = m.querySelector('#sp-namen-liste');
+  const zeichne = () => {
+    liste.innerHTML = [...spiel.namen].sort((a, b) => a.name.localeCompare(b.name)).map(e =>
+      `<button class="sp-chip${e.da ? '' : ' sp-aus'}" data-name="${esc(e.name)}">${esc(e.name)}${e.da ? '' : ' · ✗'}</button>`).join('');
+  };
+  zeichne();
+  m.addEventListener('click', ev => {
+    const chip = ev.target.closest('#sp-namen-liste [data-name]');
+    if (chip) { const e = spielFinde(chip.dataset.name); if (e) { e.da = !e.da; zeichne(); } return; }
+    const x = ev.target.closest('[data-x]')?.dataset.x;
+    if (x === 'add') {
+      const ta = m.querySelector('#sp-namen-text');
+      ta.value.split(/\n|,|;/).forEach(n => spielAddName(n));
+      ta.value = ''; zeichne();
+    } else if (x === 'fertig' || ev.target === m) {
+      const ta = m.querySelector('#sp-namen-text');
+      ta.value.split(/\n|,|;/).forEach(n => spielAddName(n));
+      if (wuerfelStarten && spielNamenDa().length >= 2) spiel.wuerfel = true;
+      m.remove();
+      spielRender();
+      if (spiel.wuerfel && !nameVisible) spielWuerfeln();
+    }
+  });
+}
+
+// ── Podest ───────────────────────────────────────────────────
+function spielPodium() {
+  const T = spT();
+  clearInterval(spiel.rollTimer);
+  const mitPunkten = spiel.namen.filter(e => e.punkte > 0);
+  const stufen = [...new Set(mitPunkten.map(e => e.punkte))].sort((a, b) => b - a).slice(0, 3);
+  const trophae = (SPIEL_TROPHAEN[istEn() ? 'en' : 'de'])[Math.floor(Math.random() * SPIEL_TROPHAEN.de.length)];
+  const html = stufen.length ? `<div class="sp-podest">${stufen.map((p, i) => {
+      const namen = mitPunkten.filter(e => e.punkte === p).map(e => e.name).sort();
+      return `<div class="sp-platz sp-platz-${i + 1}"><div class="sp-medaille">${T.platz[i]}</div>
+        <div class="sp-platz-namen">${namen.map(esc).join('<br>')}</div><div class="sp-platz-pkt">${p}</div></div>`;
+    }).join('')}</div>
+    <div class="sp-trophae">🏆 ${esc(trophae)}</div>` : `<p class="sp-keine">${esc(T.keinePunkte)}</p>`;
+  document.getElementById('spiel-podium')?.remove();
+  const el = document.createElement('div');
+  el.id = 'spiel-podium'; el.className = 'spiel-podium';
+  el.innerHTML = `<div class="spiel-podium-box">
+      <h2>${esc(T.podest)}</h2>${html}
+      <p class="sp-klasse-gross">${esc(T.klassenpunkte(spiel.klasse))}</p>
+      <div class="sp-video"><input id="sp-stichwort" type="text" maxlength="60" placeholder="${esc(T.stichwort)}">
+        <button class="btn-secondary" data-x="video">${esc(T.video)}</button></div>
+      <div class="sp-modal-btns"><button class="btn-secondary" data-x="neu">${esc(T.neueRunde)}</button>
+        <button class="btn-primary" data-x="ende">${esc(T.beenden)}</button></div></div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click', e => {
+    const x = e.target.closest('[data-x]')?.dataset.x;
+    if (x === 'video') {
+      const q = el.querySelector('#sp-stichwort').value.trim();
+      if (q) window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(q), '_blank', 'noopener');
+    } else if (x === 'neu') {
+      spiel.namen.forEach(n => { n.punkte = 0; n.gewuerfelt = false; });
+      spiel.klasse = 0; spiel.verlauf = []; spiel.vergeben = new Set(); spiel.aktuell = null;
+      el.remove();
+      starteSession(lernKartenOriginal.length ? lernKartenOriginal : lernKarten, true);
+      spielRender();
+    } else if (x === 'ende') {
+      el.remove();
+      document.getElementById('btn-beenden').click();
+    }
+  });
+}
+document.addEventListener('keydown', e => {
+  if (spielAktiv && e.target?.id === 'sp-stichwort') e.stopPropagation();
+}, true);
