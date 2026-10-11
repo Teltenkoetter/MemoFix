@@ -2596,3 +2596,20 @@ body.praesi:not(.spiel) #lernen-flashcard {
   100% { opacity: 0; transform: translate(-50%, -22px); }
 }
 .sp-pop { animation-duration: 0.5s; }
+
+/* ── Punkt am Platz: Chip leuchtet auf, Rest gedimmt ── */
+.spiel-wer.sp-sperre .sp-chip { pointer-events: none; }
+.sp-chip.sp-gedimmt { opacity: 0.35; transition: opacity 0.2s; }
+.spiel-wer .sp-chip.sp-pop { font-size: inherit; }
+.spiel-wer .sp-chip.sp-pop .sp-plus { top: -14px; font-size: 1.1rem; }
+.spiel-wer .sp-chips { padding-top: 14px; }
+
+/* ── Auswertung: Knopf-Block und Podest enden auf derselben Höhe, überall abgerundet ── */
+.sp-platz { border-radius: 14px; }
+.sp-klasse-gross { margin: 0 0 0.4rem; text-align: left; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .sp-pod-links, .sp-pod-rechts { justify-content: flex-start; }
+  .sp-pod-links .sp-podest { flex: 1 1 auto; align-items: flex-end; margin: 0.2rem 0 0; }
+  .sp-pod-links .sp-keine { flex: 1 1 auto; display: flex; align-items: flex-end; margin: 0; padding: 0.7rem; border-radius: 14px; background: rgba(255,255,255,0.05); }
+  .sp-pod-rechts .sp-modal-btns { margin-top: auto; }
+}

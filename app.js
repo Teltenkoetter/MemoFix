@@ -6367,20 +6367,31 @@ function spielWeiter(gewusst) {
 // Punkt vergeben: kurz (1,2 s) zeigen, wer ihn bekommt, dann weiter. Tipp überspringt die Wartezeit.
 function spielVergeben(namen, klasse) {
   const T = spT();
-  spielPunkt(namen, klasse);
+  spielPunkt(namen, klasse);                        // zählt, rendert Panel und Leiste neu
   const s_ = lernKarten[lernIndex];
   if (s_) spiel.vergeben.add(s_.id);
   const p = document.getElementById('spiel-wer');
   if (p) {
-    const chips = namen.map(n => {
-      const e = spielFinde(n);
-      return `<span class="sp-chip sp-pop"><b>${esc(n)}</b><span class="sp-chip-pkt">${e ? e.punkte : ''}</span><span class="sp-plus">+1</span></span>`;
-    }).join('') + (klasse ? `<span class="sp-chip sp-pop"><b>👥 ${esc(T.punkteK)}</b><span class="sp-plus">+1</span></span>` : '');
-    p.classList.remove('sp-kompakt');
-    p.innerHTML = `<div class="sp-chips sp-vergeben">${chips}</div>`;
     p.classList.remove('hidden');
+    p.classList.add('sp-sperre');
+    const reihe = p.querySelector('.sp-chips');
+    const plus = () => { const sp = document.createElement('span'); sp.className = 'sp-plus'; sp.textContent = '+1'; return sp; };
+    const heb = chip => { chip.classList.add('sp-pop'); chip.appendChild(plus()); };
+    namen.forEach(n => {
+      let chip = [...p.querySelectorAll('.sp-chip[data-name]')].find(c => c.dataset.name === n);
+      if (!chip && reihe) {                         // z. B. Dice-Mode: neue Person ist (noch) kein Chip -> am Ende ergänzen
+        chip = document.createElement('button');
+        chip.className = 'sp-chip'; chip.dataset.name = n;
+        const e = spielFinde(n);
+        chip.innerHTML = `${esc(n)}<span class="sp-chip-pkt">${e ? e.punkte : ''}</span>`;
+        reihe.insertBefore(chip, reihe.firstChild);
+      }
+      if (chip) heb(chip);
+    });
+    if (klasse) { const alle = p.querySelector('[data-sp="alle"]'); if (alle) heb(alle); }
+    p.querySelectorAll('.sp-chip:not(.sp-pop)').forEach(c => c.classList.add('sp-gedimmt'));
   }
-  const los = () => { clearTimeout(spiel.warteTimer); spiel.warteSkip = null; spielWeiter(true); };
+  const los = () => { clearTimeout(spiel.warteTimer); spiel.warteSkip = null; p?.classList.remove('sp-sperre'); spielWeiter(true); };
   spiel.warteSkip = los;
   spiel.warteTimer = setTimeout(los, 1350);
 }
@@ -6586,8 +6597,8 @@ function spielPodium(amEnde) {
   el.innerHTML = `<div class="spiel-podium-box">
       <div class="sp-pod-links">
         <h2><span class="title-pix">${esc(T.unsere)}</span> <span class="title-memo">Memo</span><span class="title-pix">Diver</span></h2>
-        ${html}
         <p class="sp-klasse-gross">${esc(T.klassenpunkte(spiel.klasse))}</p>
+        ${html}
       </div>
       <div class="sp-pod-rechts">
         <div id="sp-belohnung" class="sp-belohnung"><button class="btn-secondary sp-belohnung-btn" data-x="belohnung">${esc(T.belohnung)}</button></div>
