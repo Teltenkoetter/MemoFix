@@ -115,6 +115,7 @@ const TRANS = {
     abfragen: 'Abfragen gesamt',
     schwerste_karten: 'Schwierigste Karten',
     keine_daten: 'Noch keine Daten vorhanden.',
+    stat_30: '30 Tage', stat_alle: 'Alle', stat_keine_zeitraum: 'Keine Auffälligkeiten in diesem Zeitraum.', stat_von: (n, t, d) => `${n} von ${t} nachgeschaut · zuletzt ${d}`, stat_titel_rate: 'Anteil nicht gewusst',
     schwaechste_ueben: '⟳ Schwächste Karten jetzt üben',
     letzte_sitzungen: 'Letzte Sitzungen',
     keine_sitzungen: 'Noch keine Sitzungen absolviert.',
@@ -366,6 +367,7 @@ const TRANS = {
     abfragen: 'Total queries',
     schwerste_karten: 'Hardest cards',
     keine_daten: 'No data yet.',
+    stat_30: '30 days', stat_alle: 'All', stat_keine_zeitraum: 'Nothing stands out in this period.', stat_von: (n, t, d) => `${n} of ${t} looked up · last ${d}`, stat_titel_rate: 'Share not known',
     schwaechste_ueben: '⟳ Practise weakest cards now',
     letzte_sitzungen: 'Recent sessions',
     keine_sitzungen: 'No sessions yet.',
@@ -695,6 +697,7 @@ function applyTranslations() {
     if (i === 2) el.textContent = t('abfragen');
   });
   setTxt('keine-schwierig-hinweis', t('keine_daten'));
+  document.querySelectorAll('#stat-zeitraum button').forEach(b => { b.textContent = t(b.dataset.tage === '0' ? 'stat_alle' : 'stat_30'); });
   const schwBtn = document.getElementById('btn-schwaeche-ueben');
   if (schwBtn) schwBtn.textContent = t('schwaechste_ueben');
   document.getElementById('keine-verlauf-hinweis') &&
@@ -749,7 +752,7 @@ function getHelpHtml() {
       ['🚦', '<strong>Course set status</strong> — ● red: not loaded yet · ✓ green: up to date · ↻ orange: update available (tap "Update" or "Update all") · learning progress and favorites are kept · cards you changed yourself or that were removed from the set: you are asked first · offline the last known status stays visible'],
       ['💾', '<strong>Back up regularly</strong> — Cards live only on this device (no sync between devices) · BACKUP → Export · "Clear browser data" deletes everything'],
       ['🔄', '<strong>After an update</strong> — close the app completely and open it again, otherwise you may still see the old version'],
-      ['🎬', '<strong>Intro video</strong> — <a href="#" data-video-open="BwfoIW-zeCE" data-videotitel="MemoFix – Introduction" data-videoformat="hochkant">Watch the short video</a>'],
+      ['🎬', '<strong>Intro video</strong> — <a href="#" data-video-open="LMcXbAEjww0" data-videotitel="MemoFix – Introduction" data-videoformat="hochkant">Watch the short video</a>'],
       ['🌐', '<strong>Website</strong> — <a href="https://www.designstrategies.org" target="_blank" rel="noopener">designstrategies.org</a>'],
     ]},
     { title: '🎴 Learning mode', rows: [
@@ -807,7 +810,7 @@ function getHelpHtml() {
       ['🚦', '<strong>Kursset-Status</strong> — ● rot: noch nicht geladen · ✓ grün: aktuell · ↻ orange: Update verfügbar (auf „Aktualisieren" oder „Alle aktualisieren" tippen) · Lernstand und Favoriten bleiben erhalten · selbst geänderte oder im Set entfallene Karten: es wird vorher nachgefragt · offline bleibt der letzte bekannte Status sichtbar'],
       ['💾', '<strong>Regelmäßig sichern</strong> — Karten liegen nur auf diesem Gerät (kein Abgleich zwischen Geräten) · SICHERUNG → Exportieren · „Browserdaten löschen" entfernt alles'],
       ['🔄', '<strong>Nach einem Update</strong> — App komplett schließen und neu öffnen, sonst siehst du eventuell noch die alte Version'],
-      ['🎬', '<strong>Einführungsvideo</strong> — <a href="#" data-video-open="BwfoIW-zeCE" data-videotitel="MemoFix – Einführung" data-videoformat="hochkant">Kurzes Video ansehen</a>'],
+      ['🎬', '<strong>Einführungsvideo</strong> — <a href="#" data-video-open="LMcXbAEjww0" data-videotitel="MemoFix – Einführung" data-videoformat="hochkant">Kurzes Video ansehen</a>'],
       ['🌐', '<strong>Website</strong> — <a href="https://www.designstrategies.org" target="_blank" rel="noopener">designstrategies.org</a>'],
     ]},
     { title: '🎴 Lernmodus', rows: [
@@ -1846,19 +1849,36 @@ function getGefilterteStudenten() {
   return result;
 }
 
-async function getSchwacheKarten(gruppeIds = null) {
-  const sitzungen = await dbGetAll('sitzungen');
-  const nameStats = new Map();
+// Zeitraum der Statistik (Tage; 0 = alles), wird gemerkt
+function statistikTage() {
+  try { const v = localStorage.getItem('statistikTage'); return v === null ? 30 : (parseInt(v, 10) || 0); } catch (_) { return 30; }
+}
+// Je Kartenname: gewusst / nachgeschaut / letzte Abfrage — nur im Zeitraum und nur für Karten, die es noch gibt
+function statistikNamenStats(sitzungen, tage) {
+  const grenze = tage > 0 ? Date.now() - tage * 86400000 : 0;
+  const vorhanden = new Set(studenten.map(k => k.name));
+  const m = new Map();
   for (const sitz of sitzungen) {
-    for (const detail of (sitz.details || [])) {
-      if (!nameStats.has(detail.name)) nameStats.set(detail.name, { gewusst: 0, nachgeschaut: 0 });
-      const stat = nameStats.get(detail.name);
-      if (detail.status === 'gewusst') stat.gewusst++;
-      else if (detail.status === 'nachgeschaut') stat.nachgeschaut++;
+    const t = new Date(sitz.datum).getTime();
+    if (grenze && !(t >= grenze)) continue;
+    for (const d of (sitz.details || [])) {
+      if (!vorhanden.has(d.name)) continue;
+      if (!m.has(d.name)) m.set(d.name, { gewusst: 0, nachgeschaut: 0, letzte: 0 });
+      const st = m.get(d.name);
+      if (d.status === 'gewusst') st.gewusst++;
+      else if (d.status === 'nachgeschaut') st.nachgeschaut++;
+      else continue;
+      if (t > st.letzte) st.letzte = t;
     }
   }
+  return m;
+}
+
+async function getSchwacheKarten(gruppeIds = null) {
+  const sitzungen = await dbGetAll('sitzungen');
+  const nameStats = statistikNamenStats(sitzungen, statistikTage());
   const allNamen = [...nameStats.entries()]
-    .filter(([, s]) => s.gewusst + s.nachgeschaut > 0)
+    .filter(([, s]) => s.nachgeschaut > 0)
     .map(([name, s]) => ({ name, fehlerRate: s.nachgeschaut / (s.gewusst + s.nachgeschaut) }))
     .sort((a, b) => b.fehlerRate - a.fehlerRate);
   if (!allNamen.length) return [];
@@ -2635,16 +2655,10 @@ async function renderStatistik() {
       sitzungen.reduce((s, x) => s + x.total, 0);
   }
 
-  // Schwierigste Namen
-  const nameStats = new Map();
-  for (const sitz of sitzungen) {
-    for (const detail of (sitz.details || [])) {
-      if (!nameStats.has(detail.name)) nameStats.set(detail.name, { gewusst: 0, nachgeschaut: 0 });
-      const stat = nameStats.get(detail.name);
-      if (detail.status === 'gewusst') stat.gewusst++;
-      else if (detail.status === 'nachgeschaut') stat.nachgeschaut++;
-    }
-  }
+  // Schwierigste Karten (Zeitraum wählbar, nur noch vorhandene Karten)
+  const tage = statistikTage();
+  const nameStats = statistikNamenStats(sitzungen, tage);
+  document.querySelectorAll('#stat-zeitraum button').forEach(b => b.classList.toggle('active', (parseInt(b.dataset.tage, 10) || 0) === tage));
 
   const schwierigEl = document.getElementById('schwierigste-namen');
   const keineSchEl  = document.getElementById('keine-schwierig-hinweis');
@@ -2654,13 +2668,15 @@ async function renderStatistik() {
     .filter(([, s]) => s.nachgeschaut > 0)
     .map(([name, s]) => {
       const total = s.gewusst + s.nachgeschaut;
-      return { name, rate: Math.round((s.nachgeschaut / total) * 100), total };
+      return { name, rate: Math.round((s.nachgeschaut / total) * 100), total, nach: s.nachgeschaut, letzte: s.letzte };
     })
-    .sort((a, b) => b.rate - a.rate || b.total - a.total)
+    // Karten mit mindestens zwei Abfragen zuerst, danach nach Anteil und Häufigkeit
+    .sort((a, b) => (b.total >= 2) - (a.total >= 2) || b.rate - a.rate || b.total - a.total)
     .slice(0, 8);
 
   if (!nameArr.length) {
     schwierigEl.innerHTML = '';
+    keineSchEl.textContent = (tage > 0 && sitzungen.length) ? t('stat_keine_zeitraum') : t('keine_daten');
     keineSchEl.classList.remove('hidden');
     schwaeBtn.classList.add('hidden');
   } else {
@@ -2670,11 +2686,12 @@ async function renderStatistik() {
         <span class="schwierig-rank">${i + 1}</span>
         <div class="schwierig-name-wrap">
           <span class="schwierig-name">${esc(item.name)}</span>
+          <span class="schwierig-detail">${esc(tf('stat_von', item.nach, item.total, new Date(item.letzte).toLocaleDateString(istEn() ? 'en-GB' : 'de-DE', { day: '2-digit', month: '2-digit' })))}</span>
           <div class="schwierig-bar-track">
             <div class="schwierig-bar-fill" style="width:${item.rate}%"></div>
           </div>
         </div>
-        <span class="schwierig-rate">${item.rate}%</span>
+        <span class="schwierig-rate" title="${esc(t('stat_titel_rate'))}">${item.rate}%</span>
       </div>`).join('');
 
     const schwacheKarten = await getSchwacheKarten();
@@ -4389,7 +4406,7 @@ let praesentationAktiv = false;
 const SPIEL_NAME = 'MemoDive';
 let spielAktiv = false;
 const spiel = { namen: [], klasse: 0, wuerfel: false, aktuell: null, helfer: false, vergeben: new Set(), verlauf: [], rollTimer: 0,
-  zeit: 0, zeitEnde: 0, zeitTimer: 0, zeitLaeuft: false, zeitAbgelaufen: false };
+  zeit: 0, zeitEnde: 0, zeitTimer: 0, zeitLaeuft: false, zeitAbgelaufen: false, minus: false, aufgedecktZeit: 0 };
 const SPIEL_ZEITEN = [0, 30, 20, 10, 5];   // aus → langsam → schnell
 
 let praesiFaktor = 1;   // Auto-Verkleinerung für lange Rückseiten (1 = volle Größe)
@@ -4562,7 +4579,10 @@ document.getElementById('lernkarte').addEventListener('click', e => {
       }
     });
   } else if (!isAnimating) {
-    if (spielAktiv) { if (spiel.warteSkip) spiel.warteSkip(); return; }   // im Spiel geht es über „Wer hat's gewusst?“ weiter
+    if (spielAktiv) {                      // im Spiel: Tipp auf die Karte = Weiter (kurze Schutzzeit nach dem Aufdecken)
+      if (Date.now() - (spiel.aufgedecktZeit || 0) > 700 && !document.getElementById('spiel-wer')?.classList.contains('hidden')) spielWeiterKarte();
+      return;
+    }
     stoppeAutoTimer();
     naechsteKarteOderEnde();
   }
@@ -5426,7 +5446,7 @@ const TUTORIAL_KARTEN = [
   { de: ['Willkommen bei MemoFix',
          'MemoFix trainiert aktives Erinnern: erst überlegen, dann aufdecken.\n\n- **Karte antippen** → sie dreht sich um\n- **✓ oder ✗** wertet, ob du es wusstest\n- **Wischen oder Pfeile** → vor und zurück\n- Nach der Runde: **Nachgeschaute üben**',
          'Erst überlegen, dann aufdecken – so bleibt Wissen hängen.'],
-    video: { id: 'BwfoIW-zeCE', titel: 'MemoFix – Einführung', titel_en: 'MemoFix – Introduction', format: 'hochkant' },
+    video: { id: 'LMcXbAEjww0', titel: 'MemoFix – Einführung', titel_en: 'MemoFix – Introduction', format: 'hochkant' },
     en: ['Welcome to MemoFix',
          'MemoFix trains active recall: think first, then reveal.\n\n- **Tap the card** → it flips\n- **✓ or ✗** rates whether you knew it\n- **Swipe or arrows** → forward and back\n- After a round: **Practise missed cards**',
          'Think first, then reveal – that is how knowledge sticks.'] },
@@ -5950,6 +5970,7 @@ function spT() {
   return istEn() ? {
     zweiGleiche: (n, liste) => `Two ${n}s! From now on: ${liste.join(' and ')}`,
     schliessen: 'Close', naechster: '＋ Next',
+    weiterBtn: 'Next ▶', minusTitel: 'Subtract a point (only once)',
     umbenennen: '✎ Rename', entfernen: '🗑 Remove', abbr: 'Cancel', punkteUebertragen: n => `${n} point${n !== 1 ? 's' : ''} – give to:`, verwerfen: 'Discard points', entfernenFrage: n => `Remove “${n}”?`,
     dasBistDu: 'That is you!', anderes: '↻ Another', weiterGehts: 'On we go', eureTiere: 'Your animals', beendenFrage: 'End the game? The points will be lost.',
     unsere: 'Our', neuName2: '＋ Name', emojiSp: '＋ 🙂', einfuegen: '📋 Paste list', fuenf: '＋5 🙂', punkteK: 'Class',
@@ -5983,7 +6004,8 @@ function spT() {
     hilfeText: [
       'A card appears: <strong>think first, then answer.</strong> Nobody has to be fast.',
       'Reveal the back (tap or space). The group looks at it together.',
-      'Is the answer right? Tap <strong>Who knew it?</strong> → +1 point. If not: <strong>✗ Nobody</strong> – no minus points, on to the next card.',
+      'Is the answer right? Tap the <strong>names</strong> of those who knew it – each gets +1 (tap again to take it back, several people are fine). Then <strong>Next ▶</strong> or tap the card.',
+      '<strong>＋1 / −1:</strong> Someone volunteers but does not know it? Switch to −1 on purpose and tap their name (never below 0). It switches back to ＋1 by itself.',
       '<strong>👥 Everyone</strong> = the whole group knew it → class point.',
       '<strong>🎲 Dice-Mode</strong> calls someone at random (only those marked present). Off: everyone thinks along. <strong>Passing is allowed</strong>, asking for help too – both get the point.',
       '<strong>⏱ Countdown</strong> (30 / 20 / 10 / 5 s) is optional. Off: everyone has time. On: whoever answers within the time can get the point. With Dice-Mode it starts after the roll. A tap on the time ends it right away. At zero the card wiggles – no penalty.',
@@ -5995,6 +6017,7 @@ function spT() {
   } : {
     zweiGleiche: (n, liste) => `Zweimal ${n}! Ab jetzt: ${liste.join(' und ')}`,
     schliessen: 'Schließen', naechster: '＋ Nächster',
+    weiterBtn: 'Weiter ▶', minusTitel: 'Punkt abziehen (nur einmal)',
     umbenennen: '✎ Umbenennen', entfernen: '🗑 Entfernen', abbr: 'Abbrechen', punkteUebertragen: n => `${n} Punkt${n !== 1 ? 'e' : ''} – übertragen an:`, verwerfen: 'Punkte verwerfen', entfernenFrage: n => `„${n}“ entfernen?`,
     dasBistDu: 'Das bist du!', anderes: '↻ Anderes', weiterGehts: 'Weiter geht\'s', eureTiere: 'Eure Tiere', beendenFrage: 'Spiel beenden? Die Punkte gehen verloren.',
     unsere: 'Unsere', neuName2: '＋ Name', emojiSp: '＋ 🙂', einfuegen: '📋 Liste einfügen', fuenf: '＋5 🙂', punkteK: 'Klasse',
@@ -6028,7 +6051,8 @@ function spT() {
     hilfeText: [
       'Eine Karte erscheint: <strong>erst überlegen, dann antworten.</strong> Niemand muss schnell sein.',
       'Rückseite aufdecken (Tippen oder Leertaste). Die Gruppe schaut sie gemeinsam an.',
-      'Stimmt die Antwort? Tippe <strong>Wer hat\'s gewusst?</strong> → +1 Punkt. Wenn nicht: <strong>✗ Niemand</strong> – keine Minuspunkte, weiter zur nächsten Karte.',
+      'Stimmt die Antwort? Tippe die <strong>Namen</strong> an, die es gewusst haben – jede Person bekommt +1 (nochmal tippen nimmt es zurück, auch mehrere sind möglich). Dann <strong>Weiter ▶</strong> oder die Karte antippen.',
+      '<strong>＋1 / −1:</strong> Jemand meldet sich, weiß es aber nicht? Bewusst auf −1 umschalten und den Namen antippen (nie unter 0). Danach springt es von selbst auf ＋1 zurück.',
       '<strong>👥 Alle</strong> = die ganze Gruppe wusste es → Klassenpunkt.',
       '<strong>🎲 Dice-Mode</strong> ruft zufällig jemanden auf (nur wer als anwesend markiert ist). Aus: alle denken mit. <strong>Passen ist erlaubt</strong>, Hilfe holen auch – beide bekommen den Punkt.',
       '<strong>⏱ Countdown</strong> (30 / 20 / 10 / 5 s) ist freiwillig. Aus: alle haben Zeit. An: Wer in der Zeit antwortet, kann den Punkt bekommen. Mit Dice-Mode startet er nach dem Wurf. Ein Tipp auf die Zeit beendet ihn sofort. Bei null wackelt die Karte – keine Strafe.',
@@ -6068,16 +6092,21 @@ function spielEmojiZeigen(onOk, mehrere) {
   document.body.appendChild(m);
   const zeichne = () => {
     m.innerHTML = `<div class="spiel-modal-box sp-emoji-box">
+      <button class="sp-emoji-zu" data-x="zu" aria-label="${esc(T.schliessen)}">✕</button>
       <div class="sp-emoji-titel">${esc(mehrere ? T.eureTiere : T.dasBistDu)}</div>
       <div class="sp-emoji-gross">${mehrere ? em.join(' ') : em}</div>
       <div class="sp-modal-btns">${mehrere ? '' : `<button class="btn-secondary" data-x="anderes">${esc(T.anderes)}</button>`}
         <button class="btn-primary" data-x="ok">${esc(T.weiterGehts)}</button></div></div>`;
   };
   zeichne();
+  const esc_ = ev => { if (ev.key === 'Escape') { ev.stopPropagation(); schliesse(); } };
+  const schliesse = () => { document.removeEventListener('keydown', esc_, true); m.remove(); };
+  document.addEventListener('keydown', esc_, true);
   m.addEventListener('click', ev => {
     const x = ev.target.closest('[data-x]')?.dataset.x;
+    if (ev.target === m || x === 'zu') { schliesse(); return; }          // abbrechen: keine Person, kein Punkt
     if (x === 'anderes') { em = spielFreiesEmoji(em); zeichne(); }
-    else if (x === 'ok') { m.remove(); onOk(em); }
+    else if (x === 'ok') { schliesse(); onOk(em); }
   });
 }
 
@@ -6085,7 +6114,7 @@ function spielEmojiZeigen(onOk, mehrere) {
 function spielUmbenennen(e, neu) {
   const alt = e.name;
   e.name = neu;
-  spiel.verlauf.forEach(v => { v.namen = v.namen.map(x => x === alt ? neu : x); });
+  spiel.verlauf.forEach(v => { v.namen = v.namen.map(x => x === alt ? neu : x); if (v.wirksam) v.wirksam = v.wirksam.map(x => x === alt ? neu : x); });
   if (spiel.aktuell === alt) spiel.aktuell = neu;
 }
 function spielNeuePerson(n) {
@@ -6119,18 +6148,101 @@ function spielAddName(n) {
   return e;
 }
 
-function spielPunkt(namen, klasse) {
-  const eintrag = { namen: [], klasse: 0 };
-  namen.forEach(n => { const e = spielAddName(n); if (e) { e.punkte++; eintrag.namen.push(e.name); } });
-  if (klasse) { spiel.klasse++; eintrag.klasse = 1; }
+function spielKarteId() { return lernKarten[lernIndex]?.id || ''; }
+// +1 / −1 (nie unter 0); merkt sich, was wirklich geändert wurde, damit Zurücknehmen stimmt
+function spielPunkt(namen, klasse, delta = 1) {
+  const eintrag = { namen: [], klasse: 0, delta, karte: spielKarteId(), wirksam: [] };
+  namen.forEach(n => {
+    const e = spielAddName(n); if (!e) return;
+    eintrag.namen.push(e.name);
+    if (delta > 0) { e.punkte++; eintrag.wirksam.push(e.name); }
+    else if (e.punkte > 0) { e.punkte--; eintrag.wirksam.push(e.name); }
+  });
+  if (klasse && delta > 0) { spiel.klasse++; eintrag.klasse = 1; }
   spiel.verlauf.push(eintrag);
   spielRender();
 }
+function spielEintragZurueck(v, nurName) {
+  const namen = nurName ? [nurName] : (v.wirksam || []);
+  namen.forEach(n => {
+    const e = spielFinde(n); if (!e) return;
+    if (v.delta > 0) { if (e.punkte > 0) e.punkte--; } else e.punkte++;
+  });
+  if (!nurName && v.klasse && spiel.klasse > 0) spiel.klasse--;
+}
 function spielUndo() {
   const l = spiel.verlauf.pop(); if (!l) return;
-  l.namen.forEach(n => { const e = spielFinde(n); if (e && e.punkte > 0) e.punkte--; });
-  if (l.klasse && spiel.klasse > 0) spiel.klasse--;
+  spielEintragZurueck(l);
   spielRender();
+}
+// Punkte der aktuellen Karte: je Person die Summe, dazu Klassenpunkt
+function spielKarteAwards() {
+  const personen = new Map(); let klasse = 0;
+  const id = spielKarteId();
+  spiel.verlauf.forEach(v => {
+    if (v.karte !== id) return;
+    (v.wirksam || []).forEach(n => personen.set(n, (personen.get(n) || 0) + v.delta));
+    klasse += v.klasse || 0;
+  });
+  return { personen, klasse };
+}
+// Antippen eines Namens: +1 · nochmal tippen: zurück · im −1-Modus: einmal abziehen
+function spielToggle(name) {
+  const id = spielKarteId();
+  if (spiel.minus) {
+    spiel.minus = false;
+    spielPunkt([name], false, -1);
+    spielChipEffekt([name], '−1', true);
+    return;
+  }
+  const hat = spielKarteAwards().personen.get(name) || 0;
+  if (hat !== 0) {
+    for (let i = spiel.verlauf.length - 1; i >= 0; i--) {
+      const v = spiel.verlauf[i];
+      if (v.karte === id && (v.wirksam || []).includes(name)) {
+        spielEintragZurueck(v, name);
+        v.wirksam = v.wirksam.filter(n => n !== name); v.namen = v.namen.filter(n => n !== name);
+        if (!v.namen.length && !v.klasse) spiel.verlauf.splice(i, 1);
+        break;
+      }
+    }
+    spielRender();
+  } else {
+    spielPunkt([name], false, 1);
+    spielChipEffekt([name], '+1', false);
+  }
+}
+function spielToggleKlasse() {
+  const id = spielKarteId();
+  if (spielKarteAwards().klasse > 0) {
+    for (let i = spiel.verlauf.length - 1; i >= 0; i--) {
+      const v = spiel.verlauf[i];
+      if (v.karte === id && v.klasse) {
+        v.klasse = 0; if (spiel.klasse > 0) spiel.klasse--;
+        if (!v.namen.length) spiel.verlauf.splice(i, 1);
+        break;
+      }
+    }
+    spielRender();
+  } else {
+    spielPunkt([], true, 1);
+    const alle = document.querySelector('#spiel-wer [data-sp="alle"]');
+    if (alle) spielEffektAn(alle, '+1', false);
+  }
+}
+function spielEffektAn(chip, text, minus) {
+  chip.classList.add('sp-pop');
+  const sp = document.createElement('span');
+  sp.className = 'sp-plus' + (minus ? ' sp-plus-minus' : ''); sp.textContent = text;
+  chip.appendChild(sp);
+  setTimeout(() => { chip.classList.remove('sp-pop'); sp.remove(); }, 1350);
+}
+function spielChipEffekt(namen, text, minus) {
+  const p = document.getElementById('spiel-wer'); if (!p) return;
+  namen.forEach(n => {
+    const c = [...p.querySelectorAll('.sp-chip[data-name]')].find(x => x.dataset.name === n);
+    if (c) spielEffektAn(c, text, minus);
+  });
 }
 
 // ── Aufbau / Abbau ───────────────────────────────────────────
@@ -6272,30 +6384,34 @@ function spielZeitTick() {
 function spielRenderPanel() {
   const T = spT();
   const p = document.getElementById('spiel-wer'); if (!p) return;
-  const s = lernKarten[lernIndex];
-  const sichtbar = nameVisible && s && !spiel.vergeben.has(s.id);
+  const s_ = lernKarten[lernIndex];
+  const sichtbar = nameVisible && s_ && !spiel.vergeben.has(s_.id);
   p.classList.toggle('hidden', !sichtbar);
   if (!sichtbar) return;
   const da = spielNamenDa();
   const dran = spiel.wuerfel && spiel.aktuell;
-  const chip = (e, extra = '') => `<button class="sp-chip${extra}" data-sp="wahl" data-name="${esc(e.name)}"${extra.includes('helfer') ? ' data-helfer="1"' : ''}>${esc(e.name)}${e.punkte ? `<span class="sp-chip-pkt">${e.punkte}</span>` : ''}</button>`;
+  const aw = spielKarteAwards();
+  const zustand = n => { const v = aw.personen.get(n) || 0; return v > 0 ? ' sp-gewaehlt' : v < 0 ? ' sp-minus-chip' : ''; };
+  const haken = n => { const v = aw.personen.get(n) || 0; return v > 0 ? '<span class="sp-haken">✓</span>' : v < 0 ? '<span class="sp-haken">−</span>' : ''; };
+  const chip = (e, extra = '') => `<button class="sp-chip${zustand(e.name)}${extra}" data-sp="wahl" data-name="${esc(e.name)}">${haken(e.name)}${esc(e.name)}${e.punkte ? `<span class="sp-chip-pkt">${e.punkte}</span>` : ''}</button>`;
+  const minusBtn = `<button class="sp-minus-btn${spiel.minus ? ' an' : ''}" data-sp="minus" title="${esc(T.minusTitel)}" aria-label="${esc(T.minusTitel)}">${spiel.minus ? '−1' : '＋1'}</button>`;
+  const alleChip = `<button class="sp-chip${aw.klasse > 0 ? ' sp-gewaehlt' : ''}" data-sp="alle">${aw.klasse > 0 ? '<span class="sp-haken">✓</span>' : ''}${esc(T.gruppe)}</button>`;
+  const weiter = `<button class="sp-chip sp-chip-weiter" data-sp="weiter">${esc(T.weiterBtn)}</button>`;
   let html;
   if (dran) {
-    html = `<div class="sp-frage">${esc(T.wuerfelFrage(spiel.aktuell))}</div><div class="sp-chips">
-      <button class="sp-chip sp-chip-gross" data-sp="wahl" data-name="${esc(spiel.aktuell)}">${esc(T.gewusst(spiel.aktuell))}</button>
+    html = `<div class="sp-frage-reihe"><span class="sp-frage">${esc(T.wuerfelFrage(spiel.aktuell))}</span>${minusBtn}</div><div class="sp-chips">
+      <button class="sp-chip sp-chip-gross${zustand(spiel.aktuell)}" data-sp="wahl" data-name="${esc(spiel.aktuell)}">${esc(T.gewusst(spiel.aktuell))}</button>
       <button class="sp-chip${spiel.helfer ? ' aktiv' : ''}" data-sp="helfer">${esc(T.hilfeVon)}</button>
-      <button class="sp-chip" data-sp="alle">${esc(T.gruppe)}</button>
-      <button class="sp-chip sp-chip-nein" data-sp="niemand">${esc(T.niemand)}</button></div>
-      ${spiel.helfer ? `<div class="sp-chips sp-chips-zwei">${da.filter(e => e.name !== spiel.aktuell).map(e => chip(e, ' helfer')).join('')}
-        <button class="sp-chip sp-chip-neu" data-sp="hneu">${esc(T.neuName2)}</button>
-        <button class="sp-chip sp-chip-neu" data-sp="hemoji">${esc(T.emojiSp)}</button></div>` : ''}`;
+      ${alleChip}${weiter}</div>
+      ${spiel.helfer ? `<div class="sp-chips sp-chips-zwei">${da.filter(e => e.name !== spiel.aktuell).map(e => chip(e)).join('')}
+        <button class="sp-chip sp-chip-neu" data-sp="neu">${esc(T.neuName2)}</button>
+        <button class="sp-chip sp-chip-neu" data-sp="emoji">${esc(T.emojiSp)}</button></div>` : ''}`;
   } else {
-    html = `<div class="sp-frage">${esc(T.wer)}</div><div class="sp-chips">
+    html = `<div class="sp-frage-reihe"><span class="sp-frage">${esc(T.wer)}</span>${minusBtn}</div><div class="sp-chips">
       ${da.map(e => chip(e)).join('')}
       <button class="sp-chip sp-chip-neu" data-sp="neu">${esc(T.neuName2)}</button>
       <button class="sp-chip sp-chip-neu" data-sp="emoji">${esc(T.emojiSp)}</button>
-      <button class="sp-chip" data-sp="alle">${esc(T.gruppe)}</button>
-      <button class="sp-chip sp-chip-nein" data-sp="niemand">${esc(T.niemand)}</button></div>`;
+      ${alleChip}${weiter}</div>`;
   }
   p.classList.toggle('sp-kompakt', da.length > 12);
   p.innerHTML = html;
@@ -6345,6 +6461,7 @@ function spielKarteAngezeigt() {
 }
 function spielAufgedeckt() {
   if (!spielAktiv) return;
+  spiel.aufgedecktZeit = Date.now();
   clearInterval(spiel.rollTimer);
   spielZeitStop();
   spielRender();
@@ -6365,36 +6482,16 @@ function spielWeiter(gewusst) {
   setTimeout(los, 380);
 }
 
-// Punkt vergeben: kurz (1,2 s) zeigen, wer ihn bekommt, dann weiter. Tipp überspringt die Wartezeit.
+// Neue Person (Tastatur/Emoji) bekommt +1; die Karte bleibt stehen, bis „Weiter ▶“ oder ein Tipp auf die Karte kommt
 function spielVergeben(namen, klasse) {
-  const T = spT();
-  spielPunkt(namen, klasse);                        // zählt, rendert Panel und Leiste neu
-  const s_ = lernKarten[lernIndex];
-  if (s_) spiel.vergeben.add(s_.id);
-  const p = document.getElementById('spiel-wer');
-  if (p) {
-    p.classList.remove('hidden');
-    p.classList.add('sp-sperre');
-    const reihe = p.querySelector('.sp-chips');
-    const plus = () => { const sp = document.createElement('span'); sp.className = 'sp-plus'; sp.textContent = '+1'; return sp; };
-    const heb = chip => { chip.classList.add('sp-pop'); chip.appendChild(plus()); };
-    namen.forEach(n => {
-      let chip = [...p.querySelectorAll('.sp-chip[data-name]')].find(c => c.dataset.name === n);
-      if (!chip && reihe) {                         // z. B. Dice-Mode: neue Person ist (noch) kein Chip -> am Ende ergänzen
-        chip = document.createElement('button');
-        chip.className = 'sp-chip'; chip.dataset.name = n;
-        const e = spielFinde(n);
-        chip.innerHTML = `${esc(n)}<span class="sp-chip-pkt">${e ? e.punkte : ''}</span>`;
-        reihe.insertBefore(chip, reihe.firstChild);
-      }
-      if (chip) heb(chip);
-    });
-    if (klasse) { const alle = p.querySelector('[data-sp="alle"]'); if (alle) heb(alle); }
-    p.querySelectorAll('.sp-chip:not(.sp-pop)').forEach(c => c.classList.add('sp-gedimmt'));
-  }
-  const los = () => { clearTimeout(spiel.warteTimer); spiel.warteSkip = null; p?.classList.remove('sp-sperre'); spielWeiter(true); };
-  spiel.warteSkip = los;
-  spiel.warteTimer = setTimeout(los, 1350);
+  spielPunkt(namen, klasse, 1);
+  spielChipEffekt(namen, '+1', false);
+}
+function spielWeiterKarte() {
+  const aw = spielKarteAwards();
+  const gewusst = aw.klasse > 0 || [...aw.personen.values()].some(v => v > 0);
+  spiel.minus = false;
+  spielWeiter(gewusst);
 }
 function spielChipBlinken(name) {
   setTimeout(() => {
@@ -6403,7 +6500,6 @@ function spielChipBlinken(name) {
   }, 60);
 }
 function spielKlick(e) {
-  if (spiel.warteSkip) { spiel.warteSkip(); return; }      // während der Haltezeit: Tipp = sofort weiter
   const el = e.target.closest('[data-sp]'); if (!el) return;
   const a = el.dataset.sp, T = spT();
   if (a === 'wuerfel') {
@@ -6431,9 +6527,9 @@ function spielKlick(e) {
   else if (a === 'passen') { const alt = spiel.aktuell; const e0 = spielFinde(alt); if (e0) e0.gewuerfelt = false; spielWuerfeln(alt); }
   else if (a === 'helfer') { spiel.helfer = !spiel.helfer; spielRenderPanel(); }
   else if (a === 'wahl') {
-    const name = el.dataset.name;
-    const helfer = el.dataset.helfer === '1';
-    spielVergeben(helfer && spiel.aktuell ? [spiel.aktuell, name] : [name], false);
+    spielToggle(el.dataset.name);
+  } else if (a === 'minus') { spiel.minus = !spiel.minus; spielRenderPanel();
+  } else if (a === 'weiter') { spielWeiterKarte();
   } else if (a === 'neu') {
     spielTastatur(T.tasteTitel, '', text => {
       const person = spielNeuePerson(text); if (!person) return;
@@ -6447,14 +6543,14 @@ function spielKlick(e) {
   } else if (a === 'hneu') {
     spielTastatur(T.tasteTitel, '', text => {
       const person = spielNeuePerson(text); if (!person) return;
-      spielVergeben([spiel.aktuell, person.name], false);
+      spielVergeben([person.name], false);
     });
   } else if (a === 'hemoji') {
     spielEmojiZeigen(em => {
       const person = spielEmojiPersonMit(em);
-      spielVergeben([spiel.aktuell, person.name], false);
+      spielVergeben([person.name], false);
     });
-  } else if (a === 'alle') { spielVergeben([], true); }
+  } else if (a === 'alle') { spielToggleKlasse(); }
   else if (a === 'niemand') { toast(T.keinPunkt); spielWeiter(false); }
 }
 
@@ -6680,7 +6776,7 @@ function spielPersonMenue(name) {
         const ziel = spielFinde(neu);
         if (ziel && ziel !== e) {                 // gibt es schon: Personen zusammenführen
           ziel.punkte += e.punkte;
-          spiel.verlauf.forEach(v => { v.namen = v.namen.map(n => n === e.name ? ziel.name : n); });
+          spiel.verlauf.forEach(v => { v.namen = v.namen.map(n => n === e.name ? ziel.name : n); if (v.wirksam) v.wirksam = v.wirksam.map(n => n === e.name ? ziel.name : n); });
           spiel.namen = spiel.namen.filter(n => n !== e);
         } else spielUmbenennen(e, neu);
         nachAenderung();
@@ -6708,7 +6804,10 @@ function spielPersonMenue(name) {
 function entfernePerson(e, zielName) {
   const ziel = zielName ? spielFinde(zielName) : null;
   if (ziel) { ziel.punkte += e.punkte; }
-  spiel.verlauf.forEach(v => { v.namen = ziel ? v.namen.map(n => n === e.name ? ziel.name : n) : v.namen.filter(n => n !== e.name); });
+  spiel.verlauf.forEach(v => {
+    const f = arr => ziel ? arr.map(n => n === e.name ? ziel.name : n) : arr.filter(n => n !== e.name);
+    v.namen = f(v.namen); if (v.wirksam) v.wirksam = f(v.wirksam);
+  });
   if (spiel.aktuell === e.name) spiel.aktuell = null;
   spiel.namen = spiel.namen.filter(n => n !== e);
 }
@@ -6739,3 +6838,10 @@ function entfernePerson(e, zielName) {
   }, true);
   document.addEventListener('contextmenu', ev => { if (spielAktiv) ev.preventDefault(); });
 })();
+
+// Statistik: Zeitraum 30 Tage / Alle
+document.getElementById('stat-zeitraum')?.addEventListener('click', e => {
+  const b = e.target.closest('button[data-tage]'); if (!b) return;
+  try { localStorage.setItem('statistikTage', String(parseInt(b.dataset.tage, 10) || 0)); } catch (_) {}
+  renderStatistik();
+});

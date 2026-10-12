@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=84">
+  <link rel="stylesheet" href="style.css?v=87">
 </head>
 <body>
 
@@ -631,7 +631,9 @@
       </div>
 
       <div class="card">
-        <div class="card-header"><h2>Schwierigste Karten</h2></div>
+        <div class="card-header"><h2>Schwierigste Karten</h2>
+          <div id="stat-zeitraum" class="stat-zeitraum"><button type="button" data-tage="30">30 Tage</button><button type="button" data-tage="0">Alle</button></div>
+        </div>
         <div id="schwierigste-namen"></div>
         <p id="keine-schwierig-hinweis" class="hinweis">Noch keine Daten vorhanden.</p>
         <button id="btn-schwaeche-ueben" class="btn-schwaeche hidden">⟳ Schwächste Karten jetzt üben</button>
@@ -808,6 +810,6 @@
     <div id="video-overlay-title" class="video-overlay-title"></div>
   </div>
 
-  <script src="app.js?v=119"></script>
+  <script src="app.js?v=122"></script>
 </body>
 </html>

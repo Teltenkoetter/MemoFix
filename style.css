@@ -2634,3 +2634,34 @@ body.praesi:not(.spiel) #lernen-flashcard {
 
 .kursset-aktionen .btn-kursset-neu { width: 30px; height: 30px; padding: 0; border-radius: 50%; font-size: 0.95rem; line-height: 1; }
 .ks-ordner > :not(summary) { margin-left: 0.55rem; }
+
+/* Statistik: Zeitraum-Schalter und Detailzeile */
+.stat-zeitraum { margin-left: auto; display: flex; gap: 0.3rem; }
+.stat-zeitraum button {
+  padding: 0.25rem 0.65rem; border-radius: 999px; border: 1px solid var(--border); background: none;
+  color: var(--muted); font-size: 0.75rem; font-family: inherit; cursor: pointer;
+}
+.stat-zeitraum button.active { border-color: var(--accent); color: var(--text); background: rgba(255,255,255,0.08); }
+.schwierig-detail { font-size: 0.72rem; color: var(--muted); }
+
+/* ── Ankreuz-Chips, Weiter-Knopf, −1-Schalter, Emoji-Fenster mit ✕ ── */
+.sp-frage-reihe { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.35rem; }
+.sp-frage-reihe .sp-frage { margin-bottom: 0; }
+.sp-minus-btn {
+  min-width: 52px; height: 34px; padding: 0 0.7rem; border-radius: 999px; font-weight: 800; font-size: 0.95rem; font-family: inherit;
+  border: 1px solid rgba(255,255,255,0.28); background: rgba(255,255,255,0.08); color: var(--text); cursor: pointer;
+}
+.sp-minus-btn.an { border-color: #ff7a7a; background: rgba(255,122,122,0.22); color: #ff7a7a; }
+.sp-chip.sp-gewaehlt { border-color: #5fd38d; background: rgba(95,211,141,0.2); }
+.sp-chip.sp-minus-chip { border-color: #ff7a7a; background: rgba(255,122,122,0.18); }
+.sp-haken { margin-right: 0.4rem; font-weight: 800; color: #5fd38d; }
+.sp-minus-chip .sp-haken { color: #ff7a7a; }
+.sp-chip-weiter { background: #5fd38d !important; color: #0b0b0b !important; border-color: #5fd38d !important; font-weight: 800; margin-left: auto; }
+.sp-plus-minus { color: #ff7a7a !important; }
+.spiel-modal-box.sp-emoji-box { position: relative; }
+.sp-emoji-zu {
+  position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); color: var(--text); font-size: 1rem; cursor: pointer;
+}
+/* Platz für den Kartenzähler (1 / 46) unten rechts, damit „Weiter ▶“ nicht überdeckt wird */
+body.spiel .spiel-wer { padding-right: calc(var(--sp-rem, 1rem) * 4.6); }
