@@ -6507,13 +6507,14 @@ function spielRatenFrage() {
   const s = lernKarten[lernIndex];
   const q = s && ratenDaten[s.id];
   if (!q || !Array.isArray(q.o) || q.o.length < 2) return null;
+  const lq = istEn() && q.fe && Array.isArray(q.oe) && q.oe.length === q.o.length ? { f: q.fe, o: q.oe } : q;   // englische Fassung, sonst Deutsch
   if (spiel.ratenId !== s.id) {                       // neue Karte: Antworten neu mischen
     spiel.ratenId = s.id;
     const o = q.o.map((_, i) => i);
     for (let i = o.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [o[i], o[j]] = [o[j], o[i]]; }
     spiel.ratenOrder = o;
   }
-  return q;
+  return lq;
 }
 function spielRatenZeile() {
   const q = spiel.raten && nameVisible ? spielRatenFrage() : null;
