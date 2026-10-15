@@ -2699,3 +2699,11 @@ body.spiel .spiel-wer { padding-right: calc(var(--sp-rem, 1rem) * 4.6); }
 .sp-raten-badge { position: absolute; top: -6px; right: -6px; min-width: 1.35em; height: 1.35em; padding: 0 3px; border-radius: 999px; background: #ffb454; color: #000;
   font-size: calc(var(--sp-rem, 1rem) * 0.7); font-weight: 800; line-height: 1.35em; text-align: center; }
 .sp-raten-btn.immer { background: rgba(255,180,84,0.4); box-shadow: 0 0 0 2px #ffb454 inset; }
+
+/* Raten-Pille wie die Würfel-Pille; Zustand als Zeichen in der Pille */
+.sp-raten-pille { cursor: pointer; color: var(--text); font-family: inherit; opacity: 0.75; }
+.sp-raten-pille.aktiv { opacity: 1; border-color: #ffb454; }
+.sp-raten-pille.immer { background: rgba(255,180,84,0.32); }
+.sp-rt-z { display: inline-block; min-width: 1.1em; text-align: center; font-weight: 800; }
+.sp-raten-pille.aktiv .sp-rt-z { color: #ffb454; }
+.sp-chips .sp-minus-btn { flex: none; }

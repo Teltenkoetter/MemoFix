@@ -6309,7 +6309,7 @@ function spielRender() {
         <button data-sp="zeit" class="sp-led-btn${spiel.zeit ? ' aktiv' : ''}" title="${esc(T.zeit)}" aria-label="${esc(T.zeit)}">
           <span class="sp-led-label">Timer</span><span id="sp-led" class="sp-led">${spiel.zeit ? spielZeitText(spiel.zeit) : (istEn() ? 'off' : 'aus')}</span></button>
         <label class="sp-wuerfel-btn${spiel.wuerfel ? ' aktiv' : ''}" title="${esc(T.wuerfel)}"><input type="checkbox" data-sp="wuerfel"${spiel.wuerfel ? ' checked' : ''}><span>🎲</span></label>
-        ${spielRatenVerfuegbar() ? `<button data-sp="raten" class="sp-raten-btn${spiel.raten ? ' aktiv' : ''}${spiel.raten === 2 ? ' immer' : ''}" title="${esc(spRatenT().modi[spiel.raten || 0])}" aria-label="${esc(spRatenT().modi[spiel.raten || 0])}">🎯${spiel.raten ? `<span class="sp-raten-badge">${spiel.raten === 2 ? '∞' : '1'}</span>` : ''}</button>` : ''}
+        ${spielRatenVerfuegbar() ? `<button data-sp="raten" class="sp-wuerfel-btn sp-raten-pille${spiel.raten ? ' aktiv' : ''}${spiel.raten === 2 ? ' immer' : ''}" title="${esc(spRatenT().modi[spiel.raten || 0])}" aria-label="${esc(spRatenT().modi[spiel.raten || 0])}"><span>🎯</span><span class="sp-rt-z">${spiel.raten === 2 ? '∞' : spiel.raten === 1 ? '1' : '–'}</span></button>` : ''}
       </div>
       <div class="sp-hud-r">
         ${spiel.verlauf.length ? `<button data-sp="undo" class="sp-hud-btn sp-rund${nameVisible ? '' : ' sp-grau'}" ${nameVisible ? '' : 'disabled'} title="${esc(T.undo)}" aria-label="${esc(T.undo)}">↶</button>` : ''}
@@ -6407,7 +6407,7 @@ function spielRenderPanel() {
   const weiter = `<button class="sp-chip sp-chip-weiter" data-sp="weiter">${esc(T.weiterBtn)}</button>`;
   let html;
   if (dran) {
-    html = `<div class="sp-frage-reihe"><span class="sp-frage">${esc(T.wuerfelFrage(spiel.aktuell))}</span>${minusBtn}</div><div class="sp-chips">
+    html = `<div class="sp-frage-reihe"><span class="sp-frage">${esc(T.wuerfelFrage(spiel.aktuell))}</span></div><div class="sp-chips">${minusBtn}
       <button class="sp-chip sp-chip-gross${zustand(spiel.aktuell)}" data-sp="wahl" data-name="${esc(spiel.aktuell)}">${esc(T.gewusst(spiel.aktuell))}</button>
       <button class="sp-chip${spiel.helfer ? ' aktiv' : ''}" data-sp="helfer">${esc(T.hilfeVon)}</button>
       ${alleChip}${weiter}</div>
@@ -6415,7 +6415,7 @@ function spielRenderPanel() {
         <button class="sp-chip sp-chip-neu" data-sp="neu">${esc(T.neuName2)}</button>
         <button class="sp-chip sp-chip-neu" data-sp="emoji">${esc(T.emojiSp)}</button></div>` : ''}`;
   } else {
-    html = `<div class="sp-frage-reihe"><span class="sp-frage">${esc(T.wer)}</span>${minusBtn}</div><div class="sp-chips">
+    html = `<div class="sp-frage-reihe"><span class="sp-frage">${esc(T.wer)}</span></div><div class="sp-chips">${minusBtn}
       ${da.map(e => chip(e)).join('')}
       <button class="sp-chip sp-chip-neu" data-sp="neu">${esc(T.neuName2)}</button>
       <button class="sp-chip sp-chip-neu" data-sp="emoji">${esc(T.emojiSp)}</button>
