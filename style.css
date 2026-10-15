@@ -2665,3 +2665,32 @@ body.praesi:not(.spiel) #lernen-flashcard {
 }
 /* Platz für den Kartenzähler (1 / 46) unten rechts, damit „Weiter ▶“ nicht überdeckt wird */
 body.spiel .spiel-wer { padding-right: calc(var(--sp-rem, 1rem) * 4.6); }
+
+/* Raten-Modus (MemoDive): Frage oben, vier Antworten unten, Karte bleibt dazwischen sichtbar */
+.spiel-raten { position: absolute; inset: 0; z-index: 25; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
+.spiel-raten.hidden { display: none; }
+.sp-rt-unten { pointer-events: auto; background: rgba(0,0,0,0.78); border-radius: 14px 14px 0 0; }
+.sp-rt-voll { background: #101010; justify-content: flex-start; gap: calc(var(--sp-rem, 1rem) * 0.35); pointer-events: auto; }
+.sp-rt-voll .sp-rt-unten { background: none; margin-top: auto; }
+.sp-rt-begriff { text-align: center; font-size: calc(var(--sp-rem, 1rem) * 0.75); letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.55); padding-top: calc(var(--sp-rem, 1rem) * 0.5); }
+.sp-rt-voll .sp-rt-q { margin-top: 0; }
+.sp-rt-q { margin: calc(var(--sp-rem, 1rem) * 0.5) calc(var(--sp-rem, 1rem) * 0.5) 0; padding: calc(var(--sp-rem, 1rem) * 0.55) calc(var(--sp-rem, 1rem) * 0.8);
+  background: rgba(0,0,0,0.82); border: 1px solid #ffb454; border-radius: 14px; color: #fff; font-weight: 700; text-align: center;
+  font-size: calc(var(--sp-rem, 1rem) * 1.05); line-height: 1.3; pointer-events: none; }
+.sp-rt-opts { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--sp-rem, 1rem) * 0.4); padding: calc(var(--sp-rem, 1rem) * 0.5); }
+.sp-rt-opts button { display: flex; align-items: center; gap: calc(var(--sp-rem, 1rem) * 0.5); text-align: left; min-height: 44px;
+  padding: calc(var(--sp-rem, 1rem) * 0.4) calc(var(--sp-rem, 1rem) * 0.6); border-radius: 12px; border: 1px solid rgba(255,255,255,0.28);
+  background: rgba(255,255,255,0.08); color: #fff; font-size: calc(var(--sp-rem, 1rem) * 0.92); line-height: 1.25; font-family: inherit; cursor: pointer; }
+.sp-rt-opts button:active { background: rgba(255,180,84,0.28); border-color: #ffb454; }
+.sp-rt-l { flex: none; width: 1.7em; height: 1.7em; border-radius: 50%; background: #ffb454; color: #000; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
+.sp-rt-hint { text-align: center; font-size: calc(var(--sp-rem, 1rem) * 0.72); color: rgba(255,255,255,0.7); padding: 0 0 calc(var(--sp-rem, 1rem) * 0.35); pointer-events: none; }
+.sp-rt-zeile { margin-bottom: calc(var(--sp-rem, 1rem) * 0.45); padding: calc(var(--sp-rem, 1rem) * 0.3) calc(var(--sp-rem, 1rem) * 0.6); border-left: 4px solid; border-radius: 8px;
+  background: rgba(255,255,255,0.05); font-size: calc(var(--sp-rem, 1rem) * 0.85); line-height: 1.3; color: var(--text); }
+.sp-rt-ok { border-color: #5fd38d; } .sp-rt-ok b { color: #5fd38d; }
+.sp-rt-nein { border-color: #ff6b6b; } .sp-rt-nein b { color: #ff8a8a; }
+.sp-rt-offen { border-color: #ffb454; } .sp-rt-offen b { color: #ffb454; }
+.sp-rt-gew { opacity: 0.75; font-size: 0.9em; }
+.sp-raten-btn { padding: calc(var(--sp-rem, 1rem) * 0.3) calc(var(--sp-rem, 1rem) * 0.55); border-radius: 999px; border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.06); font-size: calc(var(--sp-rem, 1rem) * 0.95); cursor: pointer; opacity: 0.7; }
+.sp-raten-btn.aktiv { border-color: #ffb454; background: rgba(255,180,84,0.22); opacity: 1; }
+@media (max-width: 600px) { .sp-rt-opts { grid-template-columns: 1fr; } }

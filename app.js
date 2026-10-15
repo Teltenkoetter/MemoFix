@@ -770,7 +770,7 @@ function getHelpHtml() {
       ['⭐', '<strong>Favourites</strong> — Tap the star to mark a card as favourite · export as Favourites group under BACKUP'],
       ['🤏', '<strong>Zoom photos</strong> — Pinch with two fingers to zoom into a photo (also photos on the back of term cards) · drag with two fingers to pan · double-tap to reset'],
       ['⛶', '<strong>Fullscreen 16:9</strong> — Button next to "Start learning": runs your selection full-screen on a 16:9 stage with large type, no menus · ideal for projectors and oral exams · tap = reveal / next, swipe = back · ✕ ends it · real fullscreen works on iPad, not on iPhone (there the bars are hidden instead — best as home-screen app, rotate to landscape)'],
-      ['🤿', `<strong>${SPIEL_NAME}</strong> — Learn together, playfully. In Dice-Mode the dice roll you through the set. · green button under "Start learning": the same stage with a score column · the group reveals a card, then you tap <em>Who knew it?</em> · +1 point · no minus points, nothing is saved · 🎲 Dice-Mode calls someone at random · ⏱ optional countdown · ? in the game shows the short rules`],
+      ['🤿', `<strong>${SPIEL_NAME}</strong> — Learn together, playfully. Not a quiz duel, but a conversation game. In Dice-Mode the dice roll you through the set. · green button under "Start learning": the same stage with a score column · the group reveals a card, then you tap <em>Who knew it?</em> · +1 point · no minus points, nothing is saved · 🎲 Dice-Mode calls someone at random · ⏱ optional countdown · ? in the game shows the short rules`],
       ['🗣️', '<strong>Discuss with Claude</strong> — Send the current card, or your whole selection, to Claude for a deeper conversation about the topic · copies to clipboard and opens claude.ai in a new tab'],
     ]},
     { title: '⚙️ Manage', rows: [
@@ -828,7 +828,7 @@ function getHelpHtml() {
       ['⭐', '<strong>Favoriten</strong> — Stern antippen markiert eine Karte als Favorit · unter SICHERUNG gezielt als Favoriten-Gruppe exportieren'],
       ['🤏', '<strong>Fotos zoomen</strong> — mit zwei Fingern in ein Foto hineinzoomen (auch bei Fotos auf der Rückseite von Begriff-Karten) · mit zwei Fingern verschieben · Doppeltipp setzt den Zoom zurück'],
       ['⛶', '<strong>Fullscreen 16:9</strong> — Button neben „Lernen starten": zeigt deine Auswahl im Vollbild auf einer 16:9-Bühne mit großer Schrift, ohne Menüs · ideal für Beamer und Prüfungsgespräche · Tippen = aufdecken / weiter, Wischen = zurück · ✕ beendet · Vollbild geht auf dem iPad, auf dem iPhone nicht (dort werden stattdessen alle Leisten ausgeblendet — am besten als Home-Bildschirm-App, Handy quer halten)'],
-      ['🤿', `<strong>${SPIEL_NAME}</strong> — Lernt gemeinsam spielerisch. Im Dice-Mode würfelt ihr euch durchs Set. · grüner Knopf unter „Lernen starten": dieselbe Bühne mit Punktespalte · die Gruppe deckt eine Karte auf, du tippst <em>Wer hat\'s gewusst?</em> · +1 Punkt · keine Minuspunkte, nichts wird gespeichert · 🎲 Dice-Mode ruft zufällig jemanden auf · ⏱ optionaler Countdown · ? im Spiel zeigt die kurzen Regeln`],
+      ['🤿', `<strong>${SPIEL_NAME}</strong> — Lernt gemeinsam spielerisch. Kein Quiz-Duell, sondern ein Gesprächsspiel. Im Dice-Mode würfelt ihr euch durchs Set. · grüner Knopf unter „Lernen starten": dieselbe Bühne mit Punktespalte · die Gruppe deckt eine Karte auf, du tippst <em>Wer hat\'s gewusst?</em> · +1 Punkt · keine Minuspunkte, nichts wird gespeichert · 🎲 Dice-Mode ruft zufällig jemanden auf · ⏱ optionaler Countdown · ? im Spiel zeigt die kurzen Regeln`],
       ['🗣️', '<strong>Mit Claude besprechen</strong> — aktuelle Karte oder die ganze Auswahl an Claude übergeben, um das Thema im Gespräch zu vertiefen · kopiert in die Zwischenablage und öffnet claude.ai in neuem Tab'],
     ]},
     { title: '⚙️ Verwaltung', rows: [
@@ -4406,7 +4406,9 @@ let praesentationAktiv = false;
 const SPIEL_NAME = 'MemoDive';
 let spielAktiv = false;
 const spiel = { namen: [], klasse: 0, wuerfel: false, aktuell: null, helfer: false, vergeben: new Set(), verlauf: [], rollTimer: 0,
-  zeit: 0, zeitEnde: 0, zeitTimer: 0, zeitLaeuft: false, zeitAbgelaufen: false, minus: false, aufgedecktZeit: 0 };
+  zeit: 0, zeitEnde: 0, zeitTimer: 0, zeitLaeuft: false, zeitAbgelaufen: false, minus: false, aufgedecktZeit: 0,
+  raten: false, ratenId: null, ratenOrder: [0, 1, 2, 3], ratenGew: null };
+let ratenDaten = null;   // { kartenId: { f: Frage, o: [richtig, falsch, falsch, falsch] } } aus raten.json
 const SPIEL_ZEITEN = [0, 30, 20, 10, 5];   // aus → langsam → schnell
 
 let praesiFaktor = 1;   // Auto-Verkleinerung für lange Rückseiten (1 = volle Größe)
@@ -5977,7 +5979,7 @@ function spT() {
     tasteOk: 'OK', tasteAbbr: 'Cancel', tasteTitel: 'Name', leerzeichen: 'Space', einfuegenFehl: 'Pasting is not allowed here – paste into the field below.',
     leer: 'No names yet – tap 👥, or type a name when someone scores.',
     btnText: 'Learn together, playfully.',
-    praeambel: 'Learn together, playfully. In Dice-Mode the dice roll you through the set.',
+    praeambel: 'Learn together, playfully. In Dice-Mode the dice roll you through the set. Not a quiz duel, but a conversation game: whoever can explain it moves the group forward.',
     titel: SPIEL_NAME, hilfe: 'Rules', namen: 'Names', wuerfel: '🎲 Dice-Mode', zeit: 'Countdown', zeitUp: '⏰ Time!', klasse: 'Class', undo: '↶ Point back', auswertung: '🏁 Results',
     wer: "Who knew it?", wuerfelFrage: n => `🎲 ${n} – knew it?`, gewusst: n => `✓ ${n}`, hilfeVon: '🤝 with help from…',
     gruppe: '👥 Everyone', niemand: '✗ Nobody', neuName: '＋ Name', neuPh: 'Name', ok: 'OK', passen: '↻ Pass',
@@ -6024,7 +6026,7 @@ function spT() {
     tasteOk: 'OK', tasteAbbr: 'Abbrechen', tasteTitel: 'Name', leerzeichen: 'Leerzeichen', einfuegenFehl: 'Einfügen ist hier nicht erlaubt – bitte ins Feld darunter einfügen.',
     leer: 'Noch keine Namen – tippe auf 👥 oder trage beim ersten Punkt einen Namen ein.',
     btnText: 'Lernt gemeinsam spielerisch.',
-    praeambel: 'Lernt gemeinsam spielerisch. Im Dice-Mode würfelt ihr euch durchs Set.',
+    praeambel: 'Lernt gemeinsam spielerisch. Im Dice-Mode würfelt ihr euch durchs Set. Kein Quiz-Duell, sondern ein Gesprächsspiel: Wer es erklären kann, bringt die Gruppe weiter.',
     titel: SPIEL_NAME, hilfe: 'Regeln', namen: 'Namen', wuerfel: '🎲 Dice-Mode', zeit: 'Countdown', zeitUp: '⏰ Zeit!', klasse: 'Klasse', undo: '↶ Punkt zurück', auswertung: '🏁 Auswertung',
     wer: "Wer hat's gewusst?", wuerfelFrage: n => `🎲 ${n} – gewusst?`, gewusst: n => `✓ ${n}`, hilfeVon: '🤝 mit Hilfe von…',
     gruppe: '👥 Alle', niemand: '✗ Niemand', neuName: '＋ Name', neuPh: 'Name', ok: 'OK', passen: '↻ Passen',
@@ -6267,7 +6269,10 @@ function spielStarten() {
   const panel = mk('spiel-wer', 'spiel-wer hidden', flash);
   mk('spiel-banner', 'spiel-banner hidden', area);
   mk('spiel-tron', 'spiel-tron hidden', area);
-  [hud, panel, document.getElementById('spiel-banner')].forEach(el => el.addEventListener('click', spielKlick));
+  mk('spiel-raten', 'spiel-raten hidden', area);
+  [hud, panel, document.getElementById('spiel-banner'), document.getElementById('spiel-raten')].forEach(el => el.addEventListener('click', spielKlick));
+  spiel.raten = false; spiel.ratenId = null; spiel.ratenGew = null;
+  ratenLaden();
   spielRender();
   praesiAutofitPlanen();
   let gesehen = false;
@@ -6284,8 +6289,9 @@ function spielAufraeumen() {
   spielZeitStop();
   spiel.zeit = 0;
   document.body.classList.remove('spiel');
-  ['spiel-hud', 'spiel-wer', 'spiel-banner', 'spiel-zeitbalken', 'spiel-tron', 'spiel-podium', 'spiel-modal', 'spiel-kb', 'spiel-emoji', 'spiel-menue'].forEach(id => document.getElementById(id)?.remove());
+  ['spiel-hud', 'spiel-wer', 'spiel-banner', 'spiel-raten', 'spiel-zeitbalken', 'spiel-tron', 'spiel-podium', 'spiel-modal', 'spiel-kb', 'spiel-emoji', 'spiel-menue'].forEach(id => document.getElementById(id)?.remove());
   spiel.namen = []; spiel.verlauf = []; spiel.vergeben = new Set(); spiel.klasse = 0; spiel.aktuell = null;
+  spiel.raten = false; spiel.ratenId = null; spiel.ratenGew = null;
 }
 
 // ── Anzeige ──────────────────────────────────────────────────
@@ -6303,6 +6309,7 @@ function spielRender() {
         <button data-sp="zeit" class="sp-led-btn${spiel.zeit ? ' aktiv' : ''}" title="${esc(T.zeit)}" aria-label="${esc(T.zeit)}">
           <span class="sp-led-label">Timer</span><span id="sp-led" class="sp-led">${spiel.zeit ? spielZeitText(spiel.zeit) : (istEn() ? 'off' : 'aus')}</span></button>
         <label class="sp-wuerfel-btn${spiel.wuerfel ? ' aktiv' : ''}" title="${esc(T.wuerfel)}"><input type="checkbox" data-sp="wuerfel"${spiel.wuerfel ? ' checked' : ''}><span>🎲</span></label>
+        ${spielRatenVerfuegbar() ? `<button data-sp="raten" class="sp-raten-btn${spiel.raten ? ' aktiv' : ''}" title="${esc(spRatenT().titel)}" aria-label="${esc(spRatenT().titel)}">🎯</button>` : ''}
       </div>
       <div class="sp-hud-r">
         ${spiel.verlauf.length ? `<button data-sp="undo" class="sp-hud-btn sp-rund${nameVisible ? '' : ' sp-grau'}" ${nameVisible ? '' : 'disabled'} title="${esc(T.undo)}" aria-label="${esc(T.undo)}">↶</button>` : ''}
@@ -6314,6 +6321,7 @@ function spielRender() {
   }
   spielRenderPanel();
   spielRenderBanner();
+  spielRatenRender();
   spielZeitAnzeige();
 }
 
@@ -6414,7 +6422,7 @@ function spielRenderPanel() {
       ${alleChip}${weiter}</div>`;
   }
   p.classList.toggle('sp-kompakt', da.length > 12);
-  p.innerHTML = html;
+  p.innerHTML = spielRatenZeile() + html;
   praesiAutofitPlanen();
 }
 
@@ -6454,6 +6462,7 @@ function spielKarteAngezeigt() {
   spielZeitStop();
   spiel.helfer = false;
   spiel.aktuell = null;
+  spiel.ratenGew = null;
   spielRender();
   if (spiel.wuerfel) spielWuerfeln();
   else if (spiel.zeit) spielZeitStart();
@@ -6466,6 +6475,70 @@ function spielAufgedeckt() {
   spielZeitStop();
   spielRender();
   praesiAutofitPlanen();
+}
+
+
+// ── Raten-Modus (optional): Mehrfachauswahl, Gruppe stimmt per Handzeichen ab ──────────
+function spRatenT() {
+  return istEn()
+    ? { titel: '🎯 Guessing mode: answer options per show of hands', hinweis: 'Count hands, tap the majority answer', richtig: 'Correct!', falsch: 'Not quite.', antwort: 'Answer', gewaehlt: 'Chosen', offen: 'Correct answer',
+        hilfe: '🎯 <b>Guessing mode</b> (optional): the group sees four answers per card and votes by show of hands. Tap the majority answer – the card turns and the points are given as usual.' }
+    : { titel: '🎯 Raten-Modus: Antworten per Handzeichen', hinweis: 'Handzeichen zählen, Mehrheit antippen', richtig: 'Richtig!', falsch: 'Leider nicht.', antwort: 'Antwort', gewaehlt: 'Gewählt', offen: 'Richtige Antwort',
+        hilfe: '🎯 <b>Raten-Modus</b> (optional): Die Gruppe sieht pro Karte vier Antworten und stimmt per Handzeichen ab. Die Mehrheits-Antwort antippen – die Karte dreht sich, Punkte werden wie gewohnt vergeben.' };
+}
+function ratenLaden() {
+  try {
+    const l = JSON.parse(localStorage.getItem('ratenDaten') || 'null');
+    if (l?.fragen) ratenDaten = l.fragen;
+  } catch (_) {}
+  fetch('raten.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => {
+    if (!j?.fragen) return;
+    ratenDaten = j.fragen;
+    try { localStorage.setItem('ratenDaten', JSON.stringify(j)); } catch (_) {}
+    if (spielAktiv) spielRender();
+  }).catch(() => {});
+  if (ratenDaten && spielAktiv) spielRender();
+}
+function spielRatenVerfuegbar() {
+  return !!ratenDaten && lernKarten.some(k => ratenDaten[k.id]);
+}
+function spielRatenFrage() {
+  if (!spiel.raten || !ratenDaten) return null;
+  const s = lernKarten[lernIndex];
+  const q = s && ratenDaten[s.id];
+  if (!q || !Array.isArray(q.o) || q.o.length < 2) return null;
+  if (spiel.ratenId !== s.id) {                       // neue Karte: Antworten neu mischen
+    spiel.ratenId = s.id;
+    const o = q.o.map((_, i) => i);
+    for (let i = o.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [o[i], o[j]] = [o[j], o[i]]; }
+    spiel.ratenOrder = o;
+  }
+  return q;
+}
+function spielRatenZeile() {
+  const q = spiel.raten && nameVisible ? spielRatenFrage() : null;
+  if (!q) return '';
+  const T = spRatenT(), gew = spiel.ratenGew;
+  if (gew == null) return `<div class="sp-rt-zeile sp-rt-offen"><b>${esc(T.offen)}:</b> ${esc(q.o[0])}</div>`;
+  if (gew === 0) return `<div class="sp-rt-zeile sp-rt-ok"><b>✓ ${esc(T.richtig)}</b> ${esc(q.o[0])}</div>`;
+  return `<div class="sp-rt-zeile sp-rt-nein"><b>✗ ${esc(T.falsch)}</b> ${esc(T.antwort)}: ${esc(q.o[0])} <span class="sp-rt-gew">(${esc(T.gewaehlt)}: ${esc(q.o[gew])})</span></div>`;
+}
+function spielRatenRender() {
+  const el = document.getElementById('spiel-raten'); if (!el) return;
+  const q = spielRatenFrage();
+  const T = spRatenT();
+  if (!q) { el.className = 'spiel-raten hidden'; el.innerHTML = ''; return; }
+  if (!nameVisible) {
+    const sk = lernKarten[lernIndex];
+    const voll = (sk.modus || 'foto') === 'text';          // Begriffskarte: deckend, Begriff als Überschrift; Fotokarte: Bild bleibt sichtbar
+    el.className = 'spiel-raten sp-rt-frage' + (voll ? ' sp-rt-voll' : '');
+    el.innerHTML = `${voll ? `<div class="sp-rt-begriff">${esc(sk.name || '')}</div>` : ''}<div class="sp-rt-q">${esc(q.f)}</div>
+      <div class="sp-rt-unten"><div class="sp-rt-opts">${spiel.ratenOrder.map((orig, pos) =>
+        `<button data-sp="rate" data-i="${orig}"><span class="sp-rt-l">${'ABCD'[pos]}</span><span class="sp-rt-t">${esc(q.o[orig])}</span></button>`).join('')}</div>
+      <div class="sp-rt-hint">${esc(T.hinweis)}</div></div>`;
+  } else {                                            // aufgedeckt: Ergebnis steht in der Leiste unter der Karte (spielRatenZeile)
+    el.className = 'spiel-raten hidden'; el.innerHTML = '';
+  }
 }
 
 // ── Aktionen ─────────────────────────────────────────────────
@@ -6516,6 +6589,17 @@ function spielKlick(e) {
     spielRender();
     if (!spiel.zeit) { spielZeitStop(); spielRenderBanner(); }
     else if (!nameVisible && !(spiel.wuerfel && !spiel.aktuell)) spielZeitStart();
+  } else if (a === 'raten') {
+    spiel.raten = !spiel.raten;
+    spiel.ratenId = null;
+    spielRender();
+    praesiAutofitPlanen();
+  } else if (a === 'rate') {
+    if (nameVisible || isAnimating) return;
+    const i = Number(el.dataset.i);
+    spiel.ratenGew = i;
+    spielZeitStop();
+    triggerFlip(i === 0 ? 'gewusst' : 'nicht-gewusst');
   } else if (a === 'hilfe') spielHilfe();
   else if (a === 'namen') spielNamen();
   else if (a === 'undo') spielUndo();
@@ -6623,7 +6707,7 @@ function spielModal(inhalt) {
 }
 function spielHilfe() {
   const T = spT();
-  const m = spielModal(`<h3>${esc(T.hilfeTitel)}</h3><p class="sp-praeambel">${esc(T.praeambel)}</p><ol class="sp-regeln">${T.hilfeText.map(x => `<li>${x}</li>`).join('')}</ol>
+  const m = spielModal(`<h3>${esc(T.hilfeTitel)}</h3><p class="sp-praeambel">${esc(T.praeambel)}</p><ol class="sp-regeln">${T.hilfeText.map(x => `<li>${x}</li>`).join('')}${spielRatenVerfuegbar() ? `<li>${spRatenT().hilfe}</li>` : ''}</ol>
     <button class="btn-primary" data-x="zu">${esc(T.losgehts)}</button>`);
   m.addEventListener('click', e => { if (e.target === m || e.target.closest('[data-x="zu"]')) m.remove(); });
 }
