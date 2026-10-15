@@ -4407,7 +4407,7 @@ const SPIEL_NAME = 'MemoDive';
 let spielAktiv = false;
 const spiel = { namen: [], klasse: 0, wuerfel: false, aktuell: null, helfer: false, vergeben: new Set(), verlauf: [], rollTimer: 0,
   zeit: 0, zeitEnde: 0, zeitTimer: 0, zeitLaeuft: false, zeitAbgelaufen: false, minus: false, aufgedecktZeit: 0,
-  raten: false, ratenId: null, ratenOrder: [0, 1, 2, 3], ratenGew: null };
+  raten: 0, ratenJoker: null, ratenId: null, ratenOrder: [0, 1, 2, 3], ratenGew: null };
 let ratenDaten = null;   // { kartenId: { f: Frage, o: [richtig, falsch, falsch, falsch] } } aus raten.json
 const SPIEL_ZEITEN = [0, 30, 20, 10, 5];   // aus → langsam → schnell
 
@@ -6271,7 +6271,7 @@ function spielStarten() {
   mk('spiel-tron', 'spiel-tron hidden', area);
   mk('spiel-raten', 'spiel-raten hidden', area);
   [hud, panel, document.getElementById('spiel-banner'), document.getElementById('spiel-raten')].forEach(el => el.addEventListener('click', spielKlick));
-  spiel.raten = false; spiel.ratenId = null; spiel.ratenGew = null;
+  spiel.raten = 0; spiel.ratenId = null; spiel.ratenGew = null;
   ratenLaden();
   spielRender();
   praesiAutofitPlanen();
@@ -6291,7 +6291,7 @@ function spielAufraeumen() {
   document.body.classList.remove('spiel');
   ['spiel-hud', 'spiel-wer', 'spiel-banner', 'spiel-raten', 'spiel-zeitbalken', 'spiel-tron', 'spiel-podium', 'spiel-modal', 'spiel-kb', 'spiel-emoji', 'spiel-menue'].forEach(id => document.getElementById(id)?.remove());
   spiel.namen = []; spiel.verlauf = []; spiel.vergeben = new Set(); spiel.klasse = 0; spiel.aktuell = null;
-  spiel.raten = false; spiel.ratenId = null; spiel.ratenGew = null;
+  spiel.raten = 0; spiel.ratenId = null; spiel.ratenGew = null;
 }
 
 // ── Anzeige ──────────────────────────────────────────────────
@@ -6309,7 +6309,7 @@ function spielRender() {
         <button data-sp="zeit" class="sp-led-btn${spiel.zeit ? ' aktiv' : ''}" title="${esc(T.zeit)}" aria-label="${esc(T.zeit)}">
           <span class="sp-led-label">Timer</span><span id="sp-led" class="sp-led">${spiel.zeit ? spielZeitText(spiel.zeit) : (istEn() ? 'off' : 'aus')}</span></button>
         <label class="sp-wuerfel-btn${spiel.wuerfel ? ' aktiv' : ''}" title="${esc(T.wuerfel)}"><input type="checkbox" data-sp="wuerfel"${spiel.wuerfel ? ' checked' : ''}><span>🎲</span></label>
-        ${spielRatenVerfuegbar() ? `<button data-sp="raten" class="sp-raten-btn${spiel.raten ? ' aktiv' : ''}" title="${esc(spRatenT().titel)}" aria-label="${esc(spRatenT().titel)}">🎯</button>` : ''}
+        ${spielRatenVerfuegbar() ? `<button data-sp="raten" class="sp-raten-btn${spiel.raten ? ' aktiv' : ''}${spiel.raten === 2 ? ' immer' : ''}" title="${esc(spRatenT().modi[spiel.raten || 0])}" aria-label="${esc(spRatenT().modi[spiel.raten || 0])}">🎯${spiel.raten ? `<span class="sp-raten-badge">${spiel.raten === 2 ? '∞' : '1'}</span>` : ''}</button>` : ''}
       </div>
       <div class="sp-hud-r">
         ${spiel.verlauf.length ? `<button data-sp="undo" class="sp-hud-btn sp-rund${nameVisible ? '' : ' sp-grau'}" ${nameVisible ? '' : 'disabled'} title="${esc(T.undo)}" aria-label="${esc(T.undo)}">↶</button>` : ''}
@@ -6463,6 +6463,11 @@ function spielKarteAngezeigt() {
   spiel.helfer = false;
   spiel.aktuell = null;
   spiel.ratenGew = null;
+  if (spiel.raten === 1) {                              // Joker gilt nur für eine Karte
+    const kid = lernKarten[lernIndex]?.id;
+    if (spiel.ratenJoker === 'naechste') spiel.ratenJoker = kid;
+    else if (spiel.ratenJoker !== kid) { spiel.raten = 0; spiel.ratenJoker = null; }
+  }
   spielRender();
   if (spiel.wuerfel) spielWuerfeln();
   else if (spiel.zeit) spielZeitStart();
@@ -6481,10 +6486,10 @@ function spielAufgedeckt() {
 // ── Raten-Modus (optional): Mehrfachauswahl, Gruppe stimmt per Handzeichen ab ──────────
 function spRatenT() {
   return istEn()
-    ? { titel: '🎯 Guessing mode: answer options per show of hands', hinweis: 'Count hands, tap the majority answer', richtig: 'Correct!', falsch: 'Not quite.', antwort: 'Answer', gewaehlt: 'Chosen', offen: 'Correct answer',
-        hilfe: '🎯 <b>Guessing mode</b> (optional): the group sees four answers per card and votes by show of hands. Tap the majority answer – the card turns and the points are given as usual.' }
-    : { titel: '🎯 Raten-Modus: Antworten per Handzeichen', hinweis: 'Handzeichen zählen, Mehrheit antippen', richtig: 'Richtig!', falsch: 'Leider nicht.', antwort: 'Antwort', gewaehlt: 'Gewählt', offen: 'Richtige Antwort',
-        hilfe: '🎯 <b>Raten-Modus</b> (optional): Die Gruppe sieht pro Karte vier Antworten und stimmt per Handzeichen ab. Die Mehrheits-Antwort antippen – die Karte dreht sich, Punkte werden wie gewohnt vergeben.' };
+    ? { titel: '🎯 Guessing mode', modi: ['🎯 Guessing: off (tap: once)', '🎯 Guessing: this card only (tap: always)', '🎯 Guessing: always (tap: off)'], hinweis: 'Count hands, tap the majority answer', richtig: 'Correct!', falsch: 'Not quite.', antwort: 'Answer', gewaehlt: 'Chosen', offen: 'Correct answer',
+        hilfe: '🎯 <b>Guessing mode</b> (optional): the group sees four answers per card and votes by show of hands. Tap the majority answer – the card turns and the points are given as usual. The icon cycles: off, <b>1</b> = joker for this card only, <b>∞</b> = always.' }
+    : { titel: '🎯 Raten-Modus', modi: ['🎯 Raten: aus (Tipp: nur einmal)', '🎯 Raten: nur diese Karte (Tipp: immer)', '🎯 Raten: immer (Tipp: aus)'], hinweis: 'Handzeichen zählen, Mehrheit antippen', richtig: 'Richtig!', falsch: 'Leider nicht.', antwort: 'Antwort', gewaehlt: 'Gewählt', offen: 'Richtige Antwort',
+        hilfe: '🎯 <b>Raten-Modus</b> (optional): Die Gruppe sieht pro Karte vier Antworten und stimmt per Handzeichen ab. Die Mehrheits-Antwort antippen – die Karte dreht sich, Punkte werden wie gewohnt vergeben. Das Symbol schaltet durch: aus, <b>1</b> = Joker nur für diese Karte, <b>∞</b> = immer.' };
 }
 function ratenLaden() {
   try {
@@ -6582,8 +6587,6 @@ function spielKlick(e) {
     spiel.wuerfel = an;
     spiel.aktuell = null;
     if (an && !nameVisible) spielWuerfeln(); else spielRender();
-  } else if (a === 'zeit' && spiel.zeitLaeuft) {
-    spielZeitAbgelaufen();        // Countdown läuft: Tipp auf die Zahl beendet ihn sofort
   } else if (a === 'zeit') {
     const i = SPIEL_ZEITEN.indexOf(spiel.zeit);
     spiel.zeit = SPIEL_ZEITEN[(i + 1) % SPIEL_ZEITEN.length];
@@ -6591,7 +6594,8 @@ function spielKlick(e) {
     if (!spiel.zeit) { spielZeitStop(); spielRenderBanner(); }
     else if (!nameVisible && !(spiel.wuerfel && !spiel.aktuell)) spielZeitStart();
   } else if (a === 'raten') {
-    spiel.raten = !spiel.raten;
+    spiel.raten = ((spiel.raten || 0) + 1) % 3;          // 0 aus → 1 nur diese Karte (Joker) → 2 immer
+    spiel.ratenJoker = spiel.raten === 1 ? (nameVisible ? 'naechste' : lernKarten[lernIndex]?.id) : null;
     spiel.ratenId = null;
     spielRender();
     praesiAutofitPlanen();
