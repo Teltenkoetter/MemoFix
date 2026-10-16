@@ -156,6 +156,9 @@ const TRANS = {
     toast_kursset_fehler: (msg) => `Set konnte nicht importiert werden: ${msg}`,
     ki_briefing: 'KI-Briefing für neue Karten',
     ki_briefing_btn: 'Anzeigen',
+    ki_raten: '🎯 KI-Briefing für Rate-Fragen',
+    ki_raten_desc: 'Prompt, mit dem eine KI zu deinen eigenen Karten Multiple-Choice-Fragen für den Raten-Modus in MemoDive erstellt. Export (ohne Bilder) → KI → Import „Hinzufügen“',
+    ki_raten_hinweis: 'Kopieren und in einen neuen KI-Chat einfügen, dazu deine Export-Datei (ohne Bilder) anhängen.',
     ki_kopieren: '📋 Kopieren', ki_kopiert: '✓ Kopiert', ki_schliessen: 'Schließen',
     ki_hinweis: 'Kopieren und in einen neuen Chat bei ChatGPT, Gemini oder Claude einfügen. Danach dein Thema ergänzen.',
     ki_briefing_desc: 'Fertiger Prompt für ChatGPT, Gemini, Claude & Co. — erklärt der KI das MemoFix-Datenformat, damit sie direkt passende Karten-Sets zum Import erzeugen kann',
@@ -408,6 +411,9 @@ const TRANS = {
     toast_kursset_fehler: (msg) => `Could not import set: ${msg}`,
     ki_briefing: 'AI briefing for new cards',
     ki_briefing_btn: 'Show',
+    ki_raten: '🎯 AI briefing for guessing questions',
+    ki_raten_desc: 'Prompt that lets an AI write multiple-choice questions for the guessing mode in MemoDive from your own cards. Export (without images) → AI → import "Add"',
+    ki_raten_hinweis: 'Copy and paste into a new AI chat, and attach your export file (without images).',
     ki_kopieren: '📋 Copy', ki_kopiert: '✓ Copied', ki_schliessen: 'Close',
     ki_hinweis: 'Copy it and paste it into a new chat with ChatGPT, Gemini or Claude. Then add your topic.',
     ki_briefing_desc: 'Ready-made prompt for ChatGPT, Gemini, Claude & co. — explains the MemoFix data format to the AI so it can generate ready-to-import card sets',
@@ -714,6 +720,7 @@ function applyTranslations() {
     if (i === 1) { el.querySelector('strong').textContent = t('exportieren'); el.querySelector('p').textContent = t('exportieren_desc'); }
     if (i === 2) { el.querySelector('strong').textContent = t('fotos_komprimieren'); el.querySelector('p').textContent = t('fotos_komprimieren_desc'); }
     if (i === 3) { el.querySelector('strong').textContent = t('ki_briefing'); el.querySelector('p').textContent = t('ki_briefing_desc'); }
+    if (i === 4) { el.querySelector('strong').textContent = t('ki_raten'); el.querySelector('p').textContent = t('ki_raten_desc'); }
   });
   document.querySelector('#view-sicherung .info-card strong') &&
     (document.querySelector('#view-sicherung .info-card strong').textContent = t('datenspeicher_title'));
@@ -723,6 +730,7 @@ function applyTranslations() {
   setTxt('btn-import-trigger', t('importieren'));
   setTxt('btn-fotos-komprimieren', t('komprimieren'));
   setTxt('btn-ki-briefing', t('ki_briefing_btn'));
+  setTxt('btn-ki-raten', t('ki_briefing_btn'));
   setTxt('tutorial-titel', t('tutorial_titel'));
   setTxt('tutorial-desc', t('tutorial_desc'));
   setTxt('btn-tutorial-neu', t('tutorial_neu'));
@@ -770,7 +778,7 @@ function getHelpHtml() {
       ['⭐', '<strong>Favourites</strong> — Tap the star to mark a card as favourite · export as Favourites group under BACKUP'],
       ['🤏', '<strong>Zoom photos</strong> — Pinch with two fingers to zoom into a photo (also photos on the back of term cards) · drag with two fingers to pan · double-tap to reset'],
       ['⛶', '<strong>Fullscreen 16:9</strong> — Button next to "Start learning": runs your selection full-screen on a 16:9 stage with large type, no menus · ideal for projectors and oral exams · tap = reveal / next, swipe = back · ✕ ends it · real fullscreen works on iPad, not on iPhone (there the bars are hidden instead — best as home-screen app, rotate to landscape)'],
-      ['🤿', `<strong>${SPIEL_NAME}</strong> — Learn together, playfully. Not a quiz duel, but a conversation game. In Dice-Mode the dice roll you through the set. · green button under "Start learning": the same stage with a score column · the group reveals a card, then you tap <em>Who knew it?</em> · +1 point · no minus points, nothing is saved · 🎲 Dice-Mode calls someone at random · ⏱ optional countdown · ? in the game shows the short rules`],
+      ['🤿', `<strong>${SPIEL_NAME}</strong> — Learn together, playfully. Not a quiz duel, but a conversation game. In Dice-Mode the dice roll you through the set. · green button under "Start learning": the same stage with a score column · the group reveals a card, then you tap <em>Who knew it?</em> · +1 point (a switch gives −1 if needed, never below 0), nothing is saved · 🎲 Dice-Mode calls someone at random · ⏱ optional countdown · 🎯 guessing mode: the group sees four answers per card and votes by show of hands (off / this card only / always) · for your own cards: Backup → "AI briefing for guessing questions" · ? in the game shows the short rules`],
       ['🗣️', '<strong>Discuss with Claude</strong> — Send the current card, or your whole selection, to Claude for a deeper conversation about the topic · copies to clipboard and opens claude.ai in a new tab'],
     ]},
     { title: '⚙️ Manage', rows: [
@@ -828,7 +836,7 @@ function getHelpHtml() {
       ['⭐', '<strong>Favoriten</strong> — Stern antippen markiert eine Karte als Favorit · unter SICHERUNG gezielt als Favoriten-Gruppe exportieren'],
       ['🤏', '<strong>Fotos zoomen</strong> — mit zwei Fingern in ein Foto hineinzoomen (auch bei Fotos auf der Rückseite von Begriff-Karten) · mit zwei Fingern verschieben · Doppeltipp setzt den Zoom zurück'],
       ['⛶', '<strong>Fullscreen 16:9</strong> — Button neben „Lernen starten": zeigt deine Auswahl im Vollbild auf einer 16:9-Bühne mit großer Schrift, ohne Menüs · ideal für Beamer und Prüfungsgespräche · Tippen = aufdecken / weiter, Wischen = zurück · ✕ beendet · Vollbild geht auf dem iPad, auf dem iPhone nicht (dort werden stattdessen alle Leisten ausgeblendet — am besten als Home-Bildschirm-App, Handy quer halten)'],
-      ['🤿', `<strong>${SPIEL_NAME}</strong> — Lernt gemeinsam spielerisch. Kein Quiz-Duell, sondern ein Gesprächsspiel. Im Dice-Mode würfelt ihr euch durchs Set. · grüner Knopf unter „Lernen starten": dieselbe Bühne mit Punktespalte · die Gruppe deckt eine Karte auf, du tippst <em>Wer hat\'s gewusst?</em> · +1 Punkt · keine Minuspunkte, nichts wird gespeichert · 🎲 Dice-Mode ruft zufällig jemanden auf · ⏱ optionaler Countdown · ? im Spiel zeigt die kurzen Regeln`],
+      ['🤿', `<strong>${SPIEL_NAME}</strong> — Lernt gemeinsam spielerisch. Kein Quiz-Duell, sondern ein Gesprächsspiel. Im Dice-Mode würfelt ihr euch durchs Set. · grüner Knopf unter „Lernen starten": dieselbe Bühne mit Punktespalte · die Gruppe deckt eine Karte auf, du tippst <em>Wer hat\'s gewusst?</em> · +1 Punkt (per Schalter auch −1, nie unter 0), nichts wird gespeichert · 🎲 Dice-Mode ruft zufällig jemanden auf · ⏱ optionaler Countdown · 🎯 Raten-Modus: Die Gruppe sieht pro Karte vier Antworten und stimmt per Handzeichen ab (aus / nur diese Karte / immer) · für eigene Karten: Sicherung → „KI-Briefing für Rate-Fragen“ · ? im Spiel zeigt die kurzen Regeln`],
       ['🗣️', '<strong>Mit Claude besprechen</strong> — aktuelle Karte oder die ganze Auswahl an Claude übergeben, um das Thema im Gespräch zu vertiefen · kopiert in die Zwischenablage und öffnet claude.ai in neuem Tab'],
     ]},
     { title: '⚙️ Verwaltung', rows: [
@@ -1825,8 +1833,9 @@ function ergaenzeEnFelder(vorh, neu, felder) {
   let geaendert = false;
   const r = { ...vorh };
   for (const f of felder) {
-    const hatNeu  = neu[f] != null && String(neu[f]).trim() !== '';
-    const hatVorh = vorh[f] != null && String(vorh[f]).trim() !== '';
+    const leer = v => v == null || (typeof v === 'object' ? !Object.keys(v).length : String(v).trim() === '');
+    const hatNeu  = !leer(neu[f]);
+    const hatVorh = !leer(vorh[f]);
     if (hatNeu && !hatVorh) { r[f] = neu[f]; geaendert = true; }
   }
   return geaendert ? r : null;
@@ -5388,7 +5397,7 @@ document.getElementById('btn-import-start').addEventListener('click', async () =
             const vorhKarte = studenten.find(x => x.gruppeId === targetId && (x.name || '').trim().toLowerCase() === (s.name || '').trim().toLowerCase());
             if (vorhKarte) {
               const frisch = (await dbGet('studenten', vorhKarte.id)) || vorhKarte;
-              const m = ergaenzeEnFelder(frisch, s, EN_FELDER_KARTE);
+              const m = ergaenzeEnFelder(frisch, s, [...EN_FELDER_KARTE, 'raten']);
               if (m) await dbPut('studenten', m);
             }
             continue;
@@ -5839,11 +5848,10 @@ document.addEventListener('visibilitychange', async () => {
 })();
 
 // ── KI-Briefing: im Dialog anzeigen, kopieren, herunterladen (kein Verlassen der App) ──
-document.getElementById('btn-ki-briefing')?.addEventListener('click', async e => {
-  e.preventDefault();
+async function zeigeKiBriefing(datei, titel, hinweis, downloadName) {
   let md = '';
   try {
-    const r = await fetch('ki-briefing.md');
+    const r = await fetch(datei);
     if (!r.ok) throw new Error('HTTP ' + r.status);
     md = await r.text();
   } catch (err) { toast(tf('toast_fehler', err.message)); return; }
@@ -5854,10 +5862,10 @@ document.getElementById('btn-ki-briefing')?.addEventListener('click', async e =>
 
   const modal = document.createElement('div');
   modal.className = 'modal-backdrop';
-  modal.innerHTML = `<div class="modal"><div class="modal-header"><h2>${esc(t('ki_briefing'))}</h2>
+  modal.innerHTML = `<div class="modal"><div class="modal-header"><h2>${esc(titel)}</h2>
       <button class="btn-modal-close" data-a="zu">✕</button></div>
     <div class="modal-body">
-      <p class="modal-hint">${esc(t('ki_hinweis'))}</p>
+      <p class="modal-hint">${esc(hinweis)}</p>
       <textarea readonly style="width:100%;height:42vh;font-size:0.75rem;line-height:1.45;font-family:ui-monospace,Menlo,monospace"></textarea>
       <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
         <button class="btn-primary" data-a="kopieren" style="flex:1;margin:0">${esc(t('ki_kopieren'))}</button>
@@ -5877,13 +5885,21 @@ document.getElementById('btn-ki-briefing')?.addEventListener('click', async e =>
       if (!ok) { ta.focus(); ta.select(); ta.setSelectionRange(0, prompt.length); try { ok = document.execCommand('copy'); } catch (_) {} }
       const btn = ev.target.closest('[data-a]');
       btn.textContent = ok ? t('ki_kopiert') : t('ki_kopieren');
-      if (!ok) toast(t('ki_hinweis'));
+      if (!ok) toast(hinweis);
     } else if (act === 'download') {
       const url = URL.createObjectURL(new Blob([md], { type: 'text/markdown' }));
-      Object.assign(document.createElement('a'), { href: url, download: 'MemoFix_KI-Briefing.md' }).click();
+      Object.assign(document.createElement('a'), { href: url, download: downloadName }).click();
       setTimeout(() => URL.revokeObjectURL(url), 2000);
     }
   });
+}
+document.getElementById('btn-ki-briefing')?.addEventListener('click', e => {
+  e.preventDefault();
+  zeigeKiBriefing('ki-briefing.md', t('ki_briefing'), t('ki_hinweis'), 'MemoFix_KI-Briefing.md');
+});
+document.getElementById('btn-ki-raten')?.addEventListener('click', e => {
+  e.preventDefault();
+  zeigeKiBriefing('ki-briefing-raten.md', t('ki_raten'), t('ki_raten_hinweis'), 'MemoFix_KI-Briefing_Raten.md');
 });
 
 // ── Speicher aufräumen: Vorschlagsliste (nichts wird automatisch gelöscht) ──
@@ -6487,9 +6503,9 @@ function spielAufgedeckt() {
 function spRatenT() {
   return istEn()
     ? { titel: '🎯 Guessing mode', modi: ['🎯 Guessing: off (tap: once)', '🎯 Guessing: this card only (tap: always)', '🎯 Guessing: always (tap: off)'], hinweis: 'Count hands, tap the majority answer', richtig: 'Correct!', falsch: 'Not quite.', antwort: 'Answer', gewaehlt: 'Chosen', offen: 'Correct answer',
-        hilfe: '🎯 <b>Guessing mode</b> (optional): the group sees four answers per card and votes by show of hands. Tap the majority answer – the card turns and the points are given as usual. The icon cycles: off, <b>1</b> = joker for this card only, <b>∞</b> = always.' }
+        hilfe: '🎯 <b>Guessing mode</b> (optional): the group sees four answers per card and votes by show of hands. Tap the majority answer – the card turns and the points are given as usual. The icon cycles: off, <b>1</b> = joker for this card only, <b>∞</b> = always. Questions for your own cards: Backup → "AI briefing for guessing questions".' }
     : { titel: '🎯 Raten-Modus', modi: ['🎯 Raten: aus (Tipp: nur einmal)', '🎯 Raten: nur diese Karte (Tipp: immer)', '🎯 Raten: immer (Tipp: aus)'], hinweis: 'Handzeichen zählen, Mehrheit antippen', richtig: 'Richtig!', falsch: 'Leider nicht.', antwort: 'Antwort', gewaehlt: 'Gewählt', offen: 'Richtige Antwort',
-        hilfe: '🎯 <b>Raten-Modus</b> (optional): Die Gruppe sieht pro Karte vier Antworten und stimmt per Handzeichen ab. Die Mehrheits-Antwort antippen – die Karte dreht sich, Punkte werden wie gewohnt vergeben. Das Symbol schaltet durch: aus, <b>1</b> = Joker nur für diese Karte, <b>∞</b> = immer.' };
+        hilfe: '🎯 <b>Raten-Modus</b> (optional): Die Gruppe sieht pro Karte vier Antworten und stimmt per Handzeichen ab. Die Mehrheits-Antwort antippen – die Karte dreht sich, Punkte werden wie gewohnt vergeben. Das Symbol schaltet durch: aus, <b>1</b> = Joker nur für diese Karte, <b>∞</b> = immer. Eigene Fragen zu deinen Karten: Sicherung → „KI-Briefing für Rate-Fragen“.' };
 }
 function ratenLaden() {
   try {
@@ -6504,13 +6520,16 @@ function ratenLaden() {
   }).catch(() => {});
   if (ratenDaten && spielAktiv) spielRender();
 }
+function ratenQuelle(k) {                             // eigene Frage an der Karte hat Vorrang vor raten.json
+  return (k && k.raten && Array.isArray(k.raten.o) && k.raten.o.length >= 2 && k.raten.f) ? k.raten : (k && ratenDaten && ratenDaten[k.id]) || null;
+}
 function spielRatenVerfuegbar() {
-  return !!ratenDaten && lernKarten.some(k => ratenDaten[k.id]);
+  return lernKarten.some(k => ratenQuelle(k));
 }
 function spielRatenFrage() {
-  if (!spiel.raten || !ratenDaten) return null;
+  if (!spiel.raten) return null;
   const s = lernKarten[lernIndex];
-  const q = s && ratenDaten[s.id];
+  const q = ratenQuelle(s);
   if (!q || !Array.isArray(q.o) || q.o.length < 2) return null;
   const lq = istEn() && q.fe && Array.isArray(q.oe) && q.oe.length === q.o.length ? { f: q.fe, o: q.oe } : q;   // englische Fassung, sonst Deutsch
   if (spiel.ratenId !== s.id) {                       // neue Karte: Antworten neu mischen

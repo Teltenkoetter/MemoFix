@@ -1,5 +1,5 @@
-const CACHE = 'memofix-v225';
-const SHELL = ['./index.html', './style.css', './app.js', './manifest.json', './icon.svg', './ki-briefing.md'];
+const CACHE = 'memofix-v226';
+const SHELL = ['./index.html', './style.css', './app.js', './manifest.json', './icon.svg', './ki-briefing.md', './ki-briefing-raten.md'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
