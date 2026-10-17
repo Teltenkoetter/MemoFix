@@ -1,3 +1,17 @@
+/* Schriften lokal (kein Abruf bei Google): Inter und Instrument Serif, SIL Open Font License 1.1 */
+@font-face { font-family: 'Instrument Serif'; font-style: italic; font-weight: 400; font-display: swap;
+  src: url('fonts/InstrumentSerif-italic-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Instrument Serif'; font-style: italic; font-weight: 400; font-display: swap;
+  src: url('fonts/InstrumentSerif-italic-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Instrument Serif'; font-style: normal; font-weight: 400; font-display: swap;
+  src: url('fonts/InstrumentSerif-normal-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Instrument Serif'; font-style: normal; font-weight: 400; font-display: swap;
+  src: url('fonts/InstrumentSerif-normal-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 300 800; font-display: swap;
+  src: url('fonts/Inter-normal-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 300 800; font-display: swap;
+  src: url('fonts/Inter-normal-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -2721,3 +2735,11 @@ body.modus-einfach .nav-item span { font-size: 0.72rem; }
 .willkommen-card p { margin: 0.4rem 0 0.8rem; color: var(--text-dim); line-height: 1.45; font-size: 0.9rem; }
 .willkommen-btns { display: flex; flex-direction: column; gap: 0.5rem; }
 .willkommen-btns button { width: 100%; margin: 0; }
+
+/* Hinweis „Neue Version verfügbar“ (nie während Präsentation/Spiel) */
+.update-hinweis { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--nav-h, 96px) + 10px + env(safe-area-inset-bottom, 0px)); z-index: 1200;
+  display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.6rem 0.5rem 0.9rem; border-radius: 999px; background: #14231c; border: 1px solid rgba(95,211,141,0.6);
+  color: #eafbf1; font-size: 0.85rem; box-shadow: 0 8px 24px rgba(0,0,0,0.45); max-width: calc(100vw - 24px); }
+.update-hinweis button { border: 0; border-radius: 999px; padding: 0.35rem 0.8rem; font: inherit; font-weight: 700; cursor: pointer; background: #5fd38d; color: #08130d; }
+.update-hinweis button[data-u="zu"] { background: transparent; color: #cfe9da; padding: 0.35rem 0.5rem; }
+body.praesi .update-hinweis, body.spiel .update-hinweis { display: none; }

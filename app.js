@@ -920,7 +920,8 @@ function getHelpHtml() {
       </div>
     </div>`).join('') +
     `<p class="modal-meta-device">📱 ${currentLang === 'en' ? 'Optimised for iPhone portrait' : 'Optimiert für iPhone im Hochformat'}</p>
-     <p class="modal-meta">Version 2.0 · Klaus Teltenkötter 2026 <span id="build-version" class="modal-meta-build"></span></p>`;
+     <p class="modal-meta">Version 2.0 · Klaus Teltenkötter 2026 <span id="build-version" class="modal-meta-build"></span></p>
+     <p class="modal-meta"><a href="impressum.html" target="_blank" rel="noopener">${currentLang === 'en' ? 'Imprint &amp; privacy (German)' : 'Impressum &amp; Datenschutz'}</a></p>`;
 }
 
 // ============================================================
@@ -1103,15 +1104,7 @@ function extrahiereYoutubeId(input) {
 
 async function ladeVideoTitel(videoId) {
   const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
-  // noembed.com: CORS-freundlicher oEmbed-Proxy
-  try {
-    const r = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(watchUrl)}`);
-    if (r.ok) {
-      const data = await r.json();
-      if (data.title && !data.error) return data.title;
-    }
-  } catch (_) {}
-  // Fallback: YouTube direkt
+  // nur YouTube selbst (oEmbed, CORS-fähig) – kein Drittanbieter
   try {
     const r = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(watchUrl)}&format=json`);
     if (r.ok) {
@@ -5522,7 +5515,27 @@ document.getElementById('btn-import-start').addEventListener('click', async () =
 // ============================================================
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(() => {});
+  const hatteController = !!navigator.serviceWorker.controller;      // false beim allerersten Besuch (kein Hinweis nötig)
+  navigator.serviceWorker.register('./sw.js').then(reg => {
+    // Beim Zurückkehren in die App aktiv nach einer neuen Version suchen (iPhone-Apps bleiben sonst lange im Hintergrund)
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => {}); });
+  }).catch(() => {});
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hatteController) zeigeUpdateHinweis(); });
+}
+function zeigeUpdateHinweis() {
+  if (document.getElementById('update-hinweis')) return;
+  const en = istEn();
+  const el = document.createElement('div');
+  el.id = 'update-hinweis'; el.className = 'update-hinweis'; el.setAttribute('role', 'status');
+  el.innerHTML = `<span>${en ? 'New version available' : 'Neue Version verfügbar'}</span>
+    <button type="button" data-u="neu">${en ? 'Reload' : 'Neu laden'}</button>
+    <button type="button" data-u="zu" aria-label="${en ? 'Later' : 'Später'}">✕</button>`;
+  el.addEventListener('click', e => {
+    const a = e.target.closest('[data-u]')?.dataset.u;
+    if (a === 'neu') location.reload();
+    else if (a === 'zu') el.remove();
+  });
+  document.body.appendChild(el);
 }
 
 // Build-Version automatisch aus SW-Cache-Key lesen und im Hilfe-Modal anzeigen
