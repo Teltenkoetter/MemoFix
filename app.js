@@ -2649,6 +2649,11 @@ function renderLernAuswahl() {
       });
     }
   } catch(e) {}
+  const lernToggle = document.getElementById('btn-lern-toggle-alle');
+  if (lernToggle) {
+    const anyOpen = sortierteSammlungen.some(x => openLernSammlungen.has(x.id)) || openLernSammlungen.has('__orphan__');
+    lernToggle.textContent = anyOpen ? t('alle_schliessen') : t('alle_oeffnen');
+  }
   updateLernStartBtn();
 }
 
@@ -4373,6 +4378,18 @@ document.getElementById('btn-toggle-alle-gruppen').addEventListener('click', () 
   renderVerwaltung();
 });
 
+document.getElementById('btn-lern-toggle-alle')?.addEventListener('click', () => {
+  const sams = getSortierteSammlungen().filter(x => getSortierteGruppenInSammlung(x.id).some(modusGruppeSichtbar));
+  const anyOpen = sams.some(x => openLernSammlungen.has(x.id)) || openLernSammlungen.has('__orphan__');
+  if (anyOpen) openLernSammlungen.clear();
+  else {
+    sams.forEach(x => openLernSammlungen.add(x.id));
+    if (gruppen.some(g => !g.sammlungId || !sammlungen.find(x => x.id === g.sammlungId))) openLernSammlungen.add('__orphan__');
+  }
+  saveOpenLernSammlungen();
+  renderLernAuswahl();
+});
+
 // Suchen + Sortieren
 const renderVerwaltungDebounced = debounce(renderVerwaltung, 180);
 document.getElementById('input-karten-suche').addEventListener('input', () => {
@@ -5531,11 +5548,11 @@ if ('caches' in window) {
 
 // Zweisprachige Begriff-Karten (zeigen zugleich das Kartenformat: Begriff vorn, Info + Merke hinten)
 // Gruppe 1 „Schnelleinstieg“: das, was in der einfachen Ansicht sichtbar ist. Gruppe 2 „Erweitert“: nur im Modus Erweitert.
+const TUTORIAL_VIDEO = { id: 'LMcXbAEjww0', titel: 'MemoFix – Einführung', titel_en: 'MemoFix – Introduction', format: 'hochkant' };   // Einführungsvideo auf jeder Tutorial-Karte
 const TUTORIAL_START = [
   { de: ['Willkommen bei MemoFix',
          'MemoFix trainiert aktives Erinnern: erst überlegen, dann aufdecken.\n\n- **Karte antippen** → sie dreht sich um\n- **✓ oder ✗** wertet, ob du es wusstest\n- **Wischen oder Pfeile** → vor und zurück\n- Nach der Runde: **Nachgeschaute üben**',
          'Erst überlegen, dann aufdecken – so bleibt Wissen hängen.'],
-    video: { id: 'LMcXbAEjww0', titel: 'MemoFix – Einführung', titel_en: 'MemoFix – Introduction', format: 'hochkant' },
     en: ['Welcome to MemoFix',
          'MemoFix trains active recall: think first, then reveal.\n\n- **Tap the card** → it flips\n- **✓ or ✗** rates whether you knew it\n- **Swipe or arrows** → forward and back\n- After a round: **Practise missed cards**',
          'Think first, then reveal – that is how knowledge sticks.'] },
@@ -5630,7 +5647,7 @@ async function erstelleTutorial() {
   for (const gd of gruppenDef) {
     await dbPut('gruppen', { id: gd.id, name: gd.name, name_en: gd.name_en, sammlungId: samId, erstellt: now });
     for (let i = 0; i < gd.karten.length; i++) {
-      const { de, en, video } = gd.karten[i];
+      const { de, en } = gd.karten[i], video = TUTORIAL_VIDEO;
       await dbPut('studenten', {
         id: `${gd.id}-${String(i + 1).padStart(2, '0')}`, gruppeId: gd.id, modus: 'text',
         name: de[0], vorderseite: de[0], notiz: de[1], merke: de[2],
@@ -5643,15 +5660,15 @@ async function erstelleTutorial() {
   }
   localStorage.setItem('memofix-tutorial-created', '1');
   localStorage.setItem('memofix-tutorial-v2', '1');
-  localStorage.setItem('memofix-tutorial-v3', '1');
+  localStorage.setItem('memofix-tutorial-v4', '1');
 }
 
 async function erstelleTutorialGruppeWennNeu() {
   // Neue Struktur (v3): vorhandenes Tutorial einmalig ersetzen; wer es gelöscht hat, bekommt es nicht zurück
-  if (localStorage.getItem('memofix-tutorial-created') && !localStorage.getItem('memofix-tutorial-v3')) {
+  if (localStorage.getItem('memofix-tutorial-created') && !localStorage.getItem('memofix-tutorial-v4')) {
     const g = await dbGetAll('gruppen');
     if (g.some(x => x.id === 'tutorial-start')) { await erstelleTutorial(); return; }
-    localStorage.setItem('memofix-tutorial-v3', '1');
+    localStorage.setItem('memofix-tutorial-v4', '1');
     return;
   }
   if (localStorage.getItem('memofix-tutorial-created') || localStorage.getItem('memopix-tutorial-created') || localStorage.getItem('snapmatch-tutorial-created')) return;
