@@ -27,6 +27,12 @@ const TRANS = {
     nav_lernen: 'Lernen',
     nav_statistik: 'Statistik',
     nav_sicherung: 'Sicherung',
+    nav_kurssets: 'Kurssets',
+    modus_einfach: 'Einfach', modus_erweitert: 'Erweitert',
+    modus_tip_einfach: 'Einfach – tippen für alle Funktionen (Erweitert)', modus_tip_erweitert: 'Erweitert – tippen für die einfache Ansicht',
+    modus_confirm: 'Zur einfachen Ansicht wechseln?\n\nDeine eigenen Karten bleiben erhalten und du kannst sie weiter lernen. Bearbeiten, Export und Import findest du wieder unter „Erweitert“.',
+    willkommen_titel: 'Willkommen bei MemoFix', willkommen_text: 'Lade hier dein Kursset und lerne los. Neu hier? Der Schnelleinstieg zeigt dir in 2 Minuten, wie es geht.',
+    willkommen_laden: 'Kurssets laden', willkommen_start: 'Schnelleinstieg (2 Min)',
     // ── Header ────────────────────────────────────────────
     help_title: 'Hilfe',
     // ── Verwaltung ────────────────────────────────────────
@@ -282,6 +288,12 @@ const TRANS = {
     nav_lernen: 'Learn',
     nav_statistik: 'Stats',
     nav_sicherung: 'Backup',
+    nav_kurssets: 'Course sets',
+    modus_einfach: 'Simple', modus_erweitert: 'Advanced',
+    modus_tip_einfach: 'Simple – tap for all features (Advanced)', modus_tip_erweitert: 'Advanced – tap for the simple view',
+    modus_confirm: 'Switch to the simple view?\n\nYour own cards are kept and you can keep learning them. Editing, export and import are back under “Advanced”.',
+    willkommen_titel: 'Welcome to MemoFix', willkommen_text: 'Load your course set here and start learning. New here? The quick start shows you in 2 minutes how it works.',
+    willkommen_laden: 'Load course sets', willkommen_start: 'Quick start (2 min)',
     // ── Header ────────────────────────────────────────────
     help_title: 'Help',
     // ── Verwaltung ────────────────────────────────────────
@@ -545,8 +557,11 @@ function applyTranslations() {
   const navMap = { verwaltung: 'nav_verwaltung', lernen: 'nav_lernen', statistik: 'nav_statistik', sicherung: 'nav_sicherung' };
   document.querySelectorAll('.nav-item').forEach(btn => {
     const sp = btn.querySelector('span');
-    if (sp && navMap[btn.dataset.view]) sp.textContent = t(navMap[btn.dataset.view]);
+    if (sp && navMap[btn.dataset.view]) sp.textContent = t(btn.dataset.view === 'sicherung' && appModus === 'einfach' ? 'nav_kurssets' : navMap[btn.dataset.view]);
   });
+  const bm = document.getElementById('btn-modus');
+  if (bm) { bm.textContent = t(appModus === 'einfach' ? 'modus_einfach' : 'modus_erweitert'); bm.title = t(appModus === 'einfach' ? 'modus_tip_einfach' : 'modus_tip_erweitert'); }
+  [['willkommen-titel', 'willkommen_titel'], ['willkommen-text', 'willkommen_text'], ['btn-willkommen-laden', 'willkommen_laden'], ['btn-willkommen-start', 'willkommen_start']].forEach(([id, k]) => { const e = document.getElementById(id); if (e) e.textContent = t(k); });
 
   // Header
   const btnInfo = document.getElementById('btn-info');
@@ -874,7 +889,21 @@ function getHelpHtml() {
     ? { t: 'Stairs, not the elevator', a: "AI can take a lot off your plate – thinking isn't one of them. Whoever knows nothing has to believe everything, and never gets beyond the middle of the internet.", b: 'MemoFix trains your own knowledge, so you can be a counterpart – not an echo.' }
     : { t: 'Treppe statt Aufzug', a: 'KI kann vieles abnehmen – das Denken nicht. Wer nichts weiß, muss alles glauben und kommt über die Mitte des Internets nicht hinaus.', b: 'MemoFix trainiert dein eigenes Wissen, damit du ein Gegenüber bist und kein Echo.' };
   const praeambel = `<aside class="haltung"><h4>${haltung.t}</h4><p>${haltung.a}</p><p><em>${haltung.b}</em></p></aside>`;
-  return praeambel + sections.map((sec, i) => `
+  let secs = sections;
+  if (appModus === 'einfach') {                                   // Einfach: nur das Sichtbare erklären
+    const en = currentLang === 'en';
+    const drop = ['⏱', '🔁', '⛶', '💾'];
+    secs = sections.filter((_, i) => i === 0 || i === 1 || i === 4)
+      .filter(sec => !/Manage|Verwaltung|Backup/.test(sec.title))
+      .map(sec => ({ ...sec, rows: sec.rows.filter(r => !drop.includes(r[0]))
+        .filter(r => !(/Probleme|Troubleshooting/.test(sec.title) && /export/i.test(r[1])))
+        .map(r => [r[0], (r[0] === '⭐' ? r[1].split(' · ')[0] : r[1]).replace(/SICHERUNG/g, 'KURSSETS').replace(/BACKUP/g, 'COURSE SETS')]) }));
+    secs.push({ title: en ? '🔓 More features' : '🔓 Mehr Funktionen', rows: [
+      ['🔧', en ? '<strong>Advanced</strong> — tap <strong>Simple</strong> at the top: your own cards (Manage), export and import, AI briefings, timer, repeat and fullscreen 16:9 · tap again to return to the simple view · your choice is remembered'
+              : '<strong>Erweitert</strong> — oben auf <strong>Einfach</strong> tippen: eigene Karten (Verwaltung), Export und Import, KI-Briefings, Timer, Wiederholen und Vollbild 16:9 · erneut tippen, um zur einfachen Ansicht zurückzukehren · deine Wahl wird gemerkt'],
+    ]});
+  }
+  return praeambel + secs.map((sec, i) => `
     ${i > 0 ? '<div class="modal-divider"></div>' : ''}
     <div class="modal-section">
       <div class="modal-section-title">${sec.title}</div>
@@ -2572,7 +2601,7 @@ function renderLernAuswahl() {
   }
 
   sortierteSammlungen.forEach((sam, si) => {
-    const gs = getSortierteGruppenInSammlung(sam.id);
+    const gs = getSortierteGruppenInSammlung(sam.id).filter(modusGruppeSichtbar);
     if (!gs.length) return;
     const isOpen  = openLernSammlungen.has(sam.id);
     const farbe   = sammlungFarbe(sam, si);
@@ -3159,6 +3188,40 @@ async function openKarteEditModal(studentId, mode) {
 // VIEW NAVIGATION
 // ============================================================
 
+// ── Modus Einfach / Erweitert ────────────────────────────────
+let appModus = 'einfach';
+function hatEigeneKarten() {
+  return studenten.some(k => !k.kurssetId && !/^tut(orial)?-/.test(k.id));
+}
+function hatKursset() {
+  return studenten.some(k => k.kurssetId) || sammlungen.some(x => x.kurssetId);
+}
+function modusErmitteln() {
+  let m = null;
+  try { m = localStorage.getItem('memofixModus'); } catch (_) {}
+  if (m === 'einfach' || m === 'erweitert') return m;
+  m = hatEigeneKarten() ? 'erweitert' : 'einfach';       // bestehende Nutzer mit eigenen Karten behalten alle Funktionen
+  try { localStorage.setItem('memofixModus', m); } catch (_) {}
+  return m;
+}
+function setzeModus(m) {
+  appModus = m;
+  try { localStorage.setItem('memofixModus', m); } catch (_) {}
+  document.body.classList.toggle('modus-einfach', m === 'einfach');
+  document.body.classList.toggle('modus-erweitert', m === 'erweitert');
+  if (typeof applyTranslations === 'function' && db) applyTranslations();
+  aktualisiereWillkommen();
+  const aktiv = document.querySelector('.nav-item.active')?.dataset.view;
+  if (m === 'einfach' && aktiv === 'verwaltung') showView('lernen');
+  else if (aktiv === 'lernen' && !document.getElementById('lernen-auswahl').classList.contains('hidden')) renderLernAuswahl();
+}
+function aktualisiereWillkommen() {
+  document.getElementById('willkommen-card')?.classList.toggle('hidden', !(appModus === 'einfach' && !hatKursset()));
+}
+function modusGruppeSichtbar(g) {                      // Tutorial-Gruppe „Erweitert“ nur im Modus Erweitert
+  return !(appModus === 'einfach' && g.id === 'tutorial-weiter');
+}
+
 function showView(name) {
   if (name !== 'lernen') gebeWakeLockFrei(); // Lern-View verlassen → Bildschirmsperre wieder aktiv
   localStorage.setItem('memoLastView', name);
@@ -3173,7 +3236,7 @@ function showView(name) {
     renderLernAuswahl();
   }
   if (name === 'statistik') renderStatistik();
-  if (name === 'sicherung') ladeKurssetListe();
+  if (name === 'sicherung') { aktualisiereWillkommen(); ladeKurssetListe(); }
 }
 
 // ============================================================
@@ -3350,6 +3413,7 @@ async function entferneKurssetMitRueckfrage(set) {
 }
 
 async function ladeKurssetListe() {
+  aktualisiereWillkommen();
   const box   = document.getElementById('kursset-liste');
   const hint  = document.getElementById('kursset-hinweis');
   const alle  = document.getElementById('btn-kursset-alle');
@@ -3589,6 +3653,19 @@ function mischen(arr) {
 
 document.querySelectorAll('.nav-item').forEach(btn =>
   btn.addEventListener('click', () => showView(btn.dataset.view)));
+
+document.getElementById('btn-modus')?.addEventListener('click', () => {
+  if (appModus === 'einfach') { setzeModus('erweitert'); return; }
+  if (hatEigeneKarten() && !confirm(t('modus_confirm'))) return;
+  setzeModus('einfach');
+});
+document.getElementById('btn-willkommen-laden')?.addEventListener('click', () =>
+  document.getElementById('kursset-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+document.getElementById('btn-willkommen-start')?.addEventListener('click', () => {
+  try { localStorage.setItem('memoLernGids', JSON.stringify(['tutorial-start'])); } catch (_) {}
+  openLernSammlungen.add('sammlung-tutorial'); saveOpenLernSammlungen();
+  showView('lernen');
+});
 
 // Info-Modal
 document.getElementById('btn-lang').addEventListener('click', () => {
@@ -5453,7 +5530,8 @@ if ('caches' in window) {
 // ============================================================
 
 // Zweisprachige Begriff-Karten (zeigen zugleich das Kartenformat: Begriff vorn, Info + Merke hinten)
-const TUTORIAL_KARTEN = [
+// Gruppe 1 „Schnelleinstieg“: das, was in der einfachen Ansicht sichtbar ist. Gruppe 2 „Erweitert“: nur im Modus Erweitert.
+const TUTORIAL_START = [
   { de: ['Willkommen bei MemoFix',
          'MemoFix trainiert aktives Erinnern: erst überlegen, dann aufdecken.\n\n- **Karte antippen** → sie dreht sich um\n- **✓ oder ✗** wertet, ob du es wusstest\n- **Wischen oder Pfeile** → vor und zurück\n- Nach der Runde: **Nachgeschaute üben**',
          'Erst überlegen, dann aufdecken – so bleibt Wissen hängen.'],
@@ -5462,23 +5540,43 @@ const TUTORIAL_KARTEN = [
          'MemoFix trains active recall: think first, then reveal.\n\n- **Tap the card** → it flips\n- **✓ or ✗** rates whether you knew it\n- **Swipe or arrows** → forward and back\n- After a round: **Practise missed cards**',
          'Think first, then reveal – that is how knowledge sticks.'] },
   { de: ['Kurssets laden',
-         'Fertige Kartensets deines Kurses findest du unter **SICHERUNG → Kursset importieren**.\n\n- ● **rot**: noch nicht geladen\n- ✓ **grün**: aktuell\n- ↻ **orange**: Update verfügbar\n- Ordner (z. B. Innenarchitektur) antippen zum Aufklappen\n\nInternet nötig – große Sets besser im WLAN laden.',
+         'Fertige Kartensets deines Kurses findest du unter **KURSSETS**.\n\n- ● **rot**: noch nicht geladen\n- ✓ **grün**: aktuell\n- ↻ **orange**: Update verfügbar\n- Ordner (z. B. Innenarchitektur) antippen zum Aufklappen\n\nInternet nötig – große Sets besser im WLAN laden.',
          'Updates behalten deinen Lernstand und deine Favoriten.'],
     en: ['Load course sets',
-         'You find ready-made card sets for your course under **BACKUP → Import course set**.\n\n- ● **red**: not loaded yet\n- ✓ **green**: up to date\n- ↻ **orange**: update available\n- Tap a folder (e.g. Interior Architecture) to expand it\n\nInternet required – load large sets on Wi-Fi.',
+         'You find ready-made card sets for your course under **COURSE SETS**.\n\n- ● **red**: not loaded yet\n- ✓ **green**: up to date\n- ↻ **orange**: update available\n- Tap a folder (e.g. Interior Architecture) to expand it\n\nInternet required – load large sets on Wi-Fi.',
          'Updates keep your progress and your favorites.'] },
-  { de: ['Lernen anpassen',
-         'Unter **LERNEN** wählst du Gruppen und Modus:\n\n- **Normal**: Begriff oder Bild zuerst · **Umgekehrt**: Info zuerst\n- **Timer** blättert Karten automatisch, **Autorepeat** wiederholt\n- **⭐** markiert Favoriten, **Schwächste** übt, was du oft nicht wusstest',
+  { de: ['Lernen starten',
+         'Unter **LERNEN** wählst du Gruppen – auch einzelne Untergruppen eines Sets – und den Modus:\n\n- **Normal**: Begriff oder Bild zuerst · **Umgekehrt**: Info zuerst\n- **⭐** markiert Favoriten, **Schwächste** übt, was du oft nachgeschaut hast\n- **Mit Claude besprechen** öffnet ein Gespräch zur aktuellen Karte',
          'Kurze Runden, oft wiederholt, bringen mehr als eine lange Sitzung.'],
-    en: ['Adjust your learning',
-         'Under **LEARN** you choose groups and mode:\n\n- **Normal**: term or image first · **Reversed**: info first\n- **Timer** flips cards automatically, **Autorepeat** loops\n- **⭐** marks favorites, **Weakest** practises what you often missed',
+    en: ['Start learning',
+         'Under **LEARN** you choose groups – also single subgroups of a set – and the mode:\n\n- **Normal**: term or image first · **Reversed**: info first\n- **⭐** marks favorites, **Weakest** practises what you often looked up\n- **Discuss with Claude** opens a conversation about the current card',
          'Short rounds, repeated often, beat one long session.'] },
-  { de: ['Beamer-Modus',
-         'Mit **Fullscreen 16:9** (auf der Seite LERNEN) füllt die Karte den ganzen Bildschirm – ideal für Beamer und Prüfungsgespräche.\n\n- **Leertaste** deckt auf, **Pfeiltasten** blättern\n- **✕** oben rechts oder **Esc** beendet\n- Lange Texte passen sich automatisch an\n- **🤿 MemoDive** macht daraus ein gemeinsames Punktespiel für die Gruppe',
-         'Kein Scrollen: Die Schrift wird so gewählt, dass alles auf den Bildschirm passt.'],
-    en: ['Presentation mode',
-         'With **Fullscreen 16:9** (on the LEARN page) the card fills the whole screen – ideal for projectors and oral exams.\n\n- **Space** reveals, **arrow keys** flip through\n- **✕** top right or **Esc** exits\n- Long texts adapt automatically\n- **🤿 MemoDive** turns it into a shared points game for the group',
-         'No scrolling: the font size is chosen so everything fits on screen.'] },
+  { de: ['MemoDive: gemeinsam lernen',
+         'Der grüne Knopf **🤿 MemoDive** unter „Lernen starten“ macht aus dem Set ein Gruppenspiel.\n\n- Die Gruppe deckt eine Karte auf, du tippst **Wer hat\'s gewusst?**\n- **🎲** würfelt, wer dran ist\n- **🎯** schaltet Rate-Fragen mit vier Antworten dazu (aus · nur diese Karte · immer)\n- Nichts wird gespeichert',
+         'Kein Quiz-Duell, sondern ein Gesprächsspiel.'],
+    en: ['MemoDive: learning together',
+         'The green **🤿 MemoDive** button under “Start learning” turns the set into a group game.\n\n- The group reveals a card, you tap **Who knew it?**\n- **🎲** rolls who is up\n- **🎯** adds guessing questions with four answers (off · this card only · always)\n- Nothing is saved',
+         'Not a quiz duel, but a conversation game.'] },
+  { de: ['Statistik',
+         'Unter **STATISTIK** siehst du, wie oft du Karten nachgeschaut hast.\n\n- **Schwierigste Karten** zuerst, mit „zuletzt“-Datum\n- **30 Tage** oder **Alle**\n- **Schwächste Karten jetzt üben** startet eine Runde',
+         'Was du oft nachschaust, gehört in die nächste Runde.'],
+    en: ['Statistics',
+         'Under **STATISTICS** you see how often you looked cards up.\n\n- **Hardest cards** first, with “last” date\n- **30 days** or **All**\n- **Practise weakest cards now** starts a round',
+         'What you often look up belongs in the next round.'] },
+  { de: ['Installieren und Sprache',
+         '- **iPhone/iPad**: Safari → Teilen → „Zum Home-Bildschirm“\n- **Android**: Menü → „App installieren“\n- Danach funktioniert die App auch offline\n- **?** oben: ausführliche Hilfe · **DE/EN**: Sprache wechseln (auch der Karteninhalt, wenn zweisprachig)',
+         'Ohne Installation kann der Browser deine Daten nach etwa 7 Tagen löschen.'],
+    en: ['Install and language',
+         '- **iPhone/iPad**: Safari → Share → “Add to Home Screen”\n- **Android**: menu → “Install app”\n- After that the app also works offline\n- **?** at the top: detailed help · **DE/EN**: switch language (also card content when bilingual)',
+         'Without installing, the browser may delete your data after about 7 days.'] },
+  { de: ['Das kann MemoFix noch',
+         'Oben steht **Einfach**. Ein Tipp darauf schaltet auf **Erweitert**, und es kommt dazu:\n\n- **Eigene Karten** anlegen und bearbeiten (Verwaltung)\n- **KI-Briefings**: Kartensets und Rate-Fragen von einer KI erstellen lassen\n- **Export und Import** als Datei, **Fotos komprimieren**\n- **Timer** und **Wiederholen** beim Lernen\n- **Fullscreen 16:9** für Beamer und Prüfungsgespräche\n\nDein Tipp wird gemerkt; erneut tippen führt zurück.',
+         'Einfach reicht zum Lernen. Erweitert ist für alle, die selbst Karten bauen oder präsentieren.'],
+    en: ['What else MemoFix can do',
+         'At the top it says **Simple**. A tap switches to **Advanced**, which adds:\n\n- **Your own cards** – create and edit (Manage)\n- **AI briefings**: have an AI create card sets and guessing questions\n- **Export and import** as a file, **compress photos**\n- **Timer** and **repeat** while learning\n- **Fullscreen 16:9** for projectors and oral exams\n\nYour choice is remembered; tap again to go back.',
+         'Simple is enough for learning. Advanced is for everyone who builds cards or presents.'] },
+];
+const TUTORIAL_ERWEITERT = [
   { de: ['Eigene Karten',
          'In **VERWALTUNG** legst du mit **＋** neue Karten an.\n\n- **Bild vorn**: erst das Bild, dann der Begriff\n- **Begriff vorn, Bild hinten**: erst der Begriff, dann Text, Notiz und Bilder\n- **Merke** = Kernaussage als farbiger Kasten\n- Mehrere Fotos pro Karte möglich',
          'Verrät das Bild die Antwort, wähle „Begriff vorn, Bild hinten“.'],
@@ -5486,23 +5584,29 @@ const TUTORIAL_KARTEN = [
          'In **MANAGE** you create new cards with **＋**.\n\n- **Image on front**: image first, then the term\n- **Term on front, image on back**: term first, then text, note and images\n- **Memo** = key point as a colored box\n- Several photos per card possible',
          'If the image gives the answer away, choose “Term on front, image on back”.'] },
   { de: ['Mit KI arbeiten',
-         'Beim Lernen öffnet **Mit Claude besprechen** ein Gespräch zur aktuellen Karte.\n\nNeue Kartensets erstellst du mit dem **KI-Briefing** (SICHERUNG → KI-Briefing): in ChatGPT, Gemini oder Claude einfügen und dein Thema nennen.',
+         'Neue Kartensets erstellst du mit dem **KI-Briefing** (SICHERUNG → KI-Briefing für neue Karten): in ChatGPT, Gemini oder Claude einfügen und dein Thema nennen.\n\nFür **Rate-Fragen** zu deinen Karten gibt es ein eigenes Briefing (SICHERUNG → KI-Briefing für Rate-Fragen): Export ohne Bilder → KI → Import „Hinzufügen“.',
          'Die KI liefert eine JSON-Datei, die du über SICHERUNG → Aus Datei importieren lädst.'],
     en: ['Working with AI',
-         'While learning, **Discuss with Claude** opens a conversation about the current card.\n\nCreate new card sets with the **AI briefing** (BACKUP → AI briefing): paste it into ChatGPT, Gemini or Claude and name your topic.',
+         'Create new card sets with the **AI briefing** (BACKUP → AI briefing for new cards): paste it into ChatGPT, Gemini or Claude and name your topic.\n\nFor **guessing questions** on your cards there is a separate briefing (BACKUP → AI briefing for guessing questions): export without images → AI → import “Add”.',
          'The AI returns a JSON file that you load via BACKUP → Import from file.'] },
-  { de: ['Installieren und sichern',
-         '- **iPhone/iPad**: Safari → Teilen → „Zum Home-Bildschirm“\n- **Android**: Menü → „App installieren“\n- Danach funktioniert die App auch offline\n\nUnter **SICHERUNG → Exportieren** sicherst du deine Karten als Datei (bei vielen Bildern in mehreren Teilen).',
+  { de: ['Timer und Wiederholen',
+         'Auf der Seite **LERNEN** blättert der **Timer** (1 · 3 · 5 · 10 s) die Karten automatisch um, **🔁** wiederholt die Runde.\n\nMit **⇄ Gemischt** wechselst du zwischen zufälliger und fester Reihenfolge.',
+         'Der Timer zählt nicht als Wertung – er ist zum Mitlesen gedacht.'],
+    en: ['Timer and repeat',
+         'On the **LEARN** page the **timer** (1 · 3 · 5 · 10 s) flips cards automatically, **🔁** repeats the round.\n\n**⇄ Shuffled** switches between random and fixed order.',
+         'The timer does not count as rating – it is meant for reading along.'] },
+  { de: ['Beamer-Modus',
+         'Mit **Fullscreen 16:9** (auf der Seite LERNEN) füllt die Karte den ganzen Bildschirm – ideal für Beamer und Prüfungsgespräche.\n\n- **Leertaste** deckt auf, **Pfeiltasten** blättern\n- **✕** oben rechts oder **Esc** beendet\n- Lange Texte passen sich automatisch an',
+         'Kein Scrollen: Die Schrift wird so gewählt, dass alles auf den Bildschirm passt.'],
+    en: ['Presentation mode',
+         'With **Fullscreen 16:9** (on the LEARN page) the card fills the whole screen – ideal for projectors and oral exams.\n\n- **Space** reveals, **arrow keys** flip through\n- **✕** top right or **Esc** exits\n- Long texts adapt automatically',
+         'No scrolling: the font size is chosen so everything fits on screen.'] },
+  { de: ['Sichern und teilen',
+         'Unter **SICHERUNG → Exportieren** sicherst du deine Karten als Datei (bei vielen Bildern in mehreren Teilen). **Aus Datei importieren** lädt sie wieder, auch auf einem anderen Gerät.\n\nDieses Tutorial kannst du in **VERWALTUNG** löschen und unter **SICHERUNG → Tutorial wiederherstellen** zurückholen.',
          'Deine Karten liegen nur auf diesem Gerät – sichere sie regelmäßig.'],
-    en: ['Install and back up',
-         '- **iPhone/iPad**: Safari → Share → “Add to Home Screen”\n- **Android**: menu → “Install app”\n- After that the app also works offline\n\nUnder **BACKUP → Export** you save your cards as a file (in several parts when there are many images).',
+    en: ['Back up and share',
+         'Under **BACKUP → Export** you save your cards as a file (in several parts when there are many images). **Import from file** loads them again, also on another device.\n\nYou can delete this tutorial in **MANAGE** and bring it back under **BACKUP → Restore tutorial**.',
          'Your cards live only on this device – back them up regularly.'] },
-  { de: ['Hilfe und Sprache',
-         '- **?** oben rechts: ausführliche Hilfe\n- **DE/EN** oben rechts: Sprache wechseln (auch der Karteninhalt, wenn zweisprachig)\n- Dieses Tutorial kannst du in **VERWALTUNG** löschen und unter **SICHERUNG → Tutorial wiederherstellen** zurückholen.',
-         'Viel Erfolg beim Lernen!'],
-    en: ['Help and language',
-         '- **?** top right: detailed help\n- **DE/EN** top right: switch language (also card content when bilingual)\n- You can delete this tutorial in **MANAGE** and bring it back under **BACKUP → Restore tutorial**.',
-         'Enjoy learning!'] },
 ];
 
 // Legt das Tutorial an bzw. ersetzt es (feste IDs → kein Duplikat). Ältere Tutorial-Fassungen werden entfernt.
@@ -5517,25 +5621,39 @@ async function erstelleTutorial() {
   for (const sm of alleSam) if (sm.id.startsWith('sammlung-tutorial')) await dbDelete('sammlungen', sm.id);
 
   const now = new Date().toISOString();
-  const samId = 'sammlung-tutorial', gruppeId = 'tutorial-start';
+  const samId = 'sammlung-tutorial';
   await dbPut('sammlungen', { id: samId, name: '🎓 Tutorial', name_en: '🎓 Tutorial', erstellt: now });
-  await dbPut('gruppen', { id: gruppeId, name: '🎓 Tutorial', name_en: '🎓 Tutorial', sammlungId: samId, erstellt: now });
-  for (let i = 0; i < TUTORIAL_KARTEN.length; i++) {
-    const { de, en } = TUTORIAL_KARTEN[i];
-    await dbPut('studenten', {
-      id: `tutorial-start-${String(i + 1).padStart(2, '0')}`, gruppeId, modus: 'text',
-      name: de[0], vorderseite: de[0], notiz: de[1], merke: de[2],
-      name_en: en[0], vorderseite_en: en[0], notiz_en: en[1], merke_en: en[2],
-      links: [], videoId: TUTORIAL_KARTEN[i].video?.id || null, videoTitel: TUTORIAL_KARTEN[i].video?.titel || null,
-      ...(TUTORIAL_KARTEN[i].video?.format ? { videoFormat: TUTORIAL_KARTEN[i].video.format } : {}),
-      foto: null, fotos: [], erstellt: now
-    });
+  const gruppenDef = [
+    { id: 'tutorial-start', name: '🚀 Schnelleinstieg', name_en: '🚀 Quick start', karten: TUTORIAL_START },
+    { id: 'tutorial-weiter', name: '🔧 Erweitert', name_en: '🔧 Advanced', karten: TUTORIAL_ERWEITERT },
+  ];
+  for (const gd of gruppenDef) {
+    await dbPut('gruppen', { id: gd.id, name: gd.name, name_en: gd.name_en, sammlungId: samId, erstellt: now });
+    for (let i = 0; i < gd.karten.length; i++) {
+      const { de, en, video } = gd.karten[i];
+      await dbPut('studenten', {
+        id: `${gd.id}-${String(i + 1).padStart(2, '0')}`, gruppeId: gd.id, modus: 'text',
+        name: de[0], vorderseite: de[0], notiz: de[1], merke: de[2],
+        name_en: en[0], vorderseite_en: en[0], notiz_en: en[1], merke_en: en[2],
+        links: [], videoId: video?.id || null, videoTitel: video?.titel || null,
+        ...(video?.format ? { videoFormat: video.format } : {}),
+        foto: null, fotos: [], erstellt: now
+      });
+    }
   }
   localStorage.setItem('memofix-tutorial-created', '1');
   localStorage.setItem('memofix-tutorial-v2', '1');
+  localStorage.setItem('memofix-tutorial-v3', '1');
 }
 
 async function erstelleTutorialGruppeWennNeu() {
+  // Neue Struktur (v3): vorhandenes Tutorial einmalig ersetzen; wer es gelöscht hat, bekommt es nicht zurück
+  if (localStorage.getItem('memofix-tutorial-created') && !localStorage.getItem('memofix-tutorial-v3')) {
+    const g = await dbGetAll('gruppen');
+    if (g.some(x => x.id === 'tutorial-start')) { await erstelleTutorial(); return; }
+    localStorage.setItem('memofix-tutorial-v3', '1');
+    return;
+  }
   if (localStorage.getItem('memofix-tutorial-created') || localStorage.getItem('memopix-tutorial-created') || localStorage.getItem('snapmatch-tutorial-created')) return;
   await erstelleTutorial();
 }
@@ -5555,10 +5673,16 @@ async function erstelleTutorialGruppeWennNeu() {
   ladeOpenSammlungen();
   ladeOpenGruppen();
   ladeOpenLernSammlungen();
+  appModus = modusErmitteln();
+  document.body.classList.toggle('modus-einfach', appModus === 'einfach');
+  document.body.classList.toggle('modus-erweitert', appModus === 'erweitert');
   applyTranslations(); // setzt Sprache + rendert Verwaltung + LernAuswahl
-  // Letzten Tab wiederherstellen
+  // Letzten Tab wiederherstellen; Einfach: ohne geladenes Kursset zuerst Kurssets
   const lastView = localStorage.getItem('memoLastView');
-  if (lastView && lastView !== 'verwaltung') showView(lastView);
+  if (appModus === 'einfach' && !hatKursset() && !hatEigeneKarten()) showView('sicherung');
+  else if (lastView && !(lastView === 'verwaltung' && appModus === 'einfach')) { if (lastView !== 'verwaltung') showView(lastView); }
+  else if (appModus === 'einfach') showView('lernen');
+  aktualisiereWillkommen();
   // Timer-Buttons, Autorepeat & Label-Opacity initialisieren
   document.querySelectorAll('.timer-btn').forEach(b =>
     b.classList.toggle('active', +b.dataset.sek === timerSekunden)

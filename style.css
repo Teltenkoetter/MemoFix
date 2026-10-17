@@ -2707,3 +2707,17 @@ body.spiel .spiel-wer { padding-right: calc(var(--sp-rem, 1rem) * 4.6); }
 .sp-rt-z { display: inline-block; min-width: 1.1em; text-align: center; font-weight: 800; }
 .sp-raten-pille.aktiv .sp-rt-z { color: #ffb454; }
 .sp-chips .sp-minus-btn { flex: none; }
+
+/* ── Modus Einfach / Erweitert ─────────────────────────────── */
+body.modus-einfach .nur-erweitert { display: none !important; }
+.btn-modus { height: 28px; padding: 0 0.65rem; border-radius: 14px; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.3px; font-family: inherit; cursor: pointer; flex-shrink: 0;
+  margin-bottom: 2px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--text-dim); transition: border-color 0.15s, background 0.15s; }
+.btn-modus:active { border-color: var(--accent); }
+body.modus-einfach .btn-modus { border-color: rgba(95,211,141,0.55); color: #5fd38d; background: rgba(95,211,141,0.1); }
+body.modus-einfach { --bg-grad: radial-gradient(ellipse at 50% 0%, #11201b 0%, #08090a 62%); }
+body.modus-einfach .gruppe-check-item { padding-top: 0.8rem; padding-bottom: 0.8rem; }
+body.modus-einfach .nav-item span { font-size: 0.72rem; }
+.willkommen-card { border-color: rgba(95,211,141,0.4); }
+.willkommen-card p { margin: 0.4rem 0 0.8rem; color: var(--text-dim); line-height: 1.45; font-size: 0.9rem; }
+.willkommen-btns { display: flex; flex-direction: column; gap: 0.5rem; }
+.willkommen-btns button { width: 100%; margin: 0; }

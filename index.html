@@ -13,13 +13,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=90">
+  <link rel="stylesheet" href="style.css?v=91">
 </head>
 <body>
 
   <header>
     <h1><span class="title-memo">Memo</span><span class="title-pix">Fix</span></h1>
     <div class="header-btns">
+      <button id="btn-modus" class="btn-modus" type="button">Einfach</button>
       <button id="btn-lang" class="btn-lang">EN</button>
       <button id="btn-info" class="btn-help" title="Hilfe">?</button>
     </div>
@@ -467,7 +468,7 @@
               <div class="modus-desc">Lösung → 📷 Foto · 📖 Begriff</div>
             </button>
           </div>
-          <div class="lern-timer-row">
+          <div class="lern-timer-row nur-erweitert">
             <span class="lern-timer-label">⏱</span>
             <div class="lern-timer-btns" id="auswahl-timer-btns">
               <button class="timer-btn active" data-sek="0">Aus</button>
@@ -480,7 +481,7 @@
           </div>
           <div class="lern-start-row">
             <button id="btn-lernen-start" class="btn-primary btn-large" disabled>Lernen starten</button>
-            <button id="btn-fullscreen169" class="btn-secondary btn-large-sec" disabled>⛶ Fullscreen 16:9</button>
+            <button id="btn-fullscreen169" class="btn-secondary btn-large-sec nur-erweitert" disabled>⛶ Fullscreen 16:9</button>
           </div>
           <button id="btn-spiel" class="btn-spiel-karte" disabled>
             <span class="bsk-titel">🤿 <span class="title-memo">Memo</span><span class="title-pix">Dive</span></span>
@@ -503,7 +504,7 @@
             </div>
             <span id="lern-position" class="lern-position-counter">1 / 1</span>
           </div>
-          <button id="btn-mischen" class="btn-text">⇄ Gemischt</button>
+          <button id="btn-mischen" class="btn-text nur-erweitert">⇄ Gemischt</button>
         </div>
         <div class="lern-karte-area">
           <div id="stack-card-2" class="stack-card stack-card-2"></div>
@@ -560,7 +561,7 @@
         <div id="timer-bar-wrap" class="timer-bar-wrap hidden">
           <div id="timer-bar" class="timer-bar"></div>
         </div>
-        <div class="session-timer-row" id="session-timer-row">
+        <div class="session-timer-row nur-erweitert" id="session-timer-row">
           <span class="lern-timer-label">⏱</span>
           <div class="lern-timer-btns">
             <button class="timer-btn active" data-sek="0">Aus</button>
@@ -665,6 +666,15 @@
         <button type="button" id="kursset-hinweis-link" class="btn-text">Anzeigen</button>
       </div>
 
+      <div class="card willkommen-card hidden" id="willkommen-card">
+        <strong id="willkommen-titel">Willkommen bei MemoFix</strong>
+        <p id="willkommen-text">Lade unten dein Kursset und lerne los. Neu hier? Der Schnelleinstieg zeigt dir in 2 Minuten, wie es geht.</p>
+        <div class="willkommen-btns">
+          <button type="button" id="btn-willkommen-laden" class="btn-primary">Kurssets laden</button>
+          <button type="button" id="btn-willkommen-start" class="btn-secondary">Schnelleinstieg (2 Min)</button>
+        </div>
+      </div>
+
       <div class="card" id="kursset-card">
         <strong id="kursset-titel">Kursset importieren</strong>
         <p id="kursset-desc" class="kursset-desc">Fertige Kartensets zum Kurs — ein Tipp importiert sie direkt in die App. Erneutes Importieren aktualisiert die Karten des Sets.</p>
@@ -673,7 +683,7 @@
         <button type="button" id="btn-kursset-aufraeumen" class="btn-secondary hidden" style="margin-top:0.5rem;width:100%">🧹 Speicher aufräumen</button>
       </div>
 
-      <div class="card">
+      <div class="card nur-erweitert">
         <div class="sicherung-zeile">
           <div class="sicherung-info">
             <strong>Aus Datei importieren</strong>
@@ -684,7 +694,7 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card nur-erweitert">
         <div class="sicherung-zeile">
           <div class="sicherung-info">
             <strong>Exportieren</strong>
@@ -694,7 +704,7 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card nur-erweitert">
         <div class="sicherung-zeile">
           <div class="sicherung-info">
             <strong>Fotos komprimieren</strong>
@@ -704,7 +714,7 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card nur-erweitert">
         <div class="sicherung-zeile">
           <div class="sicherung-info">
             <strong>KI-Briefing für neue Karten</strong>
@@ -714,7 +724,7 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card nur-erweitert">
         <div class="sicherung-zeile">
           <div class="sicherung-info">
             <strong>🎯 KI-Briefing für Rate-Fragen</strong>
@@ -744,7 +754,7 @@
   </main>
 
   <nav class="bottom-nav">
-    <button class="nav-item active" data-view="verwaltung">
+    <button class="nav-item active nur-erweitert" data-view="verwaltung">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
         <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
@@ -820,6 +830,6 @@
     <div id="video-overlay-title" class="video-overlay-title"></div>
   </div>
 
-  <script src="app.js?v=128"></script>
+  <script src="app.js?v=129"></script>
 </body>
 </html>
