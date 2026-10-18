@@ -2743,3 +2743,6 @@ body.modus-einfach .nav-item span { font-size: 0.72rem; }
 .update-hinweis button { border: 0; border-radius: 999px; padding: 0.35rem 0.8rem; font: inherit; font-weight: 700; cursor: pointer; background: #5fd38d; color: #08130d; }
 .update-hinweis button[data-u="zu"] { background: transparent; color: #cfe9da; padding: 0.35rem 0.5rem; }
 body.praesi .update-hinweis, body.spiel .update-hinweis { display: none; }
+
+.impressum-link { text-align: center; margin: 0.4rem 0 1.2rem; font-size: 0.8rem; }
+.impressum-link a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }

@@ -746,6 +746,8 @@ function applyTranslations() {
   setTxt('btn-fotos-komprimieren', t('komprimieren'));
   setTxt('btn-ki-briefing', t('ki_briefing_btn'));
   setTxt('btn-ki-raten', t('ki_briefing_btn'));
+  const li = document.getElementById('link-impressum');
+  if (li) { li.textContent = currentLang === 'en' ? 'Legal notice & privacy' : 'Impressum & Datenschutz'; li.href = 'impressum.html' + (currentLang === 'en' ? '#en' : '#de'); }
   setTxt('tutorial-titel', t('tutorial_titel'));
   setTxt('tutorial-desc', t('tutorial_desc'));
   setTxt('btn-tutorial-neu', t('tutorial_neu'));
@@ -920,8 +922,8 @@ function getHelpHtml() {
       </div>
     </div>`).join('') +
     `<p class="modal-meta-device">📱 ${currentLang === 'en' ? 'Optimised for iPhone portrait' : 'Optimiert für iPhone im Hochformat'}</p>
-     <p class="modal-meta">Version 2.0 · Klaus Teltenkötter 2026 <span id="build-version" class="modal-meta-build"></span></p>
-     <p class="modal-meta"><a href="impressum.html" target="_blank" rel="noopener">${currentLang === 'en' ? 'Imprint &amp; privacy (German)' : 'Impressum &amp; Datenschutz'}</a></p>`;
+     <p class="modal-meta">Version 2.0 · Prof. Klaus Teltenkötter 2026 <span id="build-version" class="modal-meta-build"></span></p>
+     <p class="modal-meta"><a href="impressum.html${currentLang === 'en' ? '#en' : '#de'}" target="_blank" rel="noopener">${currentLang === 'en' ? 'Legal notice &amp; privacy' : 'Impressum &amp; Datenschutz'}</a></p>`;
 }
 
 // ============================================================
