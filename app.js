@@ -777,7 +777,6 @@ function getHelpHtml() {
       ['🚦', '<strong>Course set status</strong> — ● red: not loaded yet · ✓ green: up to date · ↻ orange: update available (tap "Update" or "Update all") · learning progress and favorites are kept · cards you changed yourself or that were removed from the set: you are asked first · offline the last known status stays visible'],
       ['💾', '<strong>Back up regularly</strong> — Cards live only on this device (no sync between devices) · BACKUP → Export · "Clear browser data" deletes everything'],
       ['🔄', '<strong>After an update</strong> — close the app completely and open it again, otherwise you may still see the old version'],
-      ['🎬', '<strong>Intro video</strong> — <a href="#" data-video-open="LMcXbAEjww0" data-videotitel="MemoFix – Introduction" data-videoformat="hochkant">Watch the short video</a>'],
       ['🌐', '<strong>Website</strong> — <a href="https://www.designstrategies.org" target="_blank" rel="noopener">designstrategies.org</a>'],
     ]},
     { title: '🎴 Learning mode', rows: [
@@ -835,7 +834,6 @@ function getHelpHtml() {
       ['🚦', '<strong>Kursset-Status</strong> — ● rot: noch nicht geladen · ✓ grün: aktuell · ↻ orange: Update verfügbar (auf „Aktualisieren" oder „Alle aktualisieren" tippen) · Lernstand und Favoriten bleiben erhalten · selbst geänderte oder im Set entfallene Karten: es wird vorher nachgefragt · offline bleibt der letzte bekannte Status sichtbar'],
       ['💾', '<strong>Regelmäßig sichern</strong> — Karten liegen nur auf diesem Gerät (kein Abgleich zwischen Geräten) · SICHERUNG → Exportieren · „Browserdaten löschen" entfernt alles'],
       ['🔄', '<strong>Nach einem Update</strong> — App komplett schließen und neu öffnen, sonst siehst du eventuell noch die alte Version'],
-      ['🎬', '<strong>Einführungsvideo</strong> — <a href="#" data-video-open="LMcXbAEjww0" data-videotitel="MemoFix – Einführung" data-videoformat="hochkant">Kurzes Video ansehen</a>'],
       ['🌐', '<strong>Website</strong> — <a href="https://www.designstrategies.org" target="_blank" rel="noopener">designstrategies.org</a>'],
     ]},
     { title: '🎴 Lernmodus', rows: [
@@ -905,6 +903,10 @@ function getHelpHtml() {
               : '<strong>Erweitert</strong> — oben auf <strong>Einfach</strong> tippen: eigene Karten (Verwaltung), Export und Import, KI-Briefings, Timer, Wiederholen und Vollbild 16:9 · erneut tippen, um zur einfachen Ansicht zurückzukehren · deine Wahl wird gemerkt'],
     ]});
   }
+  const en = currentLang === 'en';
+  secs = [{ title: en ? '🎬 Intro video' : '🎬 Einführungsvideo', rows: [['▶️', en
+    ? '<a href="#" data-video-open="LMcXbAEjww0" data-videotitel="MemoFix – Introduction" data-videoformat="hochkant">Watch the short video</a>'
+    : '<a href="#" data-video-open="LMcXbAEjww0" data-videotitel="MemoFix – Einführung" data-videoformat="hochkant">Kurzes Video ansehen</a>']] }, ...secs];
   return praeambel + secs.map((sec, i) => `
     ${i > 0 ? '<div class="modal-divider"></div>' : ''}
     <div class="modal-section">
