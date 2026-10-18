@@ -2746,3 +2746,6 @@ body.praesi .update-hinweis, body.spiel .update-hinweis { display: none; }
 
 .impressum-link { text-align: center; margin: 0.4rem 0 1.2rem; font-size: 0.8rem; }
 .impressum-link a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Impressum-Links in Grün wie die Einfach-Ansicht */
+.impressum-link a, .modal-meta a { color: #5fd38d; text-decoration: underline; text-underline-offset: 3px; }

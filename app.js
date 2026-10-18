@@ -777,7 +777,7 @@ function getHelpHtml() {
       ['🚦', '<strong>Course set status</strong> — ● red: not loaded yet · ✓ green: up to date · ↻ orange: update available (tap "Update" or "Update all") · learning progress and favorites are kept · cards you changed yourself or that were removed from the set: you are asked first · offline the last known status stays visible'],
       ['💾', '<strong>Back up regularly</strong> — Cards live only on this device (no sync between devices) · BACKUP → Export · "Clear browser data" deletes everything'],
       ['🔄', '<strong>After an update</strong> — close the app completely and open it again, otherwise you may still see the old version'],
-      ['🌐', '<strong>Website</strong> — <a href="https://www.designstrategies.org" target="_blank" rel="noopener">designstrategies.org</a>'],
+      ['🌐', '<strong>Digital Design:</strong> <a href="https://www.designstrategies.org" target="_blank" rel="noopener">www.designstrategies.org</a><br><strong>Digital Fabrication:</strong> <a href="https://www.df-mainz.de" target="_blank" rel="noopener">www.df-mainz.de</a>'],
     ]},
     { title: '🎴 Learning mode', rows: [
       ['🖼️', '<strong>Photo card: Image → Term</strong> — See the image, recall the term · Tap the card → it flips → term appears'],
@@ -834,7 +834,7 @@ function getHelpHtml() {
       ['🚦', '<strong>Kursset-Status</strong> — ● rot: noch nicht geladen · ✓ grün: aktuell · ↻ orange: Update verfügbar (auf „Aktualisieren" oder „Alle aktualisieren" tippen) · Lernstand und Favoriten bleiben erhalten · selbst geänderte oder im Set entfallene Karten: es wird vorher nachgefragt · offline bleibt der letzte bekannte Status sichtbar'],
       ['💾', '<strong>Regelmäßig sichern</strong> — Karten liegen nur auf diesem Gerät (kein Abgleich zwischen Geräten) · SICHERUNG → Exportieren · „Browserdaten löschen" entfernt alles'],
       ['🔄', '<strong>Nach einem Update</strong> — App komplett schließen und neu öffnen, sonst siehst du eventuell noch die alte Version'],
-      ['🌐', '<strong>Website</strong> — <a href="https://www.designstrategies.org" target="_blank" rel="noopener">designstrategies.org</a>'],
+      ['🌐', '<strong>Digitales Entwerfen:</strong> <a href="https://www.designstrategies.org" target="_blank" rel="noopener">www.designstrategies.org</a><br><strong>Digitale Fertigung:</strong> <a href="https://www.df-mainz.de" target="_blank" rel="noopener">www.df-mainz.de</a>'],
     ]},
     { title: '🎴 Lernmodus', rows: [
       ['🖼️', '<strong>Foto-Karte: Bild → Begriff</strong> — Bild sehen, Begriff erinnern · Karte antippen → dreht sich um → Begriff erscheint'],
