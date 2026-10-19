@@ -32,6 +32,9 @@
   --nav-h:         96px;
   --header-h:      56px;
   --serif:         'Instrument Serif', Georgia, serif;
+  /* MemoFix-CD: Hellblau = Identität, Links und Infos, MemoDive · Grün = Modus Einfach, „richtig“ · Orange = Achtung, Joker, Zeit · Weiß = Hauptknöpfe */
+  --mf-blau:       #62d5ff;
+  --mf-blau-rgb:   98, 213, 255;
 }
 
 body {
@@ -401,7 +404,7 @@ textarea.input-vorderseite::placeholder { color: var(--muted); }
   border-radius: 6px;
   padding: 0.35rem 0.65rem;
   font-size: 0.75rem; line-height: 1.3;
-  color: #7ab8f5;
+  color: var(--mf-blau);
   text-decoration: none;
   cursor: pointer;
   max-width: 100%;
@@ -409,7 +412,7 @@ textarea.input-vorderseite::placeholder { color: var(--muted); }
   transition: background 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
-.link-btn:active { background: rgba(122,184,245,0.2); }
+.link-btn:active { background: rgba(var(--mf-blau-rgb), 0.2); }
 /* Links unterhalb der Lernkarte (nach Aufdecken) */
 .lern-card-links {
   display: flex; flex-wrap: wrap;
@@ -2045,7 +2048,7 @@ body.praesi .lern-position-counter .counter-total { font-size: 14px; letter-spac
 .kursset-info { display: flex; flex-direction: column; min-width: 0; }
 .kursset-info span { font-size: 0.78rem; color: var(--muted); }
 .kursset-hinweis { font-size: 0.82rem; color: var(--muted); }
-.anleitung-text a { color: var(--accent, #6a8fff); text-decoration: underline; }
+.anleitung-text a { color: var(--mf-blau); text-decoration: underline; text-underline-offset: 2px; }
 
 /* Hilfe: Teilpunkte als Aufzählung auf neuer Zeile */
 .anleitung-liste { margin: 0.35rem 0 0; padding-left: 1.1rem; list-style: disc; }
@@ -2316,13 +2319,13 @@ body.spiel.praesi .lern-karte-area { flex: 1 1 auto; height: auto; min-height: 0
 .spiel-wer.sp-kompakt .sp-chips { max-height: 27dvh; gap: calc(var(--sp-rem, 1rem) * 0.35); }
 .spiel-wer.sp-kompakt .sp-neu input { min-height: 38px; }
 
-/* ── MemoDive: grüne Karte unter „Lernen starten" ─────── */
+/* ── MemoDive: blaue Karte unter „Lernen starten" (MemoFix-CD) ─────── */
 .btn-spiel-karte {
   display: flex; flex-direction: column; align-items: flex-start; gap: calc(var(--sp-rem, 1rem) * 0.15); width: 100%;
   margin-top: calc(var(--sp-rem, 1rem) * 0.6); padding: calc(var(--sp-rem, 1rem) * 0.7) calc(var(--sp-rem, 1rem) * 0.9); text-align: left; font-family: inherit; cursor: pointer;
   color: var(--text); border-radius: 14px;
-  background: linear-gradient(180deg, rgba(95,211,141,0.16), rgba(95,211,141,0.07));
-  border: 1px solid rgba(95,211,141,0.55);
+  background: linear-gradient(180deg, rgba(var(--mf-blau-rgb), 0.16), rgba(var(--mf-blau-rgb), 0.07));
+  border: 1px solid rgba(var(--mf-blau-rgb), 0.55);
 }
 .btn-spiel-karte:active { transform: scale(0.99); }
 .btn-spiel-karte:disabled { opacity: 0.35; cursor: not-allowed; }
@@ -2738,14 +2741,24 @@ body.modus-einfach .nav-item span { font-size: 0.72rem; }
 
 /* Hinweis „Neue Version verfügbar“ (nie während Präsentation/Spiel) */
 .update-hinweis { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--nav-h, 96px) + 10px + env(safe-area-inset-bottom, 0px)); z-index: 1200;
-  display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.6rem 0.5rem 0.9rem; border-radius: 999px; background: #14231c; border: 1px solid rgba(95,211,141,0.6);
+  display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.6rem 0.5rem 0.9rem; border-radius: 999px; background: #0f2230; border: 1px solid rgba(var(--mf-blau-rgb), 0.6);
   color: #eafbf1; font-size: 0.85rem; box-shadow: 0 8px 24px rgba(0,0,0,0.45); max-width: calc(100vw - 24px); }
-.update-hinweis button { border: 0; border-radius: 999px; padding: 0.35rem 0.8rem; font: inherit; font-weight: 700; cursor: pointer; background: #5fd38d; color: #08130d; }
-.update-hinweis button[data-u="zu"] { background: transparent; color: #cfe9da; padding: 0.35rem 0.5rem; }
+.update-hinweis button { border: 0; border-radius: 999px; padding: 0.35rem 0.8rem; font: inherit; font-weight: 700; cursor: pointer; background: var(--mf-blau); color: #04141c; }
+.update-hinweis button[data-u="zu"] { background: transparent; color: #cfe6f0; padding: 0.35rem 0.5rem; }
 body.praesi .update-hinweis, body.spiel .update-hinweis { display: none; }
 
 .impressum-link { text-align: center; margin: 0.4rem 0 1.2rem; font-size: 0.8rem; }
 .impressum-link a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
 
-/* Impressum-Links in Grün wie die Einfach-Ansicht */
-.impressum-link a, .modal-meta a { color: #5fd38d; text-decoration: underline; text-underline-offset: 3px; }
+/* Impressum-Links in Hellblau (MemoFix-CD) */
+.impressum-link a, .modal-meta a { color: var(--mf-blau); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Wasserzeichen in „Gruppen auswählen“: in die Zeile eingereiht, vor „Alle schließen“ (keine Überlagerung) */
+#lernen-auswahl-header::after { position: static; transform: none; order: 2; margin-left: auto; flex: none; right: auto; top: auto; }
+#lernen-auswahl-header .btn-gruppen-toggle { order: 3; margin-left: 0.2rem; }
+/* MemoDive im MemoFix-Blau: „Dive“ im Spiel-Logo und im Kartentitel */
+.sp-logo .title-pix, .bsk-titel .title-pix, .spiel-podium-box h2 .title-pix, .sp-pod-links h2 .title-pix { color: var(--mf-blau); }
+
+/* Wasserzeichen in der Kopfzeile: als erstes Element der Knopfgruppe (folgt der Breite von Modus-Schalter und EN) */
+header::after { display: none; }
+.header-btns::before { content: ''; flex: none; width: 1.8rem; height: 1.8rem; margin-right: 0.3rem; background: url('./icon.svg') no-repeat center / contain; opacity: 0.1; pointer-events: none; }
