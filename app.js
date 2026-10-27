@@ -772,7 +772,7 @@ function getHelpHtml() {
   const sections = currentLang === 'en' ? [
     { title: '🚀 Getting started', rows: [
       ['🌐', '<strong>Browser</strong> — iPhone and iPad: Safari · Android: Chrome or Firefox · Computer: Safari, Firefox, Chrome or Edge'],
-      ['📲', '<strong>Add to Home Screen first</strong> — iPhone/iPad: Share → "Add to Home Screen" · Android: ⋮ menu → "Install app" (Firefox: menu → "Install") · Without this, the browser can delete your cards after about 7 days without use'],
+      ['📲', '<strong>Add to Home Screen first</strong> — iPhone/iPad: Share → "Add to Home Screen" · Android (Chrome): ⋮ menu at the top right → at the bottom "Install and create shortcut" (Firefox: menu → "Install") · If Android shows "Unsafe app blocked" (Play Protect), it is a general notice about the app package Chrome builds, not about MemoFix: tap "Install anyway" · Without this, the browser can delete your cards after about 7 days without use'],
       ['📚', '<strong>Import course set</strong> — BACKUP → "Import course set" → tap "Import" (internet required) · your own cards stay untouched'],
       ['🚦', '<strong>Course set status</strong> — ● red: not loaded yet · ✓ green: up to date · ↻ orange: update available (tap "Update" or "Update all") · learning progress and favorites are kept · cards you changed yourself or that were removed from the set: you are asked first · offline the last known status stays visible'],
       ['💾', '<strong>Back up regularly</strong> — Cards live only on this device (no sync between devices) · BACKUP → Export · "Clear browser data" deletes everything'],
@@ -829,7 +829,7 @@ function getHelpHtml() {
   ] : [
     { title: '🚀 Erste Schritte', rows: [
       ['🌐', '<strong>Browser</strong> — iPhone und iPad: Safari · Android: Chrome oder Firefox · Computer: Safari, Firefox, Chrome oder Edge'],
-      ['📲', '<strong>Zuerst zum Home-Bildschirm hinzufügen</strong> — iPhone/iPad: Teilen → „Zum Home-Bildschirm" · Android: ⋮-Menü → „App installieren" (Firefox: Menü → „Installieren") · Ohne das kann der Browser deine Karten nach etwa 7 Tagen ohne Nutzung löschen'],
+      ['📲', '<strong>Zuerst zum Home-Bildschirm hinzufügen</strong> — iPhone/iPad: Teilen → „Zum Home-Bildschirm" · Android (Chrome): ⋮-Menü oben rechts → ganz unten „Installieren und Verknüpfung erstellen" (Firefox: Menü → „Installieren") · Zeigt Android die Warnung „Unsichere App blockiert" (Play Protect), betrifft sie allgemein das von Chrome gebaute App-Paket, nicht MemoFix: „Trotzdem installieren" antippen · Ohne das kann der Browser deine Karten nach etwa 7 Tagen ohne Nutzung löschen'],
       ['📚', '<strong>Kursset importieren</strong> — SICHERUNG → „Kursset importieren" → „Importieren" antippen (Internet nötig) · eigene Karten bleiben unberührt'],
       ['🚦', '<strong>Kursset-Status</strong> — ● rot: noch nicht geladen · ✓ grün: aktuell · ↻ orange: Update verfügbar (auf „Aktualisieren" oder „Alle aktualisieren" tippen) · Lernstand und Favoriten bleiben erhalten · selbst geänderte oder im Set entfallene Karten: es wird vorher nachgefragt · offline bleibt der letzte bekannte Status sichtbar'],
       ['💾', '<strong>Regelmäßig sichern</strong> — Karten liegen nur auf diesem Gerät (kein Abgleich zwischen Geräten) · SICHERUNG → Exportieren · „Browserdaten löschen" entfernt alles'],
@@ -5598,10 +5598,10 @@ const TUTORIAL_START = [
          'Under **STATISTICS** you see how often you looked cards up.\n\n- **Hardest cards** first, with “last” date\n- **30 days** or **All**\n- **Practise weakest cards now** starts a round',
          'What you often look up belongs in the next round.'] },
   { de: ['Installieren und Sprache',
-         '- **iPhone/iPad**: Safari → Teilen → „Zum Home-Bildschirm“\n- **Android**: Menü → „App installieren“\n- Danach funktioniert die App auch offline\n- **?** oben: ausführliche Hilfe · **DE/EN**: Sprache wechseln (auch der Karteninhalt, wenn zweisprachig)',
+         '- **iPhone/iPad**: Safari → Teilen → „Zum Home-Bildschirm“\n- **Android** (Chrome): ⋮ oben rechts → ganz unten „Installieren und Verknüpfung erstellen“ · bei der Warnung „Unsichere App blockiert“: „Trotzdem installieren“\n- Danach funktioniert die App auch offline\n- **?** oben: ausführliche Hilfe · **DE/EN**: Sprache wechseln (auch der Karteninhalt, wenn zweisprachig)',
          'Ohne Installation kann der Browser deine Daten nach etwa 7 Tagen löschen.'],
     en: ['Install and language',
-         '- **iPhone/iPad**: Safari → Share → “Add to Home Screen”\n- **Android**: menu → “Install app”\n- After that the app also works offline\n- **?** at the top: detailed help · **DE/EN**: switch language (also card content when bilingual)',
+         '- **iPhone/iPad**: Safari → Share → “Add to Home Screen”\n- **Android** (Chrome): ⋮ at the top right → at the bottom “Install and create shortcut” · if you see “Unsafe app blocked”: “Install anyway”\n- After that the app also works offline\n- **?** at the top: detailed help · **DE/EN**: switch language (also card content when bilingual)',
          'Without installing, the browser may delete your data after about 7 days.'] },
   { de: ['Das kann MemoFix noch',
          'Oben steht **Einfach**. Ein Tipp darauf schaltet auf **Erweitert**, und es kommt dazu:\n\n- **Eigene Karten** anlegen und bearbeiten (Verwaltung)\n- **KI-Briefings**: Kartensets und Rate-Fragen von einer KI erstellen lassen\n- **Export und Import** als Datei, **Fotos komprimieren**\n- **Timer** und **Wiederholen** beim Lernen\n- **Fullscreen 16:9** für Beamer und Prüfungsgespräche\n\nDein Tipp wird gemerkt; erneut tippen führt zurück.',
