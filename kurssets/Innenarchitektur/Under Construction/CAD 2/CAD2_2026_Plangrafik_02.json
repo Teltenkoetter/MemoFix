@@ -1,0 +1,584 @@
+{
+  "version": 2,
+  "exportiert": "2026-10-27T16:38:10.000Z",
+  "sammlungen": [
+    {
+      "id": "CAD2-Plangrafik",
+      "name": "Plangrafik CAD II",
+      "name_en": "Plan Graphics CAD II",
+      "erstellt": "2026-10-27T16:38:10.000Z"
+    }
+  ],
+  "gruppen": [
+    {
+      "id": "CAD2-Plan-12-Planart",
+      "sammlungId": "CAD2-Plangrafik",
+      "name": "Planarten und Projektion",
+      "name_en": "Drawing Types and Projection",
+      "erstellt": "2026-10-27T16:38:10.000Z"
+    },
+    {
+      "id": "CAD2-Plan-13-Tuer",
+      "sammlungId": "CAD2-Plangrafik",
+      "name": "Türen",
+      "name_en": "Doors",
+      "erstellt": "2026-10-27T16:38:10.000Z"
+    },
+    {
+      "id": "CAD2-Plan-14-Aufbau",
+      "sammlungId": "CAD2-Plangrafik",
+      "name": "Schichtenaufbau",
+      "name_en": "Layer Build-up",
+      "erstellt": "2026-10-27T16:38:10.000Z"
+    }
+  ],
+  "studenten": [
+    {
+      "id": "CAD2-Plan-12-Planart-01",
+      "gruppeId": "CAD2-Plan-12-Planart",
+      "modus": "text",
+      "name": "Grundriss",
+      "vorderseite": "Grundriss",
+      "notiz": "**Definition:** waagerechter Schnitt durch das Gebäude, Blick von oben.\n\n**Schnittebene:** in 1,0 bis 1,5 m Höhe.\n\n**Zeigt:** Wände, Öffnungen, Raumaufteilung.\n\n> **Merke:** Der Grundriss ist ein waagerechter Schnitt in 1,0 bis 1,5 m Höhe.",
+      "links": [],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "name_en": "Floor plan",
+      "vorderseite_en": "Floor plan",
+      "notiz_en": "**Definition:** horizontal section through the building, viewed from above.\n\n**Section plane:** at 1.0 to 1.5 m height.\n\n**Shows:** walls, openings, room layout.\n\n> **Merke:** The floor plan is a horizontal section at 1.0 to 1.5 m height.",
+      "erstellt": "2026-10-27T16:38:10.000Z",
+      "raten": {
+        "f": "Was zeigt ein Grundriss?",
+        "o": [
+          "Einen waagerechten Schnitt durch das Gebäude",
+          "Einen senkrechten Schnitt durch das Gebäude",
+          "Eine Fassadenansicht ohne Schnitt",
+          "Eine Aufsicht auf das Dach"
+        ],
+        "fe": "What does a floor plan show?",
+        "oe": [
+          "A horizontal section through the building",
+          "A vertical section through the building",
+          "A facade view without a section",
+          "A plan view of the roof"
+        ]
+      }
+    },
+    {
+      "id": "CAD2-Plan-12-Planart-02",
+      "gruppeId": "CAD2-Plan-12-Planart",
+      "modus": "text",
+      "name": "Schnitt",
+      "vorderseite": "Schnitt",
+      "notiz": "**Definition:** senkrechter Schnitt durch das Gebäude.\n\n**Zeigt:** Geschosshöhen, Decken, Treppen und Höhenkoten.\n\n**Linien:** Schnittflächen mit 0,50 mm begrenzt.",
+      "links": [],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "name_en": "Section",
+      "vorderseite_en": "Section",
+      "notiz_en": "**Definition:** vertical section through the building.\n\n**Shows:** storey heights, slabs, stairs and elevation marks.\n\n**Lines:** cut surfaces outlined with 0.50 mm.",
+      "erstellt": "2026-10-27T16:38:10.000Z",
+      "raten": {
+        "f": "Welche Planart zeigt Decken und Treppen in der senkrechten Struktur?",
+        "o": [
+          "Der Schnitt",
+          "Der Grundriss",
+          "Die Ansicht",
+          "Der Lageplan"
+        ],
+        "fe": "Which type of drawing shows slabs and stairs in the vertical structure?",
+        "oe": [
+          "The section",
+          "The floor plan",
+          "The elevation",
+          "The site plan"
+        ]
+      }
+    },
+    {
+      "id": "CAD2-Plan-12-Planart-03",
+      "gruppeId": "CAD2-Plan-12-Planart",
+      "modus": "text",
+      "name": "Ansicht",
+      "vorderseite": "Ansicht",
+      "notiz": "**Definition:** senkrechter Blick auf die Fassade ohne Schnitt.\n\n**Zeigt:** Fassade, Öffnungen, Geländehöhen und Höhenkoten.",
+      "links": [],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "name_en": "Elevation",
+      "vorderseite_en": "Elevation",
+      "notiz_en": "**Definition:** perpendicular view of the facade without a cut.\n\n**Shows:** facade, openings, ground levels and elevation marks.",
+      "erstellt": "2026-10-27T16:38:10.000Z",
+      "raten": {
+        "f": "Was unterscheidet die Ansicht vom Schnitt?",
+        "o": [
+          "Sie zeigt die Fassade ohne Schnitt",
+          "Sie schneidet das Gebäude waagerecht",
+          "Sie zeigt das Gebäude nur von oben",
+          "Sie zeigt nur das Innere des Gebäudes"
+        ],
+        "fe": "What distinguishes the elevation from the section?",
+        "oe": [
+          "It shows the facade without a cut",
+          "It cuts the building horizontally",
+          "It shows the building from above only",
+          "It shows only the interior of the building"
+        ]
+      }
+    },
+    {
+      "id": "CAD2-Plan-12-Planart-04",
+      "gruppeId": "CAD2-Plan-12-Planart",
+      "modus": "text",
+      "name": "Lageplan",
+      "vorderseite": "Lageplan",
+      "notiz": "**Definition:** Gebäude im Kontext von Grundstück und Umgebung.\n\n**Maßstab:** 1:1.000 oder 1:500.",
+      "links": [],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "name_en": "Site plan",
+      "vorderseite_en": "Site plan",
+      "notiz_en": "**Definition:** building in the context of plot and surroundings.\n\n**Scale:** 1:1,000 or 1:500.",
+      "erstellt": "2026-10-27T16:38:10.000Z",
+      "raten": {
+        "f": "Was zeigt der Lageplan?",
+        "o": [
+          "Das Gebäude samt Grundstück und Umgebung",
+          "Die Raumaufteilung eines Geschosses",
+          "Die Fassade mit allen Höhenkoten",
+          "Die Konstruktion einzelner Anschlüsse"
+        ],
+        "fe": "What does the site plan show?",
+        "oe": [
+          "The building with plot and surroundings",
+          "The room layout of one storey",
+          "The facade with all elevation marks",
+          "The construction of single connections"
+        ]
+      }
+    },
+    {
+      "id": "CAD2-Plan-12-Planart-05",
+      "gruppeId": "CAD2-Plan-12-Planart",
+      "modus": "text",
+      "name": "Schnittführung",
+      "vorderseite": "Schnittführung",
+      "notiz": "**Darstellung:** Schnittlinie als Strichpunktlinie im Grundriss.\n\n**Beschriftung:** Bezeichnung (z. B. A–A) und Pfeile, die die Blickrichtung angeben.\n\n> **Merke:** Die Schnittlinie im Grundriss legt Lage und Blickrichtung des Schnitts fest.",
+      "links": [],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "name_en": "Section line",
+      "vorderseite_en": "Section line",
+      "notiz_en": "**Representation:** section line as a dash-dot line in the floor plan.\n\n**Labelling:** designation (e.g. A–A) and arrows indicating the viewing direction.\n\n> **Merke:** The section line in plan fixes position and viewing direction of the section.",
+      "erstellt": "2026-10-27T16:38:10.000Z",
+      "raten": {
+        "f": "Was legt die Schnittlinie im Grundriss fest?",
+        "o": [
+          "Lage und Blickrichtung des Schnitts",
+          "Die Höhe der Schnittebene im Grundriss",
+          "Den Maßstab des Schnitts",
+          "Die Lage der Raumstempel"
+        ],
+        "fe": "What does the section line in the floor plan define?",
+        "oe": [
+          "Position and viewing direction of the section",
+          "The height of the section plane in the floor plan",
+          "The scale of the section",
+          "The position of the room stamps"
+        ]
+      }
+    },
+    {
+      "id": "CAD2-Plan-12-Planart-06",
+      "gruppeId": "CAD2-Plan-12-Planart",
+      "modus": "text",
+      "name": "Draufsicht und Dachaufsicht",
+      "vorderseite": "Draufsicht und Dachaufsicht",
+      "notiz": "**Definition:** Blick senkrecht von oben auf das Dach, ohne Schnitt.\n\n**Einsatz:** im Lageplan als Dachaufsicht.",
+      "links": [],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "name_en": "Top view and roof plan",
+      "vorderseite_en": "Top view and roof plan",
+      "notiz_en": "**Definition:** view straight down onto the roof, without a cut.\n\n**Use:** in the site plan as roof plan.",
+      "erstellt": "2026-10-27T16:38:10.000Z",
+      "raten": {
+        "f": "Worin unterscheidet sich die Dachaufsicht vom Grundriss?",
+        "o": [
+          "Sie zeigt das Dach von oben ohne Schnitt",
+          "Sie zeigt das Dach im Schnitt",
+          "Sie zeigt das oberste Geschoss mit Raumstempeln",
+          "Sie zeigt das Dach von der Seite"
+        ],
+        "fe": "How does the roof plan differ from the floor plan?",
+        "oe": [
+          "It shows the roof from above without a cut",
+          "It shows the roof in section",
+          "It shows the top storey with room stamps",
+          "It shows the roof from the side"
+        ]
+      }
+    },
+    {
+      "id": "CAD2-Plan-12-Planart-07",
+      "gruppeId": "CAD2-Plan-12-Planart",
+      "modus": "text",
+      "name": "Schnittfläche und sichtbare Kanten",
+      "vorderseite": "Schnittfläche und sichtbare Kanten",
+      "notiz": "**Geschnittene Bauteile:** Begrenzung 0,50 mm, Schraffur oder Füllung.\n\n**Dahinterliegende sichtbare Kanten:** 0,25 mm.\n\n**Hintergrund und Umgebung:** 0,10 mm.",
+      "links": [],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "name_en": "Cut surface and visible edges",
+      "vorderseite_en": "Cut surface and visible edges",
+      "notiz_en": "**Cut components:** outline 0.50 mm, hatch or fill.\n\n**Visible edges behind the cut:** 0.25 mm.\n\n**Background and surroundings:** 0.10 mm.",
+      "erstellt": "2026-10-27T16:38:10.000Z",
+      "raten": {
+        "f": "Wie unterscheiden sich im Schnitt geschnittene Bauteile von dahinterliegenden Kanten?",
+        "o": [
+          "Geschnittene Bauteile erhalten die stärkere Begrenzung",
+          "Dahinterliegende Kanten erhalten die stärkere Begrenzung",
+          "Beide erhalten dieselbe Begrenzung",
+          "Geschnittene Bauteile bleiben ohne Begrenzung"
+        ],
+        "fe": "How do cut components differ from edges behind them in a section?",
+        "oe": [
+          "Cut components get the heavier outline",
+          "Edges behind get the heavier outline",
+          "Both get the same outline",
+          "Cut components stay without an outline"
+        ]
+      }
+    },
+    {
+      "id": "CAD2-Plan-13-Tuer-01",
+      "gruppeId": "CAD2-Plan-13-Tuer",
+      "modus": "text",
+      "name": "Drehflügeltür im Grundriss",
+      "vorderseite": "Drehflügeltür im Grundriss",
+      "notiz": "**Darstellung:** Türblatt als Linie, Aufschlagbogen als Viertelkreis.\n\n**Radius:** entspricht der Türblattbreite.",
+      "links": [],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "name_en": "Hinged door in plan",
+      "vorderseite_en": "Hinged door in plan",
+      "notiz_en": "**Representation:** door leaf as a line, swing arc as a quarter circle.\n\n**Radius:** equals the width of the door leaf.",
+      "erstellt": "2026-10-27T16:38:10.000Z",
+      "raten": {
+        "f": "Woran erkennt man im Grundriss eine Drehflügeltür?",
+        "o": [
+          "An Türblatt und Aufschlagbogen",
+          "An einem Kreuz in der Öffnung",
+          "An drei parallelen Linien",
+          "An einer gestrichelten Öffnungslinie"
+        ],
+        "fe": "How do you recognise a casement door in the floor plan?",
+        "oe": [
+          "By the door leaf and swing arc",
+          "By a cross in the opening",
+          "By three parallel lines",
+          "By a dashed opening line"
+        ]
+      }
+    },
+    {
+      "id": "CAD2-Plan-13-Tuer-02",
+      "gruppeId": "CAD2-Plan-13-Tuer",
+      "modus": "text",
+      "name": "Schwenkbereich der Tür",
+      "vorderseite": "Schwenkbereich der Tür",
+      "notiz": "**Bedeutung:** Der Aufschlagbogen zeigt die Fläche, die beim Öffnen frei bleiben muss.\n\n> **Merke:** Möbel und Wege dürfen den Aufschlagbogen nicht schneiden.",
+      "links": [],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "name_en": "Door swing area",
+      "vorderseite_en": "Door swing area",
+      "notiz_en": "**Meaning:** the swing arc shows the area that must stay free when the door opens.\n\n> **Merke:** Furniture and routes must not cross the swing arc.",
+      "erstellt": "2026-10-27T16:38:10.000Z",
+      "raten": {
+        "f": "Was zeigt der Aufschlagbogen einer Tür?",
+        "o": [
+          "Die Fläche, die beim Öffnen frei bleibt",
+          "Den Bereich der Rohbauöffnung der Wand",
+          "Den Fluchtweg durch das Gebäude",
+          "Die Wandstärke der Türlaibung"
+        ],
+        "fe": "What does the swing arc of a door show?",
+        "oe": [
+          "The area that stays free when opening",
+          "The area of the structural wall opening",
+          "The escape route through the building",
+          "The wall thickness of the door reveal"
+        ]
+      }
+    },
+    {
+      "id": "CAD2-Plan-13-Tuer-03",
+      "gruppeId": "CAD2-Plan-13-Tuer",
+      "modus": "text",
+      "name": "DIN links und DIN rechts bei Türen",
+      "vorderseite": "DIN links und DIN rechts bei Türen",
+      "notiz": "**Regel:** Gesehen von der Seite, zu der die Tür aufgeht.\n\n**DIN links:** Bänder links. **DIN rechts:** Bänder rechts.",
+      "links": [],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "name_en": "DIN left and DIN right for doors",
+      "vorderseite_en": "DIN left and DIN right for doors",
+      "notiz_en": "**Rule:** seen from the side towards which the door opens.\n\n**DIN left:** hinges on the left. **DIN right:** hinges on the right.",
+      "erstellt": "2026-10-27T16:38:10.000Z",
+      "raten": {
+        "f": "Woran erkennt man DIN links bei einer Tür?",
+        "o": [
+          "Gesehen von der Aufgehseite sitzen die Bänder links",
+          "Gesehen von der Aufgehseite sitzen die Bänder rechts",
+          "Gesehen von der Gegenseite sitzen die Bänder links",
+          "Gesehen von der Aufgehseite sitzt der Griff links"
+        ],
+        "fe": "How do you recognise DIN left on a door?",
+        "oe": [
+          "Seen from the opening side, the hinges are on the left",
+          "Seen from the opening side, the hinges are on the right",
+          "Seen from the opposite side, the hinges are on the left",
+          "Seen from the opening side, the handle is on the left"
+        ]
+      }
+    },
+    {
+      "id": "CAD2-Plan-13-Tuer-04",
+      "gruppeId": "CAD2-Plan-13-Tuer",
+      "modus": "text",
+      "name": "Zarge und Türblatt",
+      "vorderseite": "Zarge und Türblatt",
+      "notiz": "**Zarge:** Rahmen in der Wandöffnung; im Detail 1:50 als Rechteck an den Wandenden gezeichnet.\n\n**Türblatt:** beweglicher Teil der Tür.\n\n**Lichtes Öffnungsmaß:** berücksichtigt beides.",
+      "links": [],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "name_en": "Door frame and leaf",
+      "vorderseite_en": "Door frame and leaf",
+      "notiz_en": "**Frame:** frame in the wall opening; drawn at 1:50 as a rectangle at the wall ends.\n\n**Leaf:** movable part of the door.\n\n**Clear opening dimension:** takes both into account.",
+      "erstellt": "2026-10-27T16:38:10.000Z",
+      "raten": {
+        "f": "Was ist die Zarge einer Tür?",
+        "o": [
+          "Der Rahmen in der Wandöffnung",
+          "Der bewegliche Teil der Tür",
+          "Der Aufschlagbogen im Plan",
+          "Die Schwelle am Boden"
+        ],
+        "fe": "What is the frame of a door?",
+        "oe": [
+          "The frame in the wall opening",
+          "The movable part of the door",
+          "The swing arc in the plan",
+          "The threshold on the floor"
+        ]
+      }
+    },
+    {
+      "id": "CAD2-Plan-13-Tuer-05",
+      "gruppeId": "CAD2-Plan-13-Tuer",
+      "modus": "text",
+      "name": "Türöffnung im Plan bemaßen",
+      "vorderseite": "Türöffnung im Plan bemaßen",
+      "notiz": "**Beispiel der Vorlesung:** Öffnungsbreite 1.01 über der Maßlinie, Öffnungshöhe 2.13⁵ darunter.\n\n**Maßart:** Öffnungsmaß als Rohbaumaß.",
+      "links": [],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "name_en": "Dimensioning a door opening",
+      "vorderseite_en": "Dimensioning a door opening",
+      "notiz_en": "**Example of the lecture:** opening width 1.01 above the dimension line, opening height 2.13⁵ below.\n\n**Type:** opening dimension as structural opening.",
+      "erstellt": "2026-10-27T16:38:10.000Z",
+      "raten": {
+        "f": "Welches Maß steht an einer Türöffnung im Plan?",
+        "o": [
+          "Das Öffnungsmaß als Rohbaumaß",
+          "Das lichte Maß nach dem Einbau",
+          "Das Achsmaß zur nächsten Wand",
+          "Das Außenmaß der Wand"
+        ],
+        "fe": "Which dimension is given at a door opening in the drawing?",
+        "oe": [
+          "The opening dimension as structural dimension",
+          "The clear dimension after installation",
+          "The axis dimension to the next wall",
+          "The overall dimension of the wall"
+        ]
+      }
+    },
+    {
+      "id": "CAD2-Plan-14-Aufbau-01",
+      "gruppeId": "CAD2-Plan-14-Aufbau",
+      "modus": "text",
+      "name": "Fußbodenaufbau",
+      "vorderseite": "Fußbodenaufbau",
+      "notiz": "**Von unten nach oben:** Rohdecke, gegebenenfalls Dämmung, Estrich, Belag.\n\n**Höhenkoten:** UKRD unter der Rohdecke, OKRFB auf der Rohdecke, OKFFB auf dem Belag.\n\n> **Merke:** Zwischen OKRFB und OKFFB liegt der Fußbodenaufbau.",
+      "links": [],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "name_en": "Floor build-up",
+      "vorderseite_en": "Floor build-up",
+      "notiz_en": "**From bottom to top:** structural slab, insulation if required, screed, covering.\n\n**Elevation marks:** UKRD below the slab, OKRFB on the slab, OKFFB on the covering.\n\n> **Merke:** Between OKRFB and OKFFB lies the floor build-up.",
+      "erstellt": "2026-10-27T16:38:10.000Z",
+      "fotos": [
+        "data:image/png;base64,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"
+      ],
+      "raten": {
+        "f": "Welche Schichtfolge hat ein Fußbodenaufbau von unten nach oben?",
+        "o": [
+          "Rohdecke, Dämmung, Estrich, Belag",
+          "Rohdecke, Estrich, Dämmung, Belag",
+          "Dämmung, Rohdecke, Estrich, Belag",
+          "Rohdecke, Belag, Estrich, Dämmung"
+        ],
+        "fe": "Which layer sequence does a floor build-up have from bottom to top?",
+        "oe": [
+          "Slab, insulation, screed, covering",
+          "Slab, screed, insulation, covering",
+          "Insulation, slab, screed, covering",
+          "Slab, covering, screed, insulation"
+        ]
+      }
+    },
+    {
+      "id": "CAD2-Plan-14-Aufbau-02",
+      "gruppeId": "CAD2-Plan-14-Aufbau",
+      "modus": "text",
+      "name": "Aufbauhöhe",
+      "vorderseite": "Aufbauhöhe",
+      "notiz": "**Berechnung:** OKFFB minus OKRFB.\n\n**Beispiel:** +2,90 − (+2,83) = 0,07 m, also 7 cm.\n\n> **Merke:** Aufbauhöhe ist OKFFB minus OKRFB.",
+      "links": [],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "name_en": "Build-up height",
+      "vorderseite_en": "Build-up height",
+      "notiz_en": "**Calculation:** OKFFB minus OKRFB.\n\n**Example:** +2.90 − (+2.83) = 0.07 m, i.e. 7 cm.\n\n> **Merke:** Build-up height is OKFFB minus OKRFB.",
+      "erstellt": "2026-10-27T16:38:10.000Z",
+      "raten": {
+        "f": "Wie bestimmt man die Aufbauhöhe des Fußbodens aus den Höhenkoten?",
+        "o": [
+          "Als Differenz von OKFFB und OKRFB",
+          "Als Differenz von OKRFB und UKRD",
+          "Als Differenz von OKFFB und UKRD",
+          "Als Summe von OKFFB und OKRFB"
+        ],
+        "fe": "How do you determine the floor build-up height from the elevation marks?",
+        "oe": [
+          "As the difference between OKFFB and OKRFB",
+          "As the difference between OKRFB and UKRD",
+          "As the difference between OKFFB and UKRD",
+          "As the sum of OKFFB and OKRFB"
+        ]
+      }
+    },
+    {
+      "id": "CAD2-Plan-14-Aufbau-03",
+      "gruppeId": "CAD2-Plan-14-Aufbau",
+      "modus": "text",
+      "name": "Rohdecke",
+      "vorderseite": "Rohdecke",
+      "notiz": "**Definition:** tragende Decke ohne Beläge und Ausbau.\n\n**Höhen:** Unterkante UKRD, Oberkante OKRFB.",
+      "links": [],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "name_en": "Structural slab",
+      "vorderseite_en": "Structural slab",
+      "notiz_en": "**Definition:** load-bearing slab without coverings and fit-out.\n\n**Levels:** underside UKRD, top OKRFB.",
+      "erstellt": "2026-10-27T16:38:10.000Z",
+      "raten": {
+        "f": "Was ist eine Rohdecke?",
+        "o": [
+          "Die tragende Decke ohne Beläge und Ausbau",
+          "Die Decke nach Putz und Abhängung",
+          "Die Dämmschicht unter dem Estrich",
+          "Der Estrich vor dem Belag"
+        ],
+        "fe": "What is a raw slab?",
+        "oe": [
+          "The load-bearing slab without coverings and fit-out",
+          "The ceiling after plaster and suspension",
+          "The insulation layer under the screed",
+          "The screed before the covering"
+        ]
+      }
+    },
+    {
+      "id": "CAD2-Plan-14-Aufbau-04",
+      "gruppeId": "CAD2-Plan-14-Aufbau",
+      "modus": "text",
+      "name": "Estrich",
+      "vorderseite": "Estrich",
+      "notiz": "**Definition:** Schicht auf Rohdecke oder Dämmung, die den Belag trägt und Lasten verteilt.\n\n**Lage:** zwischen Dämmung und Belag.",
+      "links": [],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "name_en": "Screed",
+      "vorderseite_en": "Screed",
+      "notiz_en": "**Definition:** layer on the slab or insulation that carries the covering and distributes loads.\n\n**Position:** between insulation and covering.",
+      "erstellt": "2026-10-27T16:38:10.000Z",
+      "raten": {
+        "f": "Welche Aufgabe hat der Estrich im Fußbodenaufbau?",
+        "o": [
+          "Er trägt den Belag und verteilt Lasten",
+          "Er dämmt gegen Wärmeverlust",
+          "Er dichtet gegen Feuchtigkeit ab",
+          "Er bildet die tragende Decke"
+        ],
+        "fe": "What is the function of the screed in the floor build-up?",
+        "oe": [
+          "It carries the covering and distributes loads",
+          "It insulates against heat loss",
+          "It seals against moisture",
+          "It forms the load-bearing slab"
+        ]
+      }
+    },
+    {
+      "id": "CAD2-Plan-14-Aufbau-05",
+      "gruppeId": "CAD2-Plan-14-Aufbau",
+      "modus": "text",
+      "name": "Wandaufbau",
+      "vorderseite": "Wandaufbau",
+      "notiz": "**Typisch von innen nach außen:** Innenputz, tragende Wand, Dämmung, Außenputz.\n\n**Im Plan:** jede Schicht erhält ihre eigene Schraffur (vgl. Küche 1:25).\n\n> **Merke:** Jede Wandschicht erhält ihre eigene Schraffur.",
+      "links": [],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "name_en": "Wall build-up",
+      "vorderseite_en": "Wall build-up",
+      "notiz_en": "**Typically from inside to outside:** interior plaster, load-bearing wall, insulation, exterior plaster.\n\n**In the drawing:** every layer gets its own hatch (cf. kitchen 1:25).\n\n> **Merke:** Every wall layer gets its own hatch.",
+      "erstellt": "2026-10-27T16:38:10.000Z",
+      "raten": {
+        "f": "Wie werden die Schichten einer Wand im Plan dargestellt?",
+        "o": [
+          "Jede Schicht erhält ihre eigene Schraffur",
+          "Die ganze Wand erhält eine einheitliche Schraffur",
+          "Nur die tragende Schicht wird schraffiert",
+          "Die Schichten unterscheiden sich nur in der Linienstärke"
+        ],
+        "fe": "How are the layers of a wall shown in the drawing?",
+        "oe": [
+          "Each layer gets its own hatch",
+          "The whole wall gets one uniform hatch",
+          "Only the load-bearing layer is hatched",
+          "The layers differ only in line weight"
+        ]
+      }
+    }
+  ]
+}
