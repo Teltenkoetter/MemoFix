@@ -924,9 +924,7 @@ function getHelpHtml() {
           </div>`; }).join('')}
       </div>
     </div>`).join('') +
-    `<p class="modal-links">${currentLang === 'en'
-      ? 'More about the courses:<br><a href="https://www.designstrategies.org" target="_blank" rel="noopener">Digital Design</a><br><a href="https://www.df-mainz.de" target="_blank" rel="noopener">Digital Fabrication</a>'
-      : 'Mehr zu den Kursen:<br><a href="https://www.designstrategies.org" target="_blank" rel="noopener">Digitales Entwerfen</a><br><a href="https://www.df-mainz.de" target="_blank" rel="noopener">Digitale Fertigung</a>'}</p>` +
+    `<p class="modal-links">${currentLang === 'en' ? 'More about' : 'Mehr zu'}<br><a href="https://www.designstrategies.org" target="_blank" rel="noopener">${currentLang === 'en' ? 'Digital Design' : 'Digitales Entwerfen'}</a> &amp; <a href="https://www.df-mainz.de" target="_blank" rel="noopener">${currentLang === 'en' ? 'Digital Fabrication' : 'Digitale Fertigung'}</a></p>` +
     `<p class="modal-meta-device">📱 ${currentLang === 'en' ? 'Optimised for iPhone portrait' : 'Optimiert für iPhone im Hochformat'}</p>
      <p class="modal-meta">Version 2.0 · Prof. Klaus Teltenkötter 2026 <span id="build-version" class="modal-meta-build"></span></p>
      <p class="modal-meta"><a href="impressum.html${currentLang === 'en' ? '#en' : '#de'}" target="_blank" rel="noopener">${currentLang === 'en' ? 'Legal notice &amp; privacy' : 'Impressum &amp; Datenschutz'}</a></p>`;
