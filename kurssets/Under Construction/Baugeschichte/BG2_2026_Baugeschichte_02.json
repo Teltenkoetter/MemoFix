@@ -1,0 +1,1859 @@
+{
+  "version": 2,
+  "exportiert": "2026-10-27T16:55:55.339Z",
+  "sammlungen": [
+    {
+      "id": "BG2-Baugeschichte",
+      "name": "Baugesch. II",
+      "erstellt": "2026-05-26T12:00:00.000Z"
+    }
+  ],
+  "gruppen": [
+    {
+      "id": "BG2-g01",
+      "sammlungId": "BG2-Baugeschichte",
+      "name": "01 · Städtebauliche Reformbewegungen",
+      "erstellt": "2026-05-26T12:00:00.000Z"
+    },
+    {
+      "id": "BG2-g02",
+      "sammlungId": "BG2-Baugeschichte",
+      "name": "02 · Arts and Crafts Movement",
+      "erstellt": "2026-05-26T12:00:00.000Z"
+    },
+    {
+      "id": "BG2-g03",
+      "sammlungId": "BG2-Baugeschichte",
+      "name": "03 · Jugendstil – Überblick & Kontext",
+      "erstellt": "2026-05-26T12:00:00.000Z"
+    },
+    {
+      "id": "BG2-g04",
+      "sammlungId": "BG2-Baugeschichte",
+      "name": "04 · Jugendstil – nationale Ausprägungen",
+      "erstellt": "2026-05-26T12:00:00.000Z"
+    },
+    {
+      "id": "BG2-g05",
+      "sammlungId": "BG2-Baugeschichte",
+      "name": "05 · Adolf Loos",
+      "erstellt": "2026-05-26T12:00:00.000Z"
+    },
+    {
+      "id": "BG2-g06",
+      "sammlungId": "BG2-Baugeschichte",
+      "name": "06 · Kubismus (Tschechien)",
+      "erstellt": "2026-05-26T12:00:00.000Z"
+    },
+    {
+      "id": "BG2-g07",
+      "sammlungId": "BG2-Baugeschichte",
+      "name": "07 · Weg zum Deutschen Werkbund",
+      "erstellt": "2026-05-26T12:00:00.000Z"
+    },
+    {
+      "id": "BG2-g08",
+      "sammlungId": "BG2-Baugeschichte",
+      "name": "08 · Deutscher Werkbund",
+      "erstellt": "2026-05-26T12:00:00.000Z"
+    },
+    {
+      "id": "BG2-g09",
+      "sammlungId": "BG2-Baugeschichte",
+      "name": "09 · Peter Behrens & Corporate Design",
+      "erstellt": "2026-05-26T12:00:00.000Z"
+    },
+    {
+      "id": "BG2-g10",
+      "sammlungId": "BG2-Baugeschichte",
+      "name": "10 · Expressionismus",
+      "erstellt": "2026-05-26T12:00:00.000Z"
+    },
+    {
+      "id": "BG2-g11",
+      "sammlungId": "BG2-Baugeschichte",
+      "name": "11 · Futurismus & Konstruktivismus",
+      "erstellt": "2026-05-26T12:00:00.000Z"
+    }
+  ],
+  "studenten": [
+    {
+      "id": "BG2-k-01-03",
+      "gruppeId": "BG2-g01",
+      "modus": "text",
+      "name": "Ebenezer Howard – Person & Schlüsselwerk",
+      "vorderseite": "**Person**\nEbenezer Howard (1850–1928)\nBritischer Sozialreformer, kein Architekt\n\n**Schlüsselwerk**\nGarden Cities of Tomorrow, London 1902\nDt. Ausgabe: Gartenstädte in Sicht, 1907\n\n**Drei-Magnete-Modell**\nStadt: Arbeitsplätze, aber schlechte Wohnverhältnisse\nLand: gute Luft, aber keine Infrastruktur\nStadt-Land (Synthese) = Gartenstadt-Ideal",
+      "notiz": "Drei Magnete = zentrales Prüfungsschema! Jahr 1902 merken.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Ebenezer_Howard"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was beschreibt das Drei-Magnete-Modell von Howard?",
+        "o": [
+          "Die Gartenstadt als Synthese aus Stadt und Land",
+          "Die Stadt als Synthese aus Industrie und Handel",
+          "Die Teilung in Wohnen, Arbeiten und Erholung",
+          "Die Verbindung von Land, Fabrik und Kirche"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-01-04",
+      "gruppeId": "BG2-g01",
+      "modus": "text",
+      "name": "Gartenstadt – Kernprinzipien",
+      "vorderseite": "**Siedlungsstruktur**\nGeringe Baudichte, großzügige Grünanteile\nBegrenzung auf ca. 32.000 Einwohner\n\n**Eigentumsmodell**\nGemeineigentum am Boden (keine Bodenspekulation)\nWertzuwachs bleibt in der Gemeinschaft\n\n**Selbstversorgung**\nVerbindung von Wohnen, Arbeiten und Landwirtschaft\nEigene Infrastruktur (Schule, Gewerbe, Grün)\n\n**Deutsche Gartenstadt-Gesellschaft**\nGegründet 1902 in Berlin\nMieter = Genossenschaftsmitglieder mit unkündbarem Dauerwohnrecht",
+      "notiz": "Gemeineigentum Boden + Selbstversorgung = Kernprinzipien von Howard.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Gartenstadt"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Wem gehört der Boden in der Gartenstadt nach Howard?",
+        "o": [
+          "Der Gemeinschaft",
+          "Dem Stadtgründer",
+          "Den einzelnen Hausbesitzern",
+          "Den Fabrikbesitzern"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-01-07",
+      "gruppeId": "BG2-g01",
+      "modus": "text",
+      "name": "Gartenstadt Hellerau – Entstehung",
+      "vorderseite": "**Eckdaten**\nAb 1906 geplant; erste und radikalste deutsche Gartenstadt\nLage: bei Dresden\n\n**Gründer und Architekten**\nKarl Schmidt (Möbelfabrikant + Sozialreformer) – Initiator\nRichard Riemerschmid (1868–1957) – Hauptarchitekt\nHeinrich Tessenow, Hermann Muthesius – weitere Planer\n\n**Inhalt**\nDeutsche Werkstätten für Handwerkskunst (Fabrik + Wohnen)\nFestspielhaus (Dalcroze-Institut)\nEbenezer Howard besuchte 1912: lobte Fabrikqualität als besser als Letchworth",
+      "notiz": "Hellerau = Gartenstadt + Werkbund-Idee verbunden! Riemerschmid = Schlüsselfigur.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Gartenstadt_Hellerau"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Wer war in Hellerau Initiator, wer Hauptarchitekt?",
+        "o": [
+          "Karl Schmidt Initiator, Riemerschmid Hauptarchitekt",
+          "Howard Initiator, Unwin Hauptarchitekt",
+          "Muthesius Initiator, Tessenow Hauptarchitekt",
+          "Riemerschmid Initiator, Schmidt Hauptarchitekt"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-01-06",
+      "gruppeId": "BG2-g01",
+      "modus": "text",
+      "name": "Hampstead Garden Suburb & Camillo Sitte",
+      "vorderseite": "**Hampstead Garden Suburb (London)**\nFolgeanlage von Parker/Unwin nach Letchworth\nCentral Square als städtebaulicher Mittelpunkt\nOrganisch geschwungene Straßenführung\n\n**Camillo Sitte (1843–1903)**\nÖsterreichischer Architekt und Stadtplaner\nSchlüsselwerk: Der Städtebau nach seinen künstlerischen Grundsätzen, Wien 1889\n\n**Kernthesen Sitte**\nKritik an schematisch-geometrischer Stadtplanung\nHistorische Stadtplätze als Vorbild (Piazza, Marktplatz)\nRaumbildung durch geschlossene, unregelmäßige Platzwände",
+      "notiz": "Sitte 1889 = ästhetische Theorie des Städtebaus. Gegenpol zur technischen Planung.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Hampstead_Garden_Suburb",
+        "https://de.wikipedia.org/wiki/Camillo_Sitte"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was kritisiert Camillo Sitte am Städtebau seiner Zeit?",
+        "o": [
+          "Die schematisch-geometrische Planung",
+          "Die fehlenden Verkehrsachsen",
+          "Die zu geringe Bebauungsdichte",
+          "Die fehlende Normung der Bauteile"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-01-08",
+      "gruppeId": "BG2-g01",
+      "modus": "text",
+      "name": "Hellerau – städtebauliches Konzept",
+      "vorderseite": "**Siedlungsstruktur**\nOrganisches Straßenraster (keine Blockrandbebauung)\nEinheitliche, aber variierte Reihenhäuser in niedriger Höhe\nVorgärten, verkehrsarme Erschliessung\n\n**Material und Stil**\nSachliche Formensprache (Muthesius-Einfluss / englisches Landhaus)\nHelle Putzfassaden, Satteldächer\nKein historistisches Ornament\n\n**Bedeutung**\nVerbindet Gartenstadt-Idee mit Werkbund-Qualitätsanspruch\nModell für späteren sozialen Wohnungsbau",
+      "notiz": "Hellerau = Synthese aus Howard + Werkbund. Sachlichkeit als Gestaltungsprinzip.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Gartenstadt_Hellerau"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welche Gestaltungshaltung prägt Hellerau?",
+        "o": [
+          "Sachlichkeit ohne historistisches Ornament",
+          "Jugendstil-Ornamentik an jedem Haus",
+          "Neogotische Backsteinromantik mit Türmen",
+          "Futuristische Dynamik und Geschwindigkeit"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-01-05",
+      "gruppeId": "BG2-g01",
+      "modus": "text",
+      "name": "Letchworth – erste realisierte Gartenstadt",
+      "vorderseite": "**Eckdaten**\nBaubeginn 1903, England\nArchitekten: Barry Parker (1867–1947) / Raymond Unwin (1863–1940)\nErste real realisierte Gartenstadt weltweit\n\n**Merkmale**\nBreite Straßen, Vorgärten, niedrige Bebauungsdichte\nBacksteinbau mit Arts-and-Crafts-Einfluss\nEigenständige Stadtplanung mit Gemeinschaftseinrichtungen\n\n**Referenzbau**\nWilliam Harrison Cowlishaw: The Cloisters, 1905–07",
+      "notiz": "Letchworth 1903 = erste Gartenstadt. Parker/Unwin = Architekten.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Letchworth_Garden_City"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welche Bedeutung hat Letchworth?",
+        "o": [
+          "Erste realisierte Gartenstadt der Welt",
+          "Erste Künstlerkolonie Europas",
+          "Erste Siedlung im Zeilenbau",
+          "Erste Stadt mit Blockrandbebauung"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-01-01",
+      "gruppeId": "BG2-g01",
+      "modus": "text",
+      "name": "Mietskaserne – Entstehungskontext",
+      "vorderseite": "**Ort und Zeit**\n**Berlin, 2. Hälfte 19. Jh. / Industrialisierung + Landflucht**\n\n**Bauliche Form**\nBlockrandbebauung mit mehrfach gestaffelten Hinterhöfen\nMinimalabstände zwischen Gebäuden: kaum Licht, kaum Luft\nGrundstückstiefe bis 70m vollständig bebaut\n\n**Folge**\n**Sozialpolitischer Reformdruck → Entstehung der Reformbewegungen**",
+      "notiz": "Blockrand = geschlossene Bebauung entlang Straßenflucht. Hinterhöfe = das Problem.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Mietskaserne"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welche Bauform kennzeichnet die Berliner Mietskaserne?",
+        "o": [
+          "Blockrand mit gestaffelten Hinterhöfen",
+          "Freistehende Villen mit großem Garten",
+          "Reihenhauszeilen mit kleinen Vorgärten",
+          "Hochhausscheiben am Rand der Stadt"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-01-02",
+      "gruppeId": "BG2-g01",
+      "modus": "text",
+      "name": "Mietskaserne – Meyers-Hof Berlin",
+      "vorderseite": "**Meyers-Hof (Berlin, 1875)**\nEmblematischstes Negativbeispiel der Berliner Mietskaserne\nSechs hintereinander gestaffelte Höfe\n\n**Wohnverhältnisse**\nKeine Toiletten in den Hinterhäusern (eine für Hunderte Bewohner)\nFehlende Belüftung und Tageslicht in den innersten Höfen\n\n**Trockenwohnen**\nNeubauten an Ärmste vermietet bis Putz trocken\nDanach Weitervermietung an Bessergestellte",
+      "notiz": "Meyers-Hof = Paradebeispiel. Trockenwohnen = Klausurbegriff.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Mietskaserne"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was bedeutet Trockenwohnen?",
+        "o": [
+          "Einzug in feuchte Neubauten, bis der Putz trocknet",
+          "Wohnen in Kellerräumen ohne Wasseranschluss",
+          "Unterbringung in provisorischen Holzbaracken",
+          "Vermietung nur in den trockenen Monaten"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-02-01",
+      "gruppeId": "BG2-g02",
+      "modus": "text",
+      "name": "Arts and Crafts – Entstehungskontext",
+      "vorderseite": "**Ort und Zeit**\nEngland, 2. Hälfte 19. Jh.\nGetragen von Kunsthandwerkern, Künstlern, Architekten\n\n**Auslöser**\nIndustrialisierung: Landflucht, Verarmung, städtische Elendsquartiere\nÄsthetischer Verfall der Massenprodukte\nErste systematische Debatte über das Verhältnis Kunst / Industrie\n\n**Träger der Bewegung**\nKunsthandwerker, Architekten, Künstler\nSozial motiviert: nicht nur Ästhetik, auch gesellschaftliche Reform",
+      "notiz": "A&C ist soziale UND ästhetische Reformbewegung – beides gehört zusammen.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Arts-and-Crafts-Bewegung"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was löste die Arts-and-Crafts-Bewegung aus?",
+        "o": [
+          "Die sozialen Folgen der Industrialisierung",
+          "Der Wunsch nach neuen Baustoffen wie Stahlbeton",
+          "Die Begeisterung für Maschinen und Geschwindigkeit",
+          "Der Zerfall der Monarchie nach dem Ersten Weltkrieg"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-02-02",
+      "gruppeId": "BG2-g02",
+      "modus": "text",
+      "name": "Arts and Crafts – Forderungen",
+      "vorderseite": "**Kernforderungen**\nRückbesinnung auf solide handwerkliche Qualität\nMaterialgerechtigkeit (Material zeigt, was es ist)\nAbsage an historisierende Stilimitationen\nAbsage an ornamentale Wucherungen der Massenproduktion\n\n**Formale Prinzipien**\nPraktikable Funktionalität der Gegenstände\nKlare, einfache Formen; sparsame geometrische Dekore\nPuristische, tektonische Gliederungssysteme\n\n**Wirkung auf Folgebewegungen**\nBeeinflusst: Wiener Werkstätte, Deutscher Werkbund, Bauhaus",
+      "notiz": "Materialgerechtigkeit + Funktionalität = Kernbegriffe. Linie bis ins Bauhaus merken.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Arts-and-Crafts-Bewegung"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was bedeutet Materialgerechtigkeit?",
+        "o": [
+          "Das Material zeigt, was es ist",
+          "Das Material wird hinter Putz verborgen",
+          "Das Material wird nur maschinell verarbeitet",
+          "Das Material wird farbig bemalt"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-02-06",
+      "gruppeId": "BG2-g02",
+      "modus": "text",
+      "name": "Arts and Crafts Exhibition Society & Walter Crane",
+      "vorderseite": "**Institutionalisierung**\n1880er: Gründung mehrerer Kunsthandwerkergilden\nu.a. The Art Workers Guild\n\n**Arts and Crafts Exhibition Society (1888)**\nAus den Gilden hervorgegangen\nPräsident: Walter Crane (1845–1915)\n1888 = Höhepunkt der Bewegung\n\n**Walter Crane – Zitat**\n**Die Bewegung stellt einen Protest gegen den industriellen Fortschritt**\n**dar, der nur minderwertige Erzeugnisse hervorbringt.**\n\n**Weitere wichtige Vertreter**\nCharles R. Ashbee, H.M. Baillie Scott\nErnest Gimson, Philip Webb, C.F.A. Voysey",
+      "notiz": "1888 = Höhepunkt. Crane-Zitat ist klausurtauglich.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Arts_and_Crafts_Exhibition_Society"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Wogegen richtet sich die Bewegung laut Walter Crane?",
+        "o": [
+          "Gegen minderwertige Industrieerzeugnisse",
+          "Gegen die soziale Reform der Städte",
+          "Gegen die Rückbesinnung auf Handwerk",
+          "Gegen Kunsthandwerk in Gilden"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-02-08",
+      "gruppeId": "BG2-g02",
+      "modus": "text",
+      "name": "Broad Leys – Voysey & weitere Vertreter",
+      "vorderseite": "**C.F.A. Voysey (1857–1941): Broad Leys**\nWindermere, Lake District, 1897\nWeiß verputzt, lange Horizontallinien, tiefe Dachüberstände\nSachliche, ruhige Formensprache\nVoysey = Übergang von A&C zur Moderne\n\n**H.M. Baillie Scott**\nInnengestaltung Neues Palais Darmstadt, um 1897\nVerbindung A&C mit deutschen Auftraggebern\n\n**Bedeutung beider für den Jugendstil**\nBritische A&C-Architektur beeinflusst direkt den deutschen und österreichischen Jugendstil",
+      "notiz": "Voysey = sachlicher als Morris, näher an der Moderne. Brücke zu Jugendstil.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Charles_Francis_Annesley_Voysey"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Wie verhält sich Voysey zu Morris?",
+        "o": [
+          "Sachlicher und näher an der Moderne",
+          "Ornamentreicher und näher am Historismus",
+          "Radikaler in der Ablehnung der Industrie",
+          "Stärker der Neogotik verpflichtet"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-02-03",
+      "gruppeId": "BG2-g02",
+      "modus": "text",
+      "name": "John Ruskin & Augustus Pugin",
+      "vorderseite": "**John Ruskin (1819–1900)**\nWichtigster Theoretiker der A&C-Bewegung\nForderungen gingen über Handwerk hinaus: gesellschaftliche Impulse\nZentralthema: Ganzheitlichkeit von Herstellung und Gebrauch\n\n**Augustus Welby Pugin (1812–1852)**\nNeogotik-affiner Architekt\nKEIN A&C-Mitglied – chronologisch unmöglich!\nLieferte wichtige Anregungen durch Rückgriff auf mittelalterliche Handwerkstradition\nVeröff.: An Apology for the Revival of Christian Architecture (1843)\nGilt als Vorläufer, nicht als Mitglied",
+      "notiz": "Pugin = Vorläufer, nicht Mitglied! Chronologie ist Klausur-Falle.",
+      "links": [
+        "https://de.wikipedia.org/wiki/John_Ruskin",
+        "https://de.wikipedia.org/wiki/Augustus_Pugin"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Warum ist Pugin kein Mitglied der Arts-and-Crafts-Bewegung?",
+        "o": [
+          "Er gilt als Vorläufer, nicht als Mitglied",
+          "Er lehnte das Handwerk grundsätzlich ab",
+          "Er baute ausschließlich Industriebauten",
+          "Er hatte keinen Bezug zum Mittelalter"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-02-09",
+      "gruppeId": "BG2-g02",
+      "modus": "text",
+      "name": "Nachleben der A&C-Bewegung",
+      "vorderseite": "**Scheitern am Markt**\nHandwerkliche Qualität zu teuer für Massenproduktion\nZiel einer Kunst für alle nicht erreicht\n\n**Weiterwirken in Europa**\nGibt Anstoß zur europaweiten Debatte Kunst + Industrie\nDirekte Linie zu: Jugendstil → Wiener Werkstätte → Deutscher Werkbund → Bauhaus\n\n**Kernprinzipien die überleben**\nMaterialgerechtigkeit\nFunktionale Ehrlichkeit\nQualität als ethische Kategorie der Produktion",
+      "notiz": "A&C scheitert wirtschaftlich, siegt ideell. Alle Folgebewegungen bauen darauf auf.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Arts-and-Crafts-Bewegung"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was blieb von Arts and Crafts trotz des Marktversagens?",
+        "o": [
+          "Materialgerechtigkeit und Ehrlichkeit",
+          "Serienproduktion in großen Fabriken",
+          "Ablehnung jeder Funktionalität",
+          "Das Ornament als Kernprinzip"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-02-07",
+      "gruppeId": "BG2-g02",
+      "modus": "text",
+      "name": "Red House – Philip Webb (1859)",
+      "vorderseite": "**Eckdaten**\nPhilip Webb (1831–1915): The Red House\nBexleyheath, Kent, 1859\nEntworfen für William Morris\n\n**Bedeutung**\nWichtigstes Bauwerk der Arts & Crafts Bewegung\nErster Bau, der die A&C-Prinzipien konsequent umsetzt\n\n**Merkmale**\nBacksteinbau, keine historistischen Ornamente\nMittelalterliche Anklänge (Spitzbogen, Türmchen)\nSachliche Funktionalität; Handwerkliche Materialqualität\nKeine Maschinenarbeit",
+      "notiz": "Red House 1859 = erster A&C-Bau. Webb für Morris.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Red_House_(Morris)"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Für wen entwarf Philip Webb das Red House?",
+        "o": [
+          "William Morris",
+          "John Ruskin",
+          "Walter Crane",
+          "Charles Voysey"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-02-05",
+      "gruppeId": "BG2-g02",
+      "modus": "text",
+      "name": "William Morris – Leitsatz & Grenzen",
+      "vorderseite": "**Leitsatz**\n**Als Lebensbedingung ist alle Maschinenproduktion von Übel.**\n\n**Ziel**\nDemokratie und gesellschaftlicher Zusammenhalt durch Kunsthandwerk\nKunst für alle – nicht nur für die Oberschicht\n\n**Grenzen der Bewegung**\nHandwerkliche Produkte zu teuer für den Massenmarkt\nMorris als weltferner Romantiker kritisiert\nBewegung scheiterte marktwirtschaftlich\n\n**Bedeutung trotzdem**\nGeistiger Vorkämpfer sozialer Verpflichtung in der Produktion\nImpulsgeber für alle nachfolgenden Designreformbewegungen",
+      "notiz": "Teuer = kein Masseneffekt. Aber: ideeller Ausgangspunkt für Werkbund und Bauhaus.",
+      "links": [
+        "https://de.wikipedia.org/wiki/William_Morris"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Warum scheiterte Arts and Crafts am Markt?",
+        "o": [
+          "Die Produkte waren zu teuer für die Masse",
+          "Die Produkte waren qualitativ nicht gut genug",
+          "Die Bewegung verweigerte jeden Verkauf",
+          "Es fehlte an ausgebildeten Handwerkern"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-02-04",
+      "gruppeId": "BG2-g02",
+      "modus": "text",
+      "name": "William Morris – Person & Werkstatt",
+      "vorderseite": "**Person**\nWilliam Morris (1834–1896)\nHauptfigur der Arts & Crafts Bewegung\n\n**Gründung der Werkstatt**\n1861: Morris, Marshall, Faulkner & Co.\nMaschinenarbeit vollständig ausgeschlossen\nProdukte: Glasgemälde, Stoffe, Möbel, Tapisserien, Tapeten\nAnfangs Präraffaeliten beteiligt (Rossetti, Burne-Jones)\n\n**Schlüsselwerk**\nTapetenmuster Trellis, 1862",
+      "notiz": "Morris = Hauptfigur A&C. Präraffaeliten-Verbindung für Kontext wichtig.",
+      "links": [
+        "https://de.wikipedia.org/wiki/William_Morris"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was kennzeichnete die Werkstatt von William Morris?",
+        "o": [
+          "Verzicht auf Maschinenarbeit",
+          "Serienfertigung mit Maschinen",
+          "Konzentration auf Backsteinbau",
+          "Gründung durch den Werkbund"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-03-05",
+      "gruppeId": "BG2-g03",
+      "modus": "text",
+      "name": "Gottfried Semper – Wegbereiter (kein Jugendstil-Vertreter)",
+      "vorderseite": "**Person**\nGottfried Semper (1803–1879)\nDeutsch-österreichischer Architekt und Theoretiker\nKEIN Jugendstil-Vertreter!\n\n**Beitrag als Wegbereiter**\nForderte neue, praktisch-technisch orientierte Gestaltungsformen\nPlädierte für Reform der kunstgewerblichen Ausbildung\nSchlüsselwerk: Der Stil in den technischen und tektonischen Künsten (1860–63)\n\n**Einfluss in Deutschland**\nSempers Impulse + Morris-Reformwelle → Kunstgewerbeschulen reformiert\nGut gestaltete Industriegüter als Wirtschaftsfaktor erkannt\n\n**Wichtige Bauten**\nSemperoper Dresden (1878)\nKunsthistorisches Museum Wien (mit Carl von Hasenauer)",
+      "notiz": "Semper ist KEIN Jugendstil-Vertreter – Klausur-Falle!",
+      "links": [
+        "https://de.wikipedia.org/wiki/Gottfried_Semper"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welche Rolle hat Gottfried Semper für den Jugendstil?",
+        "o": [
+          "Wegbereiter, aber kein Vertreter",
+          "Hauptvertreter in Wien",
+          "Gründer der Münchener Secession",
+          "Namensgeber der Bewegung"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-03-01",
+      "gruppeId": "BG2-g03",
+      "modus": "text",
+      "name": "Jugendstil – Begriff & Zeitraum",
+      "vorderseite": "**Namensgebung**\nZeitschrift Jugend (München, ab 1896)\nHrsg.: Georg Hirth + Fritz von Ostini\n\n**Zeitraum**\nCa. 1890–1910 (Fin de Siècle)\n\n**Europäische Bezeichnungen**\nD: Jugendstil\nF: Art Nouveau\nGB: Modern Style\nIT: Liberty (nach Londoner Kaufhaus)\nES: Modernisme Català\nAT: Sezessionsstil\nB: Style 1900",
+      "notiz": "Geografische Namensliste komplett auswendig lernen!",
+      "links": [
+        "https://de.wikipedia.org/wiki/Jugendstil"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Woher hat der Jugendstil seinen deutschen Namen?",
+        "o": [
+          "Von der Münchner Zeitschrift Jugend",
+          "Von der Wiener Secession",
+          "Vom Londoner Kaufhaus Liberty",
+          "Von der Darmstädter Künstlerkolonie"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-03-02",
+      "gruppeId": "BG2-g03",
+      "modus": "text",
+      "name": "Jugendstil – Merkmale & Strömungen",
+      "vorderseite": "**Gemeinsamer Ausgangspunkt**\nAbkehr vom überladenen Historismus\nSuche nach einem neuen, eigenständigen Stil\n\n**Zwei divergierende Strömungen**\nFloral / dynamisch-bewegt: Guimard (F), Gaudí (ES)\nGeometrisch / sachlich: Mackintosh (GB), Wiener Werkstätte (AT)\n\n**Quellen und Einflüsse**\nGotik, Rokoko\nJapanische Kunst (Japonisme) – besonders stark\nArts and Crafts Movement als Ausgangsimpuls\n\n**Kein einheitlicher Stil**\nKein einheitliches europäisches Erscheinungsbild\nNationale Eigenheiten dominieren",
+      "notiz": "Zwei Strömungen merken: floral (Guimard) vs. geometrisch (Mackintosh/Wien).",
+      "links": [
+        "https://de.wikipedia.org/wiki/Jugendstil"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welche Zuordnung der Jugendstil-Strömungen stimmt?",
+        "o": [
+          "Floral: Guimard; geometrisch: Mackintosh",
+          "Floral: Mackintosh; geometrisch: Guimard",
+          "Floral: Wiener Werkstätte; geometrisch: Gaudí",
+          "Floral: Loos; geometrisch: Guimard"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-03-04",
+      "gruppeId": "BG2-g03",
+      "modus": "text",
+      "name": "Münchener Kunstausstellung & Vereinigte Werkstätten",
+      "vorderseite": "**VII. Internat. Kunstausstellung im Glaspalast München, 1897**\nPlakat: Franz von Stuck\nVerbreitung der frühen Jugendstil-Ideale in Deutschland\n\n**Vereinigte Werkstätten für Kunst im Handwerk (München)**\nGegründet: 6. April 1898\nEntstanden aus dem Umfeld der Secession\nWichtige Mentoren: Bruno Paul, Bernhard Pankok, Richard Riemerschmid, Hermann Obrist\n\n**Bedeutung**\nErste institutionelle Verbindung von Kunst und Handwerk in Dtl.\nVorläufer der Deutschen Werkstätten Hellerau",
+      "notiz": "Vereinigte Werkstätten 1898 = institutioneller Vorläufer des Werkbunds.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Vereinigte_Werkst%C3%A4tten_f%C3%BCr_Kunst_im_Handwerk"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was verbanden die Vereinigten Werkstätten in Deutschland erstmals institutionell?",
+        "o": [
+          "Kunst und Handwerk",
+          "Kunst und Industrie",
+          "Handwerk und Politik",
+          "Architektur und Landwirtschaft"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-03-03",
+      "gruppeId": "BG2-g03",
+      "modus": "text",
+      "name": "Münchener Secession 1892",
+      "vorderseite": "**Gründung**\n4. April 1892: Verein bildender Künstler Münchens Secession e.V.\n96 Mitglieder treten aus konservativer Künstlergenossenschaft aus\nBegriff secessio (lat.) = Trennung / Abspaltung\n\n**Bedeutung**\nErste Vereinigung mit dem Begriff Secession\nDanach: Wien 1897, Berlin 1898\n1903: Deutscher Künstlerbund als Dachverband\n\n**Gründungsmitglieder (Auswahl)**\nFranz von Stuck, Lovis Corinth, Peter Behrens, Max Liebermann",
+      "notiz": "München 1892 = erste Secession! Wien 1897, Berlin 1898 folgen.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Münchener_Secession"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welche Secession wurde als erste gegründet?",
+        "o": [
+          "Die Münchener",
+          "Die Wiener",
+          "Die Berliner",
+          "Die Dresdner"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-03-06",
+      "gruppeId": "BG2-g03",
+      "modus": "text",
+      "name": "Wiener Secession 1897 – Überblick",
+      "vorderseite": "**Gründung**\n1897, Wien\nAbspaltung von konservativer Wiener Künstlergenossenschaft\n\n**Gründungsmitglieder (Auswahl)**\nGustav Klimt (Präsident), Joseph Maria Olbrich, Otto Wagner, Koloman Moser, Josef Hoffmann\n\n**Programm**\nGesamtkunstwerk-Anspruch (Architektur, Malerei, Kunsthandwerk)\nZeitschrift Ver Sacrum (Heiliger Frühling) ab 1898\n\n**Sezessionsgebäude Wien (Olbrich, 1897–98)**\nWeisser Kubus + goldene Lorbeerkuppel\nInschrift: Der Zeit ihre Kunst – der Kunst ihre Freiheit",
+      "notiz": "Inschrift auswendig! Wiener Secession 1897 = zweite nach München.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Wiener_Secession"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was beinhaltet das Programm der Wiener Secession?",
+        "o": [
+          "Gesamtkunstwerk aus Kunst, Architektur, Handwerk",
+          "Normung von Bauteilen für die Industrie",
+          "Rückkehr zur Neogotik des Mittelalters",
+          "Verherrlichung der Maschine und Geschwindigkeit"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-04-08",
+      "gruppeId": "BG2-g04",
+      "modus": "text",
+      "name": "Deutschland – Darmstadt & Mathildenhöhe",
+      "vorderseite": "**Kontext**\nGrossherzog Ernst Ludwig von Hessen (1868–1937)\n1899: Künstler nach Darmstadt eingeladen, günstige Grundstücke\nZiel: Kunstzentrum / Kulturexperiment auf der Mathildenhöhe\n\n**Künstlerkolonie Mathildenhöhe**\nAusstellung: Ein Dokument Deutscher Kunst, 1901\nGesamtplanung: Joseph Maria Olbrich\n\n**Wichtige Bauten**\nOlbrich: Ernst-Ludwig-Haus (Ateliergebäude), 1900–01 Monumentaler Eingang, Jugendstil-Ornamentik\nPeter Behrens: eigenes Wohnhaus (Haus Behrens), 1901\nH.M. Baillie Scott: Innengestaltung Neues Palais, um 1897",
+      "notiz": "Ernst-Ludwig-Haus = Hauptbau. Olbrich = Gesamtplaner. 1901 = Ausstellungsjahr.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Mathildenh%C3%B6he"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Wer übernahm die Gesamtplanung der Künstlerkolonie Mathildenhöhe?",
+        "o": [
+          "Joseph Maria Olbrich",
+          "Peter Behrens",
+          "Henry van de Velde",
+          "Richard Riemerschmid"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-04-09",
+      "gruppeId": "BG2-g04",
+      "modus": "text",
+      "name": "Deutschland – Dresdner Werkstätten & Riemerschmid",
+      "vorderseite": "**Dresdner Werkstätten für Handwerkskunst (1898)**\nGegründet von Karl Schmidt (Möbelfabrikant, Sozialreformer)\nZiel: Qualitätsmöbel für breite Bevölkerungsschichten\n\n**Richard Riemerschmid (1868–1957)**\nWichtigster Gestalter der Dresdner Werkstätten\nMaschinenmöbel (ab 1906): erste seriell produzierte Designmöbel Deutschlands\nÜberbrückt Kluft zwischen A&C-Handwerk und Massenproduktion\n\n**Bedeutung**\nDresdner Werkstätten = direkter Vorläufer von Hellerau\nRiemerschmid = Brückenfigur zwischen Jugendstil und Werkbund",
+      "notiz": "Riemerschmid = Maschinenmöbel 1906 = erste dt. Designmöbel für Serie.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Richard_Riemerschmid"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was machte Riemerschmids Maschinenmöbel von 1906 besonders?",
+        "o": [
+          "Erste serielle Designmöbel Deutschlands",
+          "Erste Stahlrohrmöbel Deutschlands",
+          "Erste handgefertigte Unikate Deutschlands",
+          "Erste Möbel nach Entwurf von Morris"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-04-10",
+      "gruppeId": "BG2-g04",
+      "modus": "text",
+      "name": "Deutschland – Jugendstil-Überblick",
+      "vorderseite": "**Besonderheit Deutschland**\nKein einheitlicher Stil; mehrere regionale Zentren\nMünchen, Darmstadt, Weimar, Dresden, Berlin\n\n**Zeitschriften als Impulsgeber**\nJugend (München, ab 1896) – Namensgeber\nPan (Berlin, ab 1895) – elitärere Ausrichtung\nSimplizissimus (München, ab 1896) – satirisch/politisch\n\n**Wichtige Institutionen**\nVereinigte Werkstätten München (1898)\nDresdner Werkstätten (1898)\nKünstlerkolonie Darmstadt (1899)\nKunstgewerbeschule Weimar (van de Velde, 1902)",
+      "notiz": "Drei Städte: München, Darmstadt, Dresden = Zentren des dt. Jugendstils.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Jugendstil"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was kennzeichnet den deutschen Jugendstil?",
+        "o": [
+          "Kein einheitlicher Stil, mehrere Zentren",
+          "Ein einheitlicher Stil mit Zentrum Berlin",
+          "Eine rein florale Formensprache",
+          "Ein Stil, der nur in München entstand"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-04-02",
+      "gruppeId": "BG2-g04",
+      "modus": "text",
+      "name": "Frankreich / Art Nouveau – Guimard & Nancy",
+      "vorderseite": "**Merkmal Frankreich**\nBarock/Rokoko-inspiriert: floraler Schwung, asymmetrische Kurvenlinien\nStarker Einfluss der japanischen Holzschnittkunst\n\n**Hector Guimard (1867–1942)**\nPariser Métro-Eingänge, z.B. Station Abbesses, 1912\nGeschwungene Eisenkonstruktionen in organischen Formen\nStyle Guimard = Pariser Synonym für Art Nouveau\n\n**Nancy – zweites Zentrum**\nHenri Sauvage / Lucien Weissenburger: Villa Majorelle / Villa Jika (Nancy), 1898\nEcole de Nancy als eigenständige Schule",
+      "notiz": "Guimard-Metro = ikonischstes Bild. Nancy neben Paris als zweites Zentrum merken.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Hector_Guimard"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Wodurch ist der Style Guimard typisch?",
+        "o": [
+          "Geschwungenes Eisen in organischen Formen",
+          "Strenge Raster in Schwarzweiß-Ästhetik",
+          "Harl-Rauputz mit turmartigen Elementen",
+          "Bunte Keramikfliesen auf der Fassade"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-04-05",
+      "gruppeId": "BG2-g04",
+      "modus": "text",
+      "name": "Italien / Liberty – Giovanni Michelazzi",
+      "vorderseite": "**Stil**\nItalien: Liberty (benannt nach Londoner Kaufhaus Liberty & Co.)\nFlorale Ornamentik, organische Formensprache\n\n**Giovanni Michelazzi (1879–1920)**\nVillino Broggi-Caraceni (Florenz), 1911–12\nFlorale Ornamentik an Fassade und Balkon\nAsymmetrischer Grundriss, Jugendstil-Formensprache\n\n**Einordnung**\nLiberty = italianisierte Variante, oft ornamental reicher\nKombination aus franz. Art Nouveau und lokaler Bautradition",
+      "notiz": "Liberty = ital. Bezeichnung für Jugendstil. Michelazzi = Hauptvertreter Florenz.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Giovanni_Michelazzi"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Nach wem ist der italienische Liberty benannt?",
+        "o": [
+          "Nach einem Londoner Kaufhaus",
+          "Nach einer Zeitschrift in München",
+          "Nach einem Florentiner Architekten",
+          "Nach der Freiheitsstatue in New York"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-04-06",
+      "gruppeId": "BG2-g04",
+      "modus": "text",
+      "name": "Österreich – Sezessionsgebäude & Otto Wagner",
+      "vorderseite": "**Sezessionsgebäude Wien (Joseph Maria Olbrich, 1867–1908)**\nWien, 1897–98\nWeisser Kubus + goldene Lorbeerkuppel (goldener Kohlkopf)\nInschrift: Der Zeit ihre Kunst – der Kunst ihre Freiheit\nTrennlinie: aussen kubisch-geometrisch, innen ornamental\n\n**Otto Wagner (1841–1918)**\nWiener Stadtbahn, Station Karlsplatz (mit Olbrich), 1899 Grüne Eisenkonstruktion, ornamentale Zierelemente\nMajolika-Haus Wien (1898) Fassade komplett mit floralen Keramikfliesen belegt",
+      "notiz": "Olbrich-Inschrift auswendig! Wagner = Stadtbahn + Majolika-Haus.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Wiener_Secession",
+        "https://de.wikipedia.org/wiki/Otto_Wagner"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welche Inschrift trägt das Wiener Sezessionsgebäude?",
+        "o": [
+          "Der Zeit ihre Kunst, der Kunst ihre Freiheit",
+          "Der Kunst ihre Zeit, der Zeit ihre Freiheit",
+          "Dem Handwerk seine Ehre, der Kunst ihren Preis",
+          "Der Form ihre Funktion, dem Ornament sein Ende"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-04-07",
+      "gruppeId": "BG2-g04",
+      "modus": "text",
+      "name": "Österreich – Wiener Werkstätte (1903)",
+      "vorderseite": "**Gründung**\n1903, Wien\nGründer: Josef Hoffmann (1870–1956) + Koloman Moser (1868–1918)\n\n**Programm**\nGesamtkunstwerk-Anspruch: Architektur, Möbel, Textil, Grafik\nGeometrisch-sachliche Variante des Jugendstils\nHochwertige Handarbeit für eine Avantgarde-Kundschaft\n\n**Formale Merkmale**\nSchwarzweiss-Ästhetik, strenge Raster\nKein floraler Schwung – geometrische Abstraktion\nVorläufer des De Stijl und des Bauhauses\n\n**Grenzen**\nWie Morris: zu teuer für den Massenmarkt",
+      "notiz": "Wiener Werkstätte 1903 = geometrisch, nicht floral. Hoffmann + Moser merken.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Wiener_Werkst%C3%A4tte"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welche Gestaltung prägt die Wiener Werkstätte?",
+        "o": [
+          "Geometrische Abstraktion in Schwarzweiß",
+          "Floraler Schwung mit grünem Schmiedeeisen",
+          "Neogotische Ornamentik mit Spitzbögen",
+          "Expressive Backsteinornamentik mit Farbe"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-04-03",
+      "gruppeId": "BG2-g04",
+      "modus": "text",
+      "name": "Spanien / Modernisme – Antoni Gaudí",
+      "vorderseite": "**Stil**\nSpanien: Modernismo / Modernisme Català\nHistoristische Basis + organische Formensprache (Eklektizismus)\n\n**Antoni Gaudí (1852–1926)**\nCasa Batlló (Barcelona), 1902–1907 Knochenartige Balkonbrüstungen, schuppige Keramikfassade\nSagrada Família (ab 1883)\nCasa Milà / La Pedrera (1906–12)\nParc Güell\n\n**Einordnung**\nGaudí ist kein reiner Jugendstil-Vertreter\nHistoristisch-eklektische Basis mit individueller Formensprache",
+      "notiz": "Gaudi = kein reiner Jugendstil – historistisch-eklektische Basis! Wichtig.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Antoni_Gaud%C3%AD"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Warum gilt Gaudí nicht als reiner Jugendstil-Vertreter?",
+        "o": [
+          "Seine Basis ist historistisch-eklektisch",
+          "Seine Basis ist rein geometrisch",
+          "Er baute nur Sakralbauten",
+          "Er verzichtete auf organische Formen"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-04-04",
+      "gruppeId": "BG2-g04",
+      "modus": "text",
+      "name": "Spanien / Modernisme – Lluís Domènech",
+      "vorderseite": "**Lluís Domènech i Montaner (1850–1923)**\nZweiter Hauptvertreter des Modernisme neben Gaudí\n\n**Hospital de la Santa Creu i Sant Pau (Barcelona), 1902–1911**\nHistoristische Elemente: romanisch-byzantinisch (auch Farbe), gotische Spitzbogenfenster\nBackstein + bunte Keramik-Dekore (Azulejos)\nBewusster Eklektizismus: Kombination historischer Formen\n\n**Merkmale Modernisme allgemein**\nVerbindet mittelalterliche Ornamentik, orient. Elemente, florale Motive\nStärker historistisch als französischer oder britischer Jugendstil",
+      "notiz": "Domenech = zweiter Hauptvertreter neben Gaudi. Hospital = Hauptwerk.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Llu%C3%ADs_Dom%C3%A8nech_i_Montaner"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Wer ist neben Gaudí der zweite Hauptvertreter des Modernisme?",
+        "o": [
+          "Lluís Domènech i Montaner",
+          "Charles Rennie Mackintosh",
+          "Joseph Maria Olbrich",
+          "Giovanni Michelazzi"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-04-01",
+      "gruppeId": "BG2-g04",
+      "modus": "text",
+      "name": "UK / Modern Style – Charles Rennie Mackintosh",
+      "vorderseite": "**Person**\nCharles Rennie Mackintosh (1868–1928), Glasgow, Schottland\n\n**Formale Merkmale**\nKlare, geometrische Linien (kein floraler Schwung wie in Frankreich)\nStark vertikale Komposition\nOrnamentale Blumen- oder Frauenverzierungen (zart, stilisiert)\nVerbindung: schottische Tradition + Japonisme\n\n**Wichtigste Bauwerke**\nHill House (Helensburgh, Schottland), 1902–04 Mit harl (Rauputz) verputzt; asymmetrische Fassade\nGlasgow School of Art, 1897–1909\nWillow Tea Rooms Glasgow, 1903",
+      "notiz": "Mackintosh = geometrisch, nicht floral! Harl-Putz = Erkennungsmerkmal.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Charles_Rennie_Mackintosh"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was unterscheidet Mackintosh vom französischen Jugendstil?",
+        "o": [
+          "Klare geometrische Linien statt floralem Schwung",
+          "Stärkerer floraler Schwung als in Frankreich",
+          "Historistisch-eklektische Basis wie bei Gaudí",
+          "Ornamentlose Fassaden wie bei Loos"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-05-01",
+      "gruppeId": "BG2-g05",
+      "modus": "text",
+      "name": "Adolf Loos – Person & Einordnung",
+      "vorderseite": "**Person**\nAdolf Loos (1870–1933)\nÖsterreichischer Architekt, radikaler Ornamentgegner\nEiner der vier Hauptvertreter der 1. Generation der Moderne (neben August Perret, Peter Behrens, Frank Lloyd Wright)\n\n**Prägung**\nUSA-Aufenthalt 1893–96\nLernt Louis H. Sullivans form follows function kennen\nBringt diesen Ansatz nach Wien\n\n**Position**\nGegen Jugendstil (vorübergehende Modewelle)\nGegen Deutschen Werkbund (Den Stil unserer Zeit haben wir ja)\nFür: Moderne als Befreiung von jeglicher Ornamentik",
+      "notiz": "Sullivan + form follows function = Loos bringt das nach Wien. Merken.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Adolf_Loos"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welche Position nimmt Adolf Loos zu Jugendstil und Werkbund ein?",
+        "o": [
+          "Er lehnt beide ab",
+          "Er unterstützt beide",
+          "Er lehnt den Jugendstil ab, unterstützt den Werkbund",
+          "Er unterstützt den Jugendstil, lehnt den Werkbund ab"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-05-04",
+      "gruppeId": "BG2-g05",
+      "modus": "text",
+      "name": "Looshaus Wien – Konstruktion & Raumplan",
+      "vorderseite": "**Konstruktion**\nSkelettkonstruktion aus Eisenbeton, ausgefacht mit Ziegeln\nInnenraum frei unterteilbar\nDecken EG: Kassettendecken; OG: Plattenbalken\nDachkonstruktion: Eisenbeton\n\n**Raumplan**\nFunktionsabhängige, variierende Raumhöhen im Innern\nRäume dreidimensional entwickelt (nicht Schichtenprinzip)\nHochwertge Materialien: Cipollino-Marmor, Eichenholz, Messing\n\n**Bedeutung**\nBruch mit historisierender Wiener Baupraxis\nBis Mies Barcelona-Pavillon (1929) selten vergleichbare Kombination aus Schmucklosigkeit + Edelmaterialien",
+      "notiz": "Raumplan = dreidimensionale Raumkomposition = Loos-Kernbegriff.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Looshaus"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was ist ein Raumplan?",
+        "o": [
+          "Räume dreidimensional mit variierender Höhe",
+          "Rasterplanung mit festem Raummodul",
+          "Geschoss über Geschoss gestapelte Räume",
+          "Offener Grundriss ohne trennende Wände"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-05-03",
+      "gruppeId": "BG2-g05",
+      "modus": "text",
+      "name": "Looshaus Wien – Skandal & Außenansicht",
+      "vorderseite": "**Eckdaten**\nHaus Goldmann & Salatsch (Looshaus)\nWien, Michaelerplatz, 1910–11\nAuftraggeber: Schneiderfirma Goldmann & Salatsch\n\n**Lage und Skandal**\nExponiert gegenüber der Kaiserlichen Hofburg\nÖffentlicher Skandal: Zeitgenossen nannten es das Scheusal\nKaiser Franz Joseph I. soll das Fenster zum Platz vermieden haben\n\n**Fassade**\nEG: Cipollino-Marmor-Säulen (statisch unwirksam, nur dekorativ!)\nOG: vollständig schmucklos, nur Fensteröffnungen\nMarmorsäulen: Materialkontrast als ästhetisches Programm",
+      "notiz": "Scheusal + Hofburg-Lage + Säulen ohne Statik = drei Klausur-Details.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Looshaus"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was ist an den Marmorsäulen im Erdgeschoss des Looshauses besonders?",
+        "o": [
+          "Sie sind statisch unwirksam und nur Dekor",
+          "Sie tragen die Obergeschosse des Hauses",
+          "Sie stammen vom Vorgängerbau des Hauses",
+          "Sie wurden von der Hofburg übernommen"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-05-02",
+      "gruppeId": "BG2-g05",
+      "modus": "text",
+      "name": "Ornament und Verbrechen (1908) – Inhalt",
+      "vorderseite": "**Schlüsseltext**\nVortrag 1908, publiziert 1913\nRadikalster Angriff auf das Ornament in der Geschichte der Moderne\n\n**Kernthese**\n**Evolution der Kultur ist gleichbedeutend mit dem Entfernen**\n**des Ornamentes aus dem Gebrauchsgegenstande.**\n\n**Argumentation**\nOrnament = Zeichen von Primitivität / kultureller Rückständigkeit\nOrnamentierte Gegenstände veralten schneller (Ressourcenverschwendung)\nHandwerker, der ornamentiert, arbeitet gegen sich selbst\n\n**Schlussfolgerung**\nBefreiung vom Ornament = Zeichen der Zivilisation\nDas Haus dient der Bequemlichkeit, nicht der Kunst",
+      "notiz": "Kernsatz auswendig. Ressourcenargument ist moderner als es klingt.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Ornament_und_Verbrechen"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was ist die Kernthese von Ornament und Verbrechen?",
+        "o": [
+          "Kulturelle Entwicklung heißt, das Ornament zu entfernen",
+          "Kulturelle Entwicklung heißt, das Handwerk zu fördern",
+          "Das Ornament macht das Haus bequem",
+          "Ornament ist für Industrieprodukte unverzichtbar"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-06-04",
+      "gruppeId": "BG2-g06",
+      "modus": "text",
+      "name": "Kubismus im Vergleich: Architektur vs. Malerei",
+      "vorderseite": "**Kubismus in der Malerei (Frankreich, ab 1907)**\nPicasso, Braque: gleichzeitige Darstellung mehrerer Ansichten\nZerlegung der Form in geometrische Grundkörper\nKeine räumliche Illusion, keine Perspektive\n\n**Tschechischer Kubismus in der Architektur**\nÜbersetzung: Faltung der Oberflächen statt Zerlegung der Form\nDiagonalität und Kristallinität als räumliches Prinzip\nKein direktes funktionales Äquivalent zur Malerei\nEigenständige Interpretation, nicht blosse Übertragung\n\n**Fazit**\nTschechischer Kubismus = eigenständige kulturelle Leistung, kein Epigonentum",
+      "notiz": "Unterschied Malerei vs. Architektur verstehen = zeigt eigenes Denkvermögen.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Kubismus"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Wie übersetzt die Architektur das Prinzip des Kubismus?",
+        "o": [
+          "Durch Faltung der Oberflächen statt Zerlegung der Form",
+          "Durch Montage mehrerer Ansichten an einer Fassade",
+          "Durch Auflösung der Fassade in Glas",
+          "Durch Wandbilder nach Gemälden"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-06-03",
+      "gruppeId": "BG2-g06",
+      "modus": "text",
+      "name": "Tschechischer Kubismus – Hauptwerke",
+      "vorderseite": "**Josef Chochol (1880–1956)**\nVilla Kovařovic (Prag), 1912–13\nHaus Hodek (Prag), 1913–14\n\n**Josef Gočár (1880–1945)**\nHaus zur Schwarzen Muttergottes (Prag), 1910/11 Ursprünglich Kaufhaus; heute Kubismus-Museum Nationalgalerie\n\n**Pavel Janák (1882–1956)**\nDeckeldose aus Steingut in Kristallform, 1911\nKaffeeservice mit Kugelhenkeln, 1911\n\n**Rezeption heute**\nEM2N Architekten: Keystone Bürogebäude (Prag), 2008–12",
+      "notiz": "Haus zur Schwarzen Muttergottes = heute Museum; gut für Bildidentifikation.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Haus_zur_Schwarzen_Muttergottes"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welcher Gegenstand stammt von Pavel Janák?",
+        "o": [
+          "Eine Deckeldose in Kristallform",
+          "Das Haus zur Schwarzen Muttergottes",
+          "Die Villa Kovařovic",
+          "Das Haus Hodek"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-06-01",
+      "gruppeId": "BG2-g06",
+      "modus": "text",
+      "name": "Tschechischer Kubismus – Kontext",
+      "vorderseite": "**Einzigartigkeit**\nPrag, ca. 1910–1925\nEinzige architektonische Umsetzung des Kubismus weltweit\nKein vergleichbares Phänomen in Frankreich (Ursprungsland)\n\n**Übertragung**\nKubistische Prinzipien (Picasso, Braque) aus Malerei\nAuf Architektur + Kunsthandwerk übertragen\nKristalline, diagonale Formen; Licht-Schattenspiele durch prismatische Oberflächen\n\n**Vorlaufer**\nRaymond Duchamp-Villon (1876–1918): La Maison Cubiste (Studie, nicht realisiert), 1912",
+      "notiz": "Prag = einziger Ort weltweit mit kubistischer Architektur!",
+      "links": [
+        "https://de.wikipedia.org/wiki/Tschechischer_Kubismus"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Warum ist der Prager Kubismus einzigartig?",
+        "o": [
+          "Einzige Umsetzung des Kubismus in der Architektur",
+          "Erster Kubismus überhaupt, noch vor der Malerei",
+          "Von Picasso und Braque selbst gebaut",
+          "Zeitgleich in Paris und Prag entstanden"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-06-02",
+      "gruppeId": "BG2-g06",
+      "modus": "text",
+      "name": "Tschechischer Kubismus – Vertreter",
+      "vorderseite": "**Hauptvertreter**\nJosef Chochol (1880–1956)\nJosef Gočár (1880–1945)\nPavel Janák (1882–1956)\nOtakar Novotný (1880–1959)\n\n**Formale Merkmale**\nPrismatisch gefaltete Fassaden und Oberflächen\nDiagonale Fensterrahmungen, Auskragungen\nKubistische Prinzipien auch im Möbel- und Produktdesign\nBewusster Bruch mit historizistischer Prager Architektur",
+      "notiz": "Vier Namen: Chochol, Gocar, Janak, Novotny. Alle Prag, alle gleicher Jahrgang!",
+      "links": [
+        "https://de.wikipedia.org/wiki/Tschechischer_Kubismus"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Wer gehört nicht zu den Hauptvertretern des Prager Kubismus?",
+        "o": [
+          "Adolf Loos",
+          "Josef Gočár",
+          "Pavel Janák",
+          "Josef Chochol"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-07-03",
+      "gruppeId": "BG2-g07",
+      "modus": "text",
+      "name": "Henry van de Velde – Person & Werke",
+      "vorderseite": "**Person**\nHenry van de Velde (1863–1957)\nBelgischer Architekt, Designer, Kunsttheoretiker\nÜbergang A&C → Jugendstil → Werkbund\n\n**Wichtige Werke**\nHohenhof (Hagen-Emst), 1906–08 Gesamtkunstwerk: Architektur + Innen + Möbel aus einer Hand\nWerkbundtheater (Köln), 1914 Plastisch-expressiv, dynamische Fassadengliederung\nKunstgewerbeschule Weimar (1902–1915)\n\n**Position im Werkbund**\nIndividuelle künstlerische Formgebung als Qualitätsprinzip\nGegenpol zu Muthesius (Typisierung / Normung)",
+      "notiz": "Van de Velde = Gesamtkunstwerk-Idee. Werkbund-Konflikt mit Muthesius.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Henry_van_de_Velde"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welche Position nimmt van de Velde im Werkbund ein?",
+        "o": [
+          "Individuelle künstlerische Formgebung",
+          "Typisierung und Normung der Produkte",
+          "Rückkehr zum historistischen Ornament",
+          "Technik statt künstlerischer Gestaltung"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-07-04",
+      "gruppeId": "BG2-g07",
+      "modus": "text",
+      "name": "Henry van de Velde – Verbindung zum Bauhaus",
+      "vorderseite": "**Kunstgewerbeschule Weimar (1902–1915)**\nVan de Velde gründet und leitet die Schule\nReformpädagogisches Konzept: Handwerk + Kunst gleichwertig\nBei Kriegsausbruch 1914 als Belgier gezwungen aufzugeben\n\n**Empfehlung von Gropius**\nVan de Velde empfiehlt Walter Gropius als Nachfolger\n1919: Gropius gründet aus der Kunstgewerbeschule das Bauhaus\n\n**Bedeutung dieser Verbindung**\nDirekte institutionelle Linie: van de Velde → Gropius → Bauhaus\nVan de Velde ist damit indirekt Gründervater des Bauhauses",
+      "notiz": "Van de Velde empfiehlt Gropius = direkter Bauhaus-Link! Wichtig.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Henry_van_de_Velde"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Wie hängt van de Velde mit dem Bauhaus zusammen?",
+        "o": [
+          "Er empfahl Gropius als Nachfolger",
+          "Er gründete das Bauhaus 1919 selbst",
+          "Er unterrichtete am Bauhaus Weimar",
+          "Er entwarf das Bauhaus-Gebäude"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-07-01",
+      "gruppeId": "BG2-g07",
+      "modus": "text",
+      "name": "Hermann Muthesius – Biografie & London-Aufenthalt",
+      "vorderseite": "**Person**\nHermann Muthesius (1861–1927)\nArchitekt, Schriftsteller, preussischer Beamter\n\n**Ausbildung und frühe Karriere**\nArchitekturstudium Berlin\nMitarbeit bei Paul Wallot (1841–1912): Reichstag Berlin\n3,5 Jahre Tokio (Büro Ende & Böckmann)\n\n**London-Aufenthalt (1896–1903)**\nKulturattaché an der deutschen Botschaft\nIntensive Auseinandersetzung mit A&C-Bewegung\nDirekter Kontakt mit englischen Architekten und Handwerkern\nGrundlage für alle späteren Schriften und Projekte",
+      "notiz": "London 1896-1903 = Schlüsselphase. Ohne London kein Werkbund.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Hermann_Muthesius"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was brachte Muthesius aus London mit?",
+        "o": [
+          "Die Auseinandersetzung mit Arts and Crafts",
+          "Die Begeisterung für den Futurismus",
+          "Die Idee des Raumplans für Wohnhäuser",
+          "Die Idee des Corporate Designs für Firmen"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-07-02",
+      "gruppeId": "BG2-g07",
+      "modus": "text",
+      "name": "Hermann Muthesius – Schlüsselwerke",
+      "vorderseite": "**Stilarchitektur und Baukunst (Streitschrift, 1902)**\nForderung: Überwindung des Historismus\nSachliche, funktionsorientierte Bauweise als Ziel\n2. Aufl. 1903: scharfe Kritik am Jugendstil als Modewelle\n\n**Das englische Haus (3 Bde., Berlin 1904/05)**\nSchriftstellerisches Hauptwerk\nEnglisches Wohnhaus als Vorbild sachlicher Formgebung\nGegenentwurf zur deutschen Stilarchitektur (Repräsentation über Funktion)\n\n**Als Architekt**\nAb 1904 über 100 Gebäude; Landhausbewegung\nHaus Freudenberg (Berlin), 1907–09\nSeidenweberei Novawes (Potsdam), ca. 1912",
+      "notiz": "Das englische Haus 1904 = Hauptwerk. Sachlichkeit + England = Muthesius-Formel.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Hermann_Muthesius"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welches Werk gilt als Hauptwerk von Hermann Muthesius?",
+        "o": [
+          "Das englische Haus",
+          "Ornament und Verbrechen",
+          "Garden Cities of Tomorrow",
+          "Der Stil in den technischen Künsten"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-07-05",
+      "gruppeId": "BG2-g07",
+      "modus": "text",
+      "name": "Muthesius vs. van de Velde – Kernkonflikt",
+      "vorderseite": "**Der Werkbund-Streit (1914, Köln)**\nGrundsatzdiskussion auf der Werkbundausstellung 1914\n\n**Position Muthesius**\nTypisierung und Normung als Weg zur Qualitätshebung\nStandard = Exportfähigkeit = wirtschaftlicher Erfolg\nQualität durch Wiederholung und Verbesserung des Typs\n\n**Position van de Velde**\nIndividuelle künstlerische Formgebung als Qualitätsprinzip\nNormung tötet die schöpferische Kraft\nQualität durch individuelles Können, nicht Standard\n\n**Bedeutung**\nZentraler Konflikt der Moderne: Standard vs. Individualität\nUngelöst – wirkt bis heute in der Designdiskussion",
+      "notiz": "Standard vs. Individualität = ungelöster Grundkonflikt der Moderne.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Deutscher_Werkbund"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Worum ging es im Werkbund-Streit 1914?",
+        "o": [
+          "Typisierung gegen individuelle Formgebung",
+          "Handwerk gegen Maschinenproduktion",
+          "Ornament gegen Ornamentverzicht",
+          "Gartenstadt gegen Blockrandbebauung"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-08-04",
+      "gruppeId": "BG2-g08",
+      "modus": "text",
+      "name": "Bruno Taut – Glashaus Köln 1914",
+      "vorderseite": "**Eckdaten**\nBruno Taut (1880–1938): Glashaus\nWerkbundausstellung Köln, 1914\n\n**Konstruktion**\nRunder Kuppelbau aus Glas + Eisenbeton\nReklamepavillon der Glasindustrie + Versuchsbau\n\n**Bedeutung**\nSakraler Anspruch: ein Gewand für die Seele zu bauen\nErster Bau, auf den der Begriff Expressionismus angewendet wurde\nVerbindung: Werkbund-Qualitätsideal + expressiver Aufbruch\n\n**Alpine Architektur (Publikation, 1919)**\nUtopie eines Weltumbaus durch Architektur\nKristalliner Glaserner Palast (Zeichnung)",
+      "notiz": "Glashaus 1914 = Scharnier Werkbund → Expressionismus. Sakral + technisch.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Bruno_Taut"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was war das Glashaus von Bruno Taut zugleich?",
+        "o": [
+          "Reklamepavillon und Versuchsbau",
+          "Wohnhaus für einen reichen Mäzen",
+          "Kirche der Werkbundausstellung",
+          "Bahnhof für die Messebesucher"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-08-01",
+      "gruppeId": "BG2-g08",
+      "modus": "text",
+      "name": "Deutscher Werkbund – Gründung & Kontext",
+      "vorderseite": "**Gründung**\n1907, München\n\n**Kontext**\nAufkommende Industrialisierung\nZiel: internationale Wettbewerbsfähigkeit deutscher Produkte\nDirekte Folge der A&C- und Jugendstil-Debatte\n\n**Gründer (Auswahl)**\nHermann Muthesius (1861–1927) – theoretischer Kopf\nFriedrich Naumann (1860–1919) – sozialliberaler Politiker\nHenry van de Velde (1863–1957) – künstlerischer Gegenpol\nPeter Behrens, Karl Schmidt (Hellerau), Josef Hoffmann u.a.\n\n**Publikation**\nJahrbuch des DWB, ab 1912",
+      "notiz": "1907 München! Muthesius + Naumann + van de Velde = Dreigestirn.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Deutscher_Werkbund"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Wer war der sozialliberale Politiker unter den Werkbund-Gründern?",
+        "o": [
+          "Friedrich Naumann",
+          "Konrad Adenauer",
+          "Karl Schmidt",
+          "Georg Hirth"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-08-02",
+      "gruppeId": "BG2-g08",
+      "modus": "text",
+      "name": "Deutscher Werkbund – Ziele",
+      "vorderseite": "**Kernziele**\nQualitätssteigerung durch gute Gestaltung in allen Disziplinen\nVerbindung von Kunst, Industrie und Handwerk\nZukunftsweisende Impulse für Baukultur und Formgebung\n\n**Qualitätskriterien**\nFunktionalität\nMaterialgerechtigkeit\nEhrlichkeit der Konstruktion\n\n**Abgrenzung**\nGegen blosse Stilimitation (Historismus)\nGegen schlechte Massenware\nFür: sachliche Form als Qualitätsmerkmal",
+      "notiz": "Werkbund = organisierter Kampf für Qualität. Funktionalität + Materialgerechtigkeit.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Deutscher_Werkbund"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welche Qualitätskriterien gelten im Werkbund?",
+        "o": [
+          "Funktionalität, Materialgerechtigkeit, Ehrlichkeit",
+          "Repräsentation, Ornament, historische Stilreinheit",
+          "Handarbeit, Unikat, überlieferte Tradition",
+          "Geschwindigkeit, Dynamik, Zerstörung des Alten"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-08-05",
+      "gruppeId": "BG2-g08",
+      "modus": "text",
+      "name": "Walter Gropius – Musterfabrik Köln 1914",
+      "vorderseite": "**Eckdaten**\nWalter Gropius (1883–1969): Musterfabrik\nWerkbundausstellung Köln, 1914\n\n**Merkmale**\nRund verglaste Treppentürme = neues gestalterisches Motiv\nFlaches Dach, klare Gliederung, Industriecharakter\nSichtbare Skelettstruktur\n\n**Bedeutung**\nVorwegnahme von Mendelsohns Warenhäusern der 1920er Jahre\nZeigt: Gropius als Denker der Industriearchitektur\nDirektes Vorstadium zur Bauhaus-Ästhetik\n\n**Verbindung zum Bauhaus**\nGropius gründet 1919 das Bauhaus in Weimar\n(Nachfolger van de Veldes Kunstgewerbeschule)",
+      "notiz": "Runde Glastreppenturme = Vorläufer Mendelsohn. Gropius 1914 → Bauhaus 1919.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Walter_Gropius"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welche Verbindung hat Gropius zur Weimarer Kunstgewerbeschule?",
+        "o": [
+          "Er gründete aus ihr das Bauhaus",
+          "Er gründete sie im Jahr 1902",
+          "Er leitete sie bis zum Jahr 1933",
+          "Er schloss sie zu Kriegsbeginn"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-08-03",
+      "gruppeId": "BG2-g08",
+      "modus": "text",
+      "name": "Werkbundausstellung Köln 1914 – Bauten",
+      "vorderseite": "**Ausstellung**\nDeutsche Werkbundausstellung, Köln 1914\nErmöglicht durch Konrad Adenauer (damals Beigeordneter Kölns)\nNachweis des DWB-Einflusses nach 7 Jahren; ca. 5 Mio. Reichsmark\n\n**Schlüsselbauten**\nHenry van de Velde: Werkbundtheater Plastisch-expressiv, dynamische Fassade\nWalter Gropius: Musterfabrik Rund verglaste Treppentürme; Vorwegnahme Mendelsohns\nBruno Taut: Glashaus Glas + Eisenbeton; sakraler Anspruch Ein Gewand für die Seele zu bauen (Taut)",
+      "notiz": "Drei Schlüsselbauten: van de Velde, Gropius, Taut. Alle Köln 1914.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Werkbundausstellung_K%C3%B6ln_1914"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welche Bauten gelten als Schlüsselbauten der Kölner Werkbundausstellung?",
+        "o": [
+          "Werkbundtheater, Musterfabrik, Glashaus",
+          "Looshaus, Glashaus, Sezessionsgebäude",
+          "Turbinenhalle, Musterfabrik, Glashaus",
+          "Werkbundtheater, Chilehaus, Einsteinturm"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-09-03",
+      "gruppeId": "BG2-g09",
+      "modus": "text",
+      "name": "AEG-Turbinenhalle – Außenansicht & Bedeutung",
+      "vorderseite": "**Eckdaten**\nPeter Behrens: AEG-Turbinenhalle, Berlin, 1908–09\n123m (später 207m) Länge, 25,6m Breite, 25m Scheitelhöhe\n\n**Stirnfront (Fassade)**\nFünffach geknickter Betongiebel mit AEG-Signet\nBündig abschliessende Fensterfläche\nZwei abgerundete, nach innen gekippte Beton-Pylone\nPylone sind vorgeblendete Schalen ohne statische Funktion!\n\n**Bedeutung**\nInkunabel des deutschen Industriebaus\nKonsequenter Verzicht auf Dekor, Betonung des Konstruktiven\nTempelfront-Wirkung für einen Industriebau: Würde der Arbeit",
+      "notiz": "Pylone ohne Statik = Klausur-Detail. Inkunabel = Meilenstein Industriebau.",
+      "links": [
+        "https://de.wikipedia.org/wiki/AEG-Turbinenfabrik"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welche Wirkung gibt Behrens der Stirnfront der Turbinenhalle?",
+        "o": [
+          "Tempelfront-Wirkung: Würde der Arbeit",
+          "Burgfront-Wirkung: Wehrhaftigkeit",
+          "Palastfront-Wirkung: Repräsentation",
+          "Marktfront-Wirkung: Offenheit"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-09-04",
+      "gruppeId": "BG2-g09",
+      "modus": "text",
+      "name": "AEG-Turbinenhalle – Konstruktion",
+      "vorderseite": "**Konstruktionsprinzip**\nEisenskelettkonstruktion mit spitz nach unten zulaufenden Stützen\nHaupthalle + zweigeschossige unterkellerte Nebenhalle\nStützen: Vollwandprofile mit Kämpfergelenk auf Betonsockel (ca. 1,5m)\n\n**Tragesystem Haupthalle**\nDreigelenkbögen mit Zugband\nBögen spannen die volle Breite von 25,6m\n\n**Ausfachungen**\nGroße Glasflächen zwischen den Stützen\nWand dynamisch nach innen gekippt",
+      "notiz": "Dreigelenkbogen + Zugband = Konstruktionsprinzip. Für Baubeschreibung Klausur.",
+      "links": [
+        "https://de.wikipedia.org/wiki/AEG-Turbinenfabrik"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Wie ist die Wand der Turbinenhalle ausgefacht?",
+        "o": [
+          "Mit großen Glasflächen zwischen den Stützen",
+          "Mit massivem Backstein ohne Fensteröffnungen",
+          "Mit Holzpaneelen zwischen den Stützen",
+          "Mit Glasbausteinen zwischen den Stützen"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-09-06",
+      "gruppeId": "BG2-g09",
+      "modus": "text",
+      "name": "Die 1. Generation der Moderne – Überblick",
+      "vorderseite": "**Die vier Hauptvertreter**\nPeter Behrens (1868–1940) – Deutschland\nAdolf Loos (1870–1933) – Österreich\nAugust Perret (1874–1954) – Frankreich\nFrank Lloyd Wright (1869–1959) – USA\n\n**Gemeinsame Leistung**\nÜberwindung des Historismus ohne Jugendstil\nEntwicklung einer sachlichen, konstruktiv ehrlichen Architektur\nVorbereitung der Klassischen Moderne (Le Corbusier, Mies, Gropius)\n\n**Kaderschmiede Behrens**\nGropius, Mies, Le Corbusier lernten ALLE bei Behrens\nDamit ist Behrens der direkte Lehrmeister der 2. Generation",
+      "notiz": "1. Generation vorbereitet 2. Generation (Le Corbusier, Mies, Gropius). Linie merken.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Peter_Behrens"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was verbindet die vier Hauptvertreter der 1. Generation der Moderne?",
+        "o": [
+          "Überwindung des Historismus ohne Jugendstil",
+          "Gemeinsame Gründung des Bauhauses in Weimar",
+          "Mitgliedschaft in der Wiener Secession",
+          "Gemeinsame Mitarbeit im Büro der AEG"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-09-05",
+      "gruppeId": "BG2-g09",
+      "modus": "text",
+      "name": "Farbwerke Höchst & Frank Lloyd Wright",
+      "vorderseite": "**Peter Behrens: Farbwerke Höchst Verwaltungsbau (Frankfurt), 1921–24**\nExpressionistisch beeinflusste Ziegelarchitektur (nach WW1)\nKuppelhalle + Ausstellungshalle: dramatische Raumwirkung\nBunt glasierte Ziegel in expressiver Farbigkeit\nStilwandel Behrens: nüchtern 1908 → expressiv 1924\nBau wurde Grundlage des Hoechst-Logos (Lisker, ab 1947)\n\n**Frank Lloyd Wright (1869–1959) – Präriehaus (USA)**\n1. Generation der Moderne (USA-Pendant zu Behrens)\nPräriehaus: horizontal, Innen/Aussen verbunden\nFallingwater (Mill Run, Pennsylvania), 1937\nGuggenheim Museum (New York), 1959",
+      "notiz": "Stilwandel Behrens: Turbinenhalle (sachlich) vs. Höchst (expressiv) = gleicher Architekt!",
+      "links": [
+        "https://de.wikipedia.org/wiki/Frank_Lloyd_Wright"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was kennzeichnet Wrights Präriehaus?",
+        "o": [
+          "Horizontalität, Innen und Außen verbunden",
+          "Vertikale Türme mit gotischen Spitzbögen",
+          "Prismatisch gefaltete Fassadenflächen",
+          "Rund verglaste Treppentürme am Bau"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-09-02",
+      "gruppeId": "BG2-g09",
+      "modus": "text",
+      "name": "Peter Behrens – AEG Corporate Design",
+      "vorderseite": "**Aufgabe bei AEG (1907–1914)**\nVerantwortlich für ALLE Gestaltungsaufgaben:\nBriefpapier, Produktdesign, Werbematerialien\nAusstellungsarchitektur, Fabrikgebäude, Logos\n\n**Bedeutung**\nErstmalig in Deutschland: einheitliches visuelles Erscheinungsbild eines Industrieunternehmens\nGilt als Geburtsstunde des Corporate Design\nAEG-Schrift, AEG-Logo, AEG-Kataloge: alle von Behrens gestaltet\n\n**Prinzip**\nForm der Produkte folgt technischer Funktion\nSachlichkeit als Qualitätsmerkmal",
+      "notiz": "AEG Corporate Design = erstmalig systematisches Unternehmensdesign. Behrens 1907.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Peter_Behrens"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Wofür gilt Behrens' Arbeit für die AEG als Geburtsstunde?",
+        "o": [
+          "Des Corporate Design",
+          "Des Bauhaus-Stils",
+          "Des Raumplans",
+          "Der Gartenstadtidee"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-09-01",
+      "gruppeId": "BG2-g09",
+      "modus": "text",
+      "name": "Peter Behrens – Biografie & Einordnung",
+      "vorderseite": "**Person**\nPeter Behrens (1868–1940)\nGründungsmitglied Münchener Secession (1892)\nMitglied Darmstädter Künstlerkolonie; eigenes Haus 1901\nEiner der vier Hauptvertreter der 1. Generation der Moderne (neben Loos, Perret, Frank Lloyd Wright)\n\n**Karriere**\n1907–1914: künstlerischer Beirat der AEG, Berlin\nVerantwortlich für alle Gestaltungsaufgaben des Konzerns\nGilt als Erfinder des Corporate Design\n\n**Das Büro Behrens als Kaderschmiede der Moderne**\nMitarbeiter: Walter Gropius, Ludwig Mies van der Rohe, Le Corbusier",
+      "notiz": "Gropius + Mies + Le Corbusier = alle bei Behrens! Wichtigste Liste der Moderne.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Peter_Behrens"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Wer lernte alle im Büro von Peter Behrens?",
+        "o": [
+          "Gropius, Mies und Le Corbusier",
+          "Loos, Perret und Wright",
+          "Taut, Poelzig und Mendelsohn",
+          "Hoffmann, Moser und Olbrich"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-10-04",
+      "gruppeId": "BG2-g10",
+      "modus": "text",
+      "name": "Bruno Taut – Alpine Architektur & Glasphilosophie",
+      "vorderseite": "**Alpine Architektur (Publikation, 1919)**\nUtopie eines Weltumbaus beginnend mit den Alpen\nKristalliner Glaserner Palast (Zeichnung)\nGlas als Medium der sozialen und geistigen Transformation\n\n**Glasphilosophie**\nBeeinflusst von Paul Scheerbarts Buch Glasarchitektur (1914)\nGlas = Transparenz = neue Gesellschaft\nSakraler Anspruch: ein Gewand für die Seele zu bauen\n\n**Verbindung**\nGlashaus Köln 1914 → Alpine Architektur 1919 → Sozialer Wohnungsbau 1920er",
+      "notiz": "Scherbart Glasarchitektur 1914 = Inspirationsquelle für Taut. Glas = utopisches Material.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Bruno_Taut"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was bedeutete Glas in Tauts Denken?",
+        "o": [
+          "Transparenz für eine neue Gesellschaft",
+          "Reines Schmuckmaterial für Fassaden",
+          "Billiger Ersatz für teuren Naturstein",
+          "Symbol der überkommenen Ordnung"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-10-03",
+      "gruppeId": "BG2-g10",
+      "modus": "text",
+      "name": "Bruno Taut – Gartenstadt Falkenberg",
+      "vorderseite": "**Gartenstadt Falkenberg (Berlin), 1913–16**\nFrühwerk Taut\nAuftrag der deutschen Gartenstadt-Gesellschaft\n\n**Innovation**\nErstmalig: kräftige, leuchtende Farben für Außenanstrich von Siedlungshäusern\nVolksmund: Tuschkastensiedlung\nFarbe als Gestaltungsmittel im sozialen Wohnbau\n\n**Bedeutung**\nBrücke: Werkbund → Expressionismus → Sozialer Wohnungsbau\nHeute: UNESCO-Weltkulturerbe (Berliner Modernismus-Siedlungen)",
+      "notiz": "Tuschkastensiedlung = Farbe als Gestaltungsmittel. Heute UNESCO.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Gartenstadt_Falkenberg"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Wofür ist die Gartenstadt Falkenberg bekannt?",
+        "o": [
+          "Für leuchtende Farben an den Häusern",
+          "Für den ersten Zeilenbau Berlins",
+          "Für die erste Hochhaussiedlung",
+          "Für ihre Fassaden aus Sichtbeton"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-10-05",
+      "gruppeId": "BG2-g10",
+      "modus": "text",
+      "name": "Erich Mendelsohn – Einsteinturm & Warenhäuser",
+      "vorderseite": "**Person**\nErich Mendelsohn (1887–1953)\n\n**Einsteinturm (Observatorium, Potsdam), 1920–21**\nOrganisch-geschwungener expressionistischer Turm\nAls Monolithbeton geplant, teils als verputzter Backsteinbau realisiert\nEines der Hauptwerke des architektonischen Expressionismus\n\n**Warenhäuser der 1920er Jahre**\nSchocken-Warenhäuser: Rund verglaste Ecken als gestalterisches Motiv\nMotiv geht zurück auf Gropius Musterfabrik Köln 1914\nHorizontale Betonung; Dynamik der Fassade",
+      "notiz": "Einsteinturm 1920 = Hauptwerk. Beton geplant, Backstein gebaut = Klausur-Detail.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Einsteinturm"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welches Motiv prägt Mendelsohns Schocken-Warenhäuser?",
+        "o": [
+          "Rund verglaste Ecken",
+          "Backsteinpfeiler wie ein Orgelprospekt",
+          "Stalaktitenkuppeln",
+          "Auskragende Betonkörper"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-10-01",
+      "gruppeId": "BG2-g10",
+      "modus": "text",
+      "name": "Expressionismus – Begriff & Entstehung",
+      "vorderseite": "**Herkunft des Begriffs**\nUrsprung in der bildenden Kunst (Dresdner Brücke, ab 1905)\n1913 erstmals auf Architektur angewendet (Bruno Taut, Glashaus)\n\n**Manifest Dresdner Brücke**\n**Jeder gehört zu uns, der unmittelbar und unverfälscht wiedergibt,**\n**was ihn zum Schaffen drängt.**\n\n**Zeitraum**\nHauptphase: nach WW1 bis Ende der 1920er Jahre\nSchwerpunkt: Deutschland\nVorläufer: Taut Glashaus Köln 1914",
+      "notiz": "1913 erste Anwendung auf Architektur = Taut! Wichtig.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Expressionistische_Architektur"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Woher stammt der Begriff Expressionismus ursprünglich?",
+        "o": [
+          "Aus der bildenden Kunst der Dresdner Brücke",
+          "Aus der Literatur der Münchener Secession",
+          "Aus der Architektur des Werkbunds",
+          "Aus der Malerei des Kubismus"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-10-02",
+      "gruppeId": "BG2-g10",
+      "modus": "text",
+      "name": "Expressionismus – Formale Merkmale & Vertreter",
+      "vorderseite": "**Formale Merkmale**\nAnklänge an Gotik: Vertikalität, Spitzbogen, Turmformen\nKristalline oder organische Formen\nExpressiver Einsatz von Material (Backstein, Glas, Beton)\nDynamik, Bewegtheit, emotionale Wirkung über Funktion\n\n**Wichtige Vertreter**\nBruno Taut (1880–1938)\nHans Scharoun (1893–1972)\nFritz Höger (1877–1949) – Backsteinexpressionismus\nHans Poelzig (1869–1936)\nErich Mendelsohn (1887–1953)\nRudolf Steiner (1861–1925) – Grenzfall",
+      "notiz": "Vertreter-Liste + Merkmale. Kristallin/organisch = die zwei Pole.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Expressionistische_Architektur"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welche formalen Merkmale sind für Expressionismus typisch?",
+        "o": [
+          "Gotik-Anklänge, kristalline, organische Formen",
+          "Strenge Raster, Serie und Ornamentlosigkeit",
+          "Symmetrie, Säulenordnung und Dreiecksgiebel",
+          "Horizontale Fensterbänder und Flachdach"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-10-09",
+      "gruppeId": "BG2-g10",
+      "modus": "text",
+      "name": "Expressionismus – Skandinavien & internationale Rezeption",
+      "vorderseite": "**Skandinavien**\nPeder Vilhelm Jensen-Klint (1853–1930): Grundtvigs Kirche (Kopenhagen), Entwurf 1913, Bau 1921–40\nBacksteinexpressionismus: Fassade wie Orgelprospekt\nMonumentale gotisch-inspirierte Axialkomposition\nMit umgebender Wohnbebauung: städtebauliches Ensemble\n\n**Verbindung nach Deutschland**\nBacksteinexpressionismus Kopenhagen ↔ Hamburg (Höger)\nGemeinsames Material Backstein; unterschiedliche nationale Kontexte\n\n**Bedeutung des Backsteinexpressionismus**\nRegional Material → universale Ausdrucksform\nBackstein als Trägermaterial expressiver Gliederung",
+      "notiz": "Grundtvig + Höger = nordeuropäischer Backsteinexpressionismus. Verbindung merken.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Grundtvigs_Kirche"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was verbindet die Backsteinbauten in Kopenhagen und Hamburg?",
+        "o": [
+          "Backstein als gemeinsames Material",
+          "Derselbe Architekt für beide Städte",
+          "Die gemeinsame Gartenstadt-Idee",
+          "Die Stahlskelettbauweise der Fassaden"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-10-06",
+      "gruppeId": "BG2-g10",
+      "modus": "text",
+      "name": "Fritz Höger – Backsteinexpressionismus",
+      "vorderseite": "**Person**\nFritz Höger (1877–1949)\nHauptvertreter des Backsteinexpressionismus in Deutschland\n\n**Chilehaus (Hamburg), 1921–24**\nExpressionistisches Bürogebäude\nFassade läuft schiffsbugartig zu (Richtung Ost)\nBackstein in expressiver, rhythmisch gestaffelter Profilierung\nWichtigstes Beispiel für den Backsteinexpressionismus\nAuftraggeber: Henry B. Sloman (Chilisalpeter-Händler)\n\n**Weitere Werke (Büro Höger)**\nKirche am Hohenzollernplatz (Berlin), 1930–34 Ossip Klarwein aus dem Büro Höger",
+      "notiz": "Chilehaus = Backsteinexpressionismus. Schiffsbug = Erkennungsmerkmal.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Chilehaus"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welches Merkmal erkennt man am Chilehaus?",
+        "o": [
+          "Die schiffsbugartig zulaufende Fassade",
+          "Die Kuppel mit Stalaktitenreihen",
+          "Die rund verglasten Treppentürme",
+          "Die gläserne Rotunde mit Wassertreppe"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-10-07",
+      "gruppeId": "BG2-g10",
+      "modus": "text",
+      "name": "Hans Poelzig – Grosses Schauspielhaus Berlin",
+      "vorderseite": "**Hans Poelzig (1869–1936)**\nGrosses Schauspielhaus Berlin (später: Friedrichstadtpalast)\n\n**Vorgeschichte**\nUrsprünglich Markthalle, 1865–67 (Friedrich Hitzig)\n1918/19 durch Poelzig expressionistisch umgebaut\nAuftraggeber: Theatermacher Maxim Reinhardt\n\n**Gestaltung**\nStalaktiten-Kuppel im Innern (grotto-artig)\nOrganisch-expressiver Saal für 3.500 Zuschauer\nFassade mit expressiven Putzreliefs",
+      "notiz": "Umbau 1918/19 = Markthalle → Revuetheater. Stalaktiten-Kuppel = Erkennungsmerkmal.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Hans_Poelzig"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was war das Große Schauspielhaus vor Poelzigs Umbau?",
+        "o": [
+          "Eine Markthalle",
+          "Ein Zirkus",
+          "Eine Fabrikhalle",
+          "Ein Bahnhof"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-10-08",
+      "gruppeId": "BG2-g10",
+      "modus": "text",
+      "name": "Rudolf Steiner – Goetheanum I & II",
+      "vorderseite": "**Person**\nRudolf Steiner (1861–1925)\nAnthroposoph, Gründer der Waldorfpädagogik\nKEIN klassischer Expressionist – eigenständige Einordnung\n\n**Goetheanum I (Dornach), 1913–20**\nMit Carl Schmid-Curtius; organisch-plastischer Holzbau\nZwei ungleiche Kuppelräume; 1922/23 durch Brand zerstört\n\n**Goetheanum II (mit Ernst Aisenpreis), 1925–28**\nMonumentaler Sichtbetonbau\nWeitgehend ohne rechte Winkel; skulptural geformte Masse\nPhilosophische Basis: Anthroposophie / Goethes Metamorphosen\n\n**Einordnung**\nHenry-Russell: extremes Bsp. abstrakt-skulpturalen Expressionismus\nSteiner selbst: keine Zuordnung zum Expressionismus",
+      "notiz": "Goetheanum II = Beton-Skulptur. Einordnungsfrage zeigt Denkvermögen.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Goetheanum"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Warum ist Steiners Einordnung als Expressionist umstritten?",
+        "o": [
+          "Steiner ordnete sich selbst nicht zu",
+          "Er baute ausschließlich in Backstein",
+          "Er war Architekt des Werkbunds",
+          "Er lehnte Beton ab"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-11-02",
+      "gruppeId": "BG2-g11",
+      "modus": "text",
+      "name": "Antonio Sant'Elia – Città Nuova (1914)",
+      "vorderseite": "**Person**\nAntonio Sant'Elia (1888–1916)\nKein gebautes Werk – reine Papierarchitektur\nGefallen im Ersten Weltkrieg, 28 Jahre alt\n\n**La Città Nuova (Mailänder Ausstellung, 1914)**\nVision einer modernen Industriestadt\nStadt als riesiger lärmender Bauplatz\n\n**Entwurfsmerkmale**\nAufzüge wie Schlangen aus Eisen und Glas an den Fassaden\nZentralbahnhof mit integriertem Flughafen\nDynamisch nach oben gestaffelte Terrassenstrukturen\nKein Ornament, kein historischer Bezug\n\n**Einfluss**\nAuf Moderne und Architektur des Faschismus",
+      "notiz": "Sant'Elia = nur Entwürfe, kein Bau! Città Nuova 1914 = Schlüsselprojekt.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Antonio_Sant%27Elia"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was ist über das Werk von Antonio Sant'Elia bekannt?",
+        "o": [
+          "Es blieb reine Papierarchitektur",
+          "Seine Città Nuova wurde als Stadtteil gebaut",
+          "Es entstand vor dem Manifest von 1909",
+          "Es zeigt historische Bezüge"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-11-04",
+      "gruppeId": "BG2-g11",
+      "modus": "text",
+      "name": "El Lissitzky – Wolkenbügel (1924)",
+      "vorderseite": "**Person**\nEliezer El Lissitzky (1890–1941)\nRussischer Künstler, Architekt, Typograf\n\n**Wolkenbügel (Entwurf, 1924)**\nEntwurf für Verwaltungsgebäude an Moskauer Kreuzungen\nL-förmiger Büroblock auf drei schlanken Stütztürmen\nLiegende Wolkenkratzer statt vertikale Türme\nNicht realisiert – Papierarchitektur\n\n**Konstruktives Prinzip**\nDrei Stütztürme tragen auskragenden horizontalen Block\nMaximale Bodenfreiheit unter dem Gebäude\nRadikale Neudefinition des Hochhaustyps",
+      "notiz": "Wolkenbugel = liegender Wolkenkratzer auf Stutzen. Lissitzky 1924 Moskau.",
+      "links": [
+        "https://de.wikipedia.org/wiki/El_Lissitzky"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welchen Vorteil bietet das Konzept des Wolkenbügels?",
+        "o": [
+          "Maximale Bodenfreiheit unter dem Bau",
+          "Maximale Höhe über der ganzen Stadt",
+          "Maximale Dachfläche für Dachgärten",
+          "Maximale Fassadenfläche zur Straße"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-11-01",
+      "gruppeId": "BG2-g11",
+      "modus": "text",
+      "name": "Futurismus – Kontext & Manifest",
+      "vorderseite": "**Entstehung**\nItalien, ab 1909 (Filippo Marinetti: Manifesto del Futurismo)\nPoetische, politische und künstlerische Bewegung\n\n**Begeisterung für**\nTechnik, Geschwindigkeit, Dynamik\nLärm, Maschine, Energie\nZerstörung des Alten als schöpferischer Akt\n\n**Architektur-Manifest**\nManifesto dell'architettura futurista, 1914\nUnterzeichner u.a. Antonio Sant'Elia\nForderung: Stadt als dynamischer, sich erneuernder Organismus",
+      "notiz": "Futurismus 1909 Marinetti. Geschwindigkeit + Zerstörung = Leitthemen.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Futurismus"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Welche Leitthemen hat der Futurismus?",
+        "o": [
+          "Technik, Geschwindigkeit und Zerstörung des Alten",
+          "Handwerk, Tradition und Materialgerechtigkeit",
+          "Sozialismus, Geometrie und Agitation",
+          "Natur, Kristall und Spiritualität"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-11-05",
+      "gruppeId": "BG2-g11",
+      "modus": "text",
+      "name": "Konstantin Melnikov – Russakow-Club & Tatlin",
+      "vorderseite": "**Konstantin S. Melnikov (1890–1974)**\nRussakow-Arbeiterclub (Moskau), 1927–28\nDrei auskragende Betonkörper = drei Zuschauerbereiche\nFlexibilität: Sektoren öffenbar oder trennbar\nFunktion sichtbar an der Fassade\nIkonischstes Beispiel konstruktivistischer Massenarchitektur\n\n**Wladimir Tatlin (1885–1953)**\nMonument für die III. Internationale (Entwurf, 1919–20)\nGeplante Doppelhelix aus Eisen, 400m hoch (nie realisiert)\nInnen: rotierende Kammern (Konferenz, Exekutive, Information)\nSymbol für die technologische Utopie der Oktoberrevolution",
+      "notiz": "Melnikov = Russakow. Tatlin = Monument III. Internationale. Beide nicht realisiert!",
+      "links": [
+        "https://de.wikipedia.org/wiki/Konstantin_Melnikow"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Was gilt für Melnikovs Russakow-Club und Tatlins Monument?",
+        "o": [
+          "Der Club wurde gebaut, das Monument blieb Entwurf",
+          "Beide wurden gebaut",
+          "Beide blieben Entwurf",
+          "Das Monument wurde gebaut, der Club blieb Entwurf"
+        ]
+      }
+    },
+    {
+      "id": "BG2-k-11-03",
+      "gruppeId": "BG2-g11",
+      "modus": "text",
+      "name": "Konstruktivismus (Russland) – Kontext & Prinzipien",
+      "vorderseite": "**Entstehung**\nRussland, nach der Oktoberrevolution 1917\nNeue sozialistische Kunst- und Baukonzepte\n\n**Prinzipien**\nReduktion auf geometrische Grundformen\nFunktion und Konstruktion als Gestaltungsprinzipien\nAblehnung von Ornament und bürgerlicher Kunst\nVerbindung von Kunst + politischer Praxis (Agitation)\n\n**Materialien und Technologien**\nEisenbeton, Stahl, Glas\nSichtbare Konstruktion als ästhetisches Mittel\n\n**Abgrenzung vom Futurismus**\nRussischer Konstruktivismus: politisch motiviert (Sozialismus)\nFuturismus: ästhetisch motiviert (Dynamik, Energie)",
+      "notiz": "Konstruktivismus = politisch motiviert. Sozialismus + Geometrie = Kern.",
+      "links": [
+        "https://de.wikipedia.org/wiki/Konstruktivismus_(Kunst)"
+      ],
+      "videoId": null,
+      "videoTitel": null,
+      "foto": null,
+      "erstellt": "2026-05-26T12:00:00.000Z",
+      "fotos": [],
+      "raten": {
+        "f": "Wodurch unterscheidet sich der Konstruktivismus vom Futurismus?",
+        "o": [
+          "Er ist politisch motiviert, der Futurismus ästhetisch",
+          "Er ist ästhetisch motiviert, der Futurismus politisch",
+          "Er lehnt Technik ab, der Futurismus feiert sie",
+          "Er ist älter als der Futurismus"
+        ]
+      }
+    }
+  ]
+}
