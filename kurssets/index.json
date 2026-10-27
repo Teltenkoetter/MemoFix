@@ -47,6 +47,30 @@
       "titel": "DE2 Grundwissen",
       "beschreibung": "60 Karten · 6 Gruppen",
       "datei": "Innenarchitektur/Digitales Entwerfen 2/DE2_2026_Grundwissen_komplett.json"
+    },
+    {
+      "id": "bg2-2026-baugeschichte-01",
+      "titel": "Baugesch. II",
+      "beschreibung": "34 Karten · 1 Gruppen",
+      "datei": "Innenarchitektur/Under Construction/Baugeschichte/BG2_2026_Baugeschichte_01.json"
+    },
+    {
+      "id": "bg2-2026-baugeschichte-02",
+      "titel": "Baugesch. II",
+      "beschreibung": "71 Karten · 11 Gruppen",
+      "datei": "Innenarchitektur/Under Construction/Baugeschichte/BG2_2026_Baugeschichte_02.json"
+    },
+    {
+      "id": "cad2-2026-plangrafik-01",
+      "titel": "Plangrafik CAD II",
+      "beschreibung": "94 Karten · 11 Gruppen",
+      "datei": "Innenarchitektur/Under Construction/CAD 2/CAD2_2026_Plangrafik_01.json"
+    },
+    {
+      "id": "cad2-2026-plangrafik-02",
+      "titel": "Plangrafik CAD II",
+      "beschreibung": "17 Karten · 3 Gruppen",
+      "datei": "Innenarchitektur/Under Construction/CAD 2/CAD2_2026_Plangrafik_02.json"
     }
   ]
 }

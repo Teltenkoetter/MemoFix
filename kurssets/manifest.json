@@ -128,6 +128,52 @@
       ],
       "neu": "",
       "neu_en": ""
+    },
+    {
+      "id": "BG2-Baugeschichte",
+      "name": "BG2 Baugeschichte",
+      "name_en": "BG2 Architectural History",
+      "beschreibung": "",
+      "stand": "2026-10-27",
+      "hash": "bf78adca5e41a88a0393cd74951e357944cefc586592097289907c2823f431ee",
+      "gruppen": 12,
+      "karten": 105,
+      "mb": 20.8,
+      "bilder": true,
+      "pfad": [
+        "Innenarchitektur",
+        "Under Construction",
+        "Baugeschichte"
+      ],
+      "dateien": [
+        "Innenarchitektur/Under Construction/Baugeschichte/BG2_2026_Baugeschichte_01.json",
+        "Innenarchitektur/Under Construction/Baugeschichte/BG2_2026_Baugeschichte_02.json"
+      ],
+      "neu": "",
+      "neu_en": ""
+    },
+    {
+      "id": "CAD2-Plangrafik",
+      "name": "CAD2 Plangrafik",
+      "name_en": "CAD2 Plan Graphics",
+      "beschreibung": "",
+      "stand": "2026-10-27",
+      "hash": "030567dd89164c0fc28e7ee2f8a07eaabd9425d1e2cab530aa5607b412daf2ce",
+      "gruppen": 14,
+      "karten": 111,
+      "mb": 0.3,
+      "bilder": true,
+      "pfad": [
+        "Innenarchitektur",
+        "Under Construction",
+        "CAD 2"
+      ],
+      "dateien": [
+        "Innenarchitektur/Under Construction/CAD 2/CAD2_2026_Plangrafik_01.json",
+        "Innenarchitektur/Under Construction/CAD 2/CAD2_2026_Plangrafik_02.json"
+      ],
+      "neu": "",
+      "neu_en": ""
     }
   ]
 }
