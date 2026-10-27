@@ -774,7 +774,7 @@ function getHelpHtml() {
       ['🌐', '<strong>Browser</strong> — iPhone and iPad: Safari · Android: Chrome or Firefox · Computer: Safari, Firefox, Chrome or Edge'],
       ['📲', '<strong>Add to Home Screen first</strong> — iPhone/iPad: Share → "Add to Home Screen" · Android (Chrome): ⋮ menu at the top right → at the bottom "Install and create shortcut" (Firefox: menu → "Install") · If Android shows "Unsafe app blocked" (Play Protect), it is a general notice about the app package Chrome builds, not about MemoFix: tap "Install anyway" · Without this, the browser can delete your cards after about 7 days without use'],
       ['📚', '<strong>Import course set</strong> — BACKUP → "Import course set" → tap "Import" (internet required) · your own cards stay untouched'],
-      ['🚦', '<strong>Course set status</strong> — ● red: not loaded yet · ✓ green: up to date · ↻ orange: update available (tap "Update" or "Update all") · learning progress and favorites are kept · cards you changed yourself or that were removed from the set: you are asked first · offline the last known status stays visible'],
+      ['🚦', '<strong>Course set status</strong> — red: not loaded yet · green: up to date · orange: update available (tap "Update" or "Update all") · learning progress and favorites are kept · cards you changed yourself or that were removed from the set: you are asked first · offline the last known status stays visible'],
       ['💾', '<strong>Back up regularly</strong> — Cards live only on this device (no sync between devices) · BACKUP → Export · "Clear browser data" deletes everything'],
       ['🔄', '<strong>After an update</strong> — close the app completely and open it again, otherwise you may still see the old version'],
       ['🌐', '<strong>Digital Design:</strong> <a href="https://www.designstrategies.org" target="_blank" rel="noopener">www.designstrategies.org</a><br><strong>Digital Fabrication:</strong> <a href="https://www.df-mainz.de" target="_blank" rel="noopener">www.df-mainz.de</a>'],
@@ -831,7 +831,7 @@ function getHelpHtml() {
       ['🌐', '<strong>Browser</strong> — iPhone und iPad: Safari · Android: Chrome oder Firefox · Computer: Safari, Firefox, Chrome oder Edge'],
       ['📲', '<strong>Zuerst zum Home-Bildschirm hinzufügen</strong> — iPhone/iPad: Teilen → „Zum Home-Bildschirm" · Android (Chrome): ⋮-Menü oben rechts → ganz unten „Installieren und Verknüpfung erstellen" (Firefox: Menü → „Installieren") · Zeigt Android die Warnung „Unsichere App blockiert" (Play Protect), betrifft sie allgemein das von Chrome gebaute App-Paket, nicht MemoFix: „Trotzdem installieren" antippen · Ohne das kann der Browser deine Karten nach etwa 7 Tagen ohne Nutzung löschen'],
       ['📚', '<strong>Kursset importieren</strong> — SICHERUNG → „Kursset importieren" → „Importieren" antippen (Internet nötig) · eigene Karten bleiben unberührt'],
-      ['🚦', '<strong>Kursset-Status</strong> — ● rot: noch nicht geladen · ✓ grün: aktuell · ↻ orange: Update verfügbar (auf „Aktualisieren" oder „Alle aktualisieren" tippen) · Lernstand und Favoriten bleiben erhalten · selbst geänderte oder im Set entfallene Karten: es wird vorher nachgefragt · offline bleibt der letzte bekannte Status sichtbar'],
+      ['🚦', '<strong>Kursset-Status</strong> — rot: noch nicht geladen · grün: aktuell · orange: Update verfügbar (auf „Aktualisieren" oder „Alle aktualisieren" tippen) · Lernstand und Favoriten bleiben erhalten · selbst geänderte oder im Set entfallene Karten: es wird vorher nachgefragt · offline bleibt der letzte bekannte Status sichtbar'],
       ['💾', '<strong>Regelmäßig sichern</strong> — Karten liegen nur auf diesem Gerät (kein Abgleich zwischen Geräten) · SICHERUNG → Exportieren · „Browserdaten löschen" entfernt alles'],
       ['🔄', '<strong>Nach einem Update</strong> — App komplett schließen und neu öffnen, sonst siehst du eventuell noch die alte Version'],
       ['🌐', '<strong>Digitales Entwerfen:</strong> <a href="https://www.designstrategies.org" target="_blank" rel="noopener">www.designstrategies.org</a><br><strong>Digitale Fertigung:</strong> <a href="https://www.df-mainz.de" target="_blank" rel="noopener">www.df-mainz.de</a>'],
@@ -913,13 +913,16 @@ function getHelpHtml() {
       <div class="modal-section-title">${sec.title}</div>
       <div class="anleitung-zeilen">
         ${sec.rows.map(([icon, text]) => {
-          // " · " trennt Teilpunkte: erster Teil bleibt Fließtext, die weiteren werden Aufzählung
-          const teile = text.split(/ · (?!\d)/);
-          const liste = teile.length > 1 ? `<ul class="anleitung-liste">${teile.slice(1).map(x => `<li>${x}</li>`).join('')}</ul>` : '';
+          // Einheitlich: fette Überschrift in eigener Zeile, alles danach (getrennt durch " — " bzw. " · ") als kleine Punkte
+          const m = text.includes('<br>') ? null : text.match(/^(<strong>[^<]*<\/strong>)(?:\s+—\s+|\s+)([\s\S]*)$/);
+          const kopf = m ? m[1] : '';
+          const teile = (m ? m[2] : text).split(/ · (?!\d)/);
+          const punkte = m ? teile : teile.slice(1);
+          const liste = punkte.length ? `<ul class="anleitung-liste">${punkte.map(x => `<li>${x}</li>`).join('')}</ul>` : '';
           return `
           <div class="anleitung-zeile">
             <span class="anleitung-icon">${icon}</span>
-            <div class="anleitung-text">${teile[0]}${liste}</div>
+            <div class="anleitung-text">${m ? kopf : teile[0]}${liste}</div>
           </div>`; }).join('')}
       </div>
     </div>`).join('') +
