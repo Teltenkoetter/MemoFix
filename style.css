@@ -2051,8 +2051,10 @@ body.praesi .lern-position-counter .counter-total { font-size: 14px; letter-spac
 .anleitung-text a { color: var(--mf-blau); text-decoration: underline; text-underline-offset: 2px; }
 
 /* Hilfe: Teilpunkte als Aufzählung auf neuer Zeile */
-.anleitung-liste { margin: 0.35rem 0 0; padding-left: 1.1rem; list-style: disc; }
-.anleitung-liste li { margin: 0.15rem 0; padding: 0; }
+.anleitung-liste { margin: 0.3rem 0 0; padding: 0; list-style: none; }
+.anleitung-liste li { position: relative; margin: 0.15rem 0; padding: 0 0 0 0.9rem; }
+.anleitung-liste li::before { content: ''; position: absolute; left: 0.1rem; top: 0.62em; width: 4px; height: 4px; border-radius: 50%; background: var(--muted); opacity: 0.8; }
+.anleitung-text > strong { display: block; }
 
 /* ── ZWEISPRACHIGE KARTEN ─────────────────────────────── */
 .de-badge {
@@ -2762,3 +2764,7 @@ body.praesi .update-hinweis, body.spiel .update-hinweis { display: none; }
 /* Wasserzeichen in der Kopfzeile: als erstes Element der Knopfgruppe (folgt der Breite von Modus-Schalter und EN) */
 header::after { display: none; }
 .header-btns::before { content: ''; flex: none; width: 1.8rem; height: 1.8rem; margin-right: 0.3rem; background: url('./icon.svg') no-repeat center / contain; opacity: 0.1; pointer-events: none; }
+
+/* Hilfe: Kurs-Links am Ende */
+.modal-links { margin: 1rem 0 0; font-size: 0.78rem; color: var(--muted); line-height: 1.6; text-align: center; }
+.modal-links a { color: var(--mf-blau); text-decoration: underline; text-underline-offset: 2px; }

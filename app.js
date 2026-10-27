@@ -777,7 +777,6 @@ function getHelpHtml() {
       ['🚦', '<strong>Course set status</strong> — red: not loaded yet · green: up to date · orange: update available (tap "Update" or "Update all") · learning progress and favorites are kept · cards you changed yourself or that were removed from the set: you are asked first · offline the last known status stays visible'],
       ['💾', '<strong>Back up regularly</strong> — Cards live only on this device (no sync between devices) · BACKUP → Export · "Clear browser data" deletes everything'],
       ['🔄', '<strong>After an update</strong> — close the app completely and open it again, otherwise you may still see the old version'],
-      ['🌐', '<strong>Digital Design:</strong> <a href="https://www.designstrategies.org" target="_blank" rel="noopener">www.designstrategies.org</a><br><strong>Digital Fabrication:</strong> <a href="https://www.df-mainz.de" target="_blank" rel="noopener">www.df-mainz.de</a>'],
     ]},
     { title: '🎴 Learning mode', rows: [
       ['🖼️', '<strong>Photo card: Image → Term</strong> — See the image, recall the term · Tap the card → it flips → term appears'],
@@ -834,7 +833,6 @@ function getHelpHtml() {
       ['🚦', '<strong>Kursset-Status</strong> — rot: noch nicht geladen · grün: aktuell · orange: Update verfügbar (auf „Aktualisieren" oder „Alle aktualisieren" tippen) · Lernstand und Favoriten bleiben erhalten · selbst geänderte oder im Set entfallene Karten: es wird vorher nachgefragt · offline bleibt der letzte bekannte Status sichtbar'],
       ['💾', '<strong>Regelmäßig sichern</strong> — Karten liegen nur auf diesem Gerät (kein Abgleich zwischen Geräten) · SICHERUNG → Exportieren · „Browserdaten löschen" entfernt alles'],
       ['🔄', '<strong>Nach einem Update</strong> — App komplett schließen und neu öffnen, sonst siehst du eventuell noch die alte Version'],
-      ['🌐', '<strong>Digitales Entwerfen:</strong> <a href="https://www.designstrategies.org" target="_blank" rel="noopener">www.designstrategies.org</a><br><strong>Digitale Fertigung:</strong> <a href="https://www.df-mainz.de" target="_blank" rel="noopener">www.df-mainz.de</a>'],
     ]},
     { title: '🎴 Lernmodus', rows: [
       ['🖼️', '<strong>Foto-Karte: Bild → Begriff</strong> — Bild sehen, Begriff erinnern · Karte antippen → dreht sich um → Begriff erscheint'],
@@ -926,6 +924,9 @@ function getHelpHtml() {
           </div>`; }).join('')}
       </div>
     </div>`).join('') +
+    `<p class="modal-links">${currentLang === 'en'
+      ? 'More about the courses: Digital Design · <a href="https://www.designstrategies.org" target="_blank" rel="noopener">www.designstrategies.org</a> | Digital Fabrication · <a href="https://www.df-mainz.de" target="_blank" rel="noopener">www.df-mainz.de</a>'
+      : 'Mehr zu den Kursen: Digitales Entwerfen · <a href="https://www.designstrategies.org" target="_blank" rel="noopener">www.designstrategies.org</a> | Digitale Fertigung · <a href="https://www.df-mainz.de" target="_blank" rel="noopener">www.df-mainz.de</a>'}</p>` +
     `<p class="modal-meta-device">📱 ${currentLang === 'en' ? 'Optimised for iPhone portrait' : 'Optimiert für iPhone im Hochformat'}</p>
      <p class="modal-meta">Version 2.0 · Prof. Klaus Teltenkötter 2026 <span id="build-version" class="modal-meta-build"></span></p>
      <p class="modal-meta"><a href="impressum.html${currentLang === 'en' ? '#en' : '#de'}" target="_blank" rel="noopener">${currentLang === 'en' ? 'Legal notice &amp; privacy' : 'Impressum &amp; Datenschutz'}</a></p>`;
