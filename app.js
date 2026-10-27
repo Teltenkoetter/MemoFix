@@ -925,8 +925,8 @@ function getHelpHtml() {
       </div>
     </div>`).join('') +
     `<p class="modal-links">${currentLang === 'en'
-      ? 'More about the courses: Digital Design · <a href="https://www.designstrategies.org" target="_blank" rel="noopener">www.designstrategies.org</a> | Digital Fabrication · <a href="https://www.df-mainz.de" target="_blank" rel="noopener">www.df-mainz.de</a>'
-      : 'Mehr zu den Kursen: Digitales Entwerfen · <a href="https://www.designstrategies.org" target="_blank" rel="noopener">www.designstrategies.org</a> | Digitale Fertigung · <a href="https://www.df-mainz.de" target="_blank" rel="noopener">www.df-mainz.de</a>'}</p>` +
+      ? 'More about the courses:<br><a href="https://www.designstrategies.org" target="_blank" rel="noopener">Digital Design</a><br><a href="https://www.df-mainz.de" target="_blank" rel="noopener">Digital Fabrication</a>'
+      : 'Mehr zu den Kursen:<br><a href="https://www.designstrategies.org" target="_blank" rel="noopener">Digitales Entwerfen</a><br><a href="https://www.df-mainz.de" target="_blank" rel="noopener">Digitale Fertigung</a>'}</p>` +
     `<p class="modal-meta-device">📱 ${currentLang === 'en' ? 'Optimised for iPhone portrait' : 'Optimiert für iPhone im Hochformat'}</p>
      <p class="modal-meta">Version 2.0 · Prof. Klaus Teltenkötter 2026 <span id="build-version" class="modal-meta-build"></span></p>
      <p class="modal-meta"><a href="impressum.html${currentLang === 'en' ? '#en' : '#de'}" target="_blank" rel="noopener">${currentLang === 'en' ? 'Legal notice &amp; privacy' : 'Impressum &amp; Datenschutz'}</a></p>`;
