@@ -153,6 +153,9 @@ const TRANS = {
     toast_kursset_entfernt: (name, n) => `„${name}" entfernt (${n} Karten)`,
     kursset_speicher: (u, q) => `Belegt auf diesem Gerät: ca. ${u} MB${q ? ' von ' + q : ''}`,
     kursset_laedt: (i, n) => n > 1 ? `Lädt Teil ${i}/${n} …` : 'Lädt …',
+    pw_titel: '🔒 Passwort für dieses Set', pw_text: (n) => `„${n}“ ist passwortgeschützt. Das Passwort hast du von der Kursleitung bekommen.`,
+    pw_label: 'Passwort', pw_merken: 'Auf diesem Gerät merken (damit Updates ohne neue Eingabe laufen)', pw_ok: 'Entsperren', pw_abbrechen: 'Abbrechen',
+    pw_falsch: 'Passwort falsch', pw_pruefe: 'Prüfe …', pw_geschuetzt: 'Passwortgeschützt', pw_alt: 'Dieser Browser kann geschützte Sets nicht öffnen (bitte aktualisieren).',
     confirm_kursset_gross: (name, mb) => `„${name}" ist ${mb} MB groß.\n\nIm Mobilfunk kann das langsam sein und Datenvolumen verbrauchen – besser im WLAN laden.\n\nJetzt laden?`, kursset_neu: 'Neu', kursset_gruppen: 'Gruppe(n)', kursset_erneut: 'Erneut laden',
     kursset_alle: 'Alle aktualisieren', kursset_anzeigen: 'Anzeigen',
     kursset_status_rot: 'Noch nicht geladen', kursset_status_gruen: 'Aktuell', kursset_status_orange: 'Update verfügbar',
@@ -414,6 +417,9 @@ const TRANS = {
     toast_kursset_entfernt: (name, n) => `"${name}" removed (${n} cards)`,
     kursset_speicher: (u, q) => `Used on this device: approx. ${u} MB${q ? ' of ' + q : ''}`,
     kursset_laedt: (i, n) => n > 1 ? `Loading part ${i}/${n} …` : 'Loading …',
+    pw_titel: '🔒 Password for this set', pw_text: (n) => `"${n}" is password protected. You received the password from your instructor.`,
+    pw_label: 'Password', pw_merken: 'Remember on this device (so updates need no new entry)', pw_ok: 'Unlock', pw_abbrechen: 'Cancel',
+    pw_falsch: 'Wrong password', pw_pruefe: 'Checking …', pw_geschuetzt: 'Password protected', pw_alt: 'This browser cannot open protected sets (please update it).',
     confirm_kursset_gross: (name, mb) => `"${name}" is ${mb} MB.\n\nOn mobile data this can be slow and use up your data allowance – better load it on Wi-Fi.\n\nLoad now?`, kursset_neu: 'New', kursset_gruppen: 'group(s)', kursset_erneut: 'Reload',
     kursset_alle: 'Update all', kursset_anzeigen: 'Show',
     kursset_status_rot: 'Not loaded yet', kursset_status_gruen: 'Up to date', kursset_status_orange: 'Update available',
@@ -773,7 +779,7 @@ function getHelpHtml() {
     { title: '🚀 Getting started', rows: [
       ['🌐', '<strong>Browser</strong> — iPhone and iPad: Safari · Android: Chrome or Firefox · Computer: Safari, Firefox, Chrome or Edge'],
       ['📲', '<strong>Add to Home Screen first</strong> — iPhone/iPad: Share → "Add to Home Screen" · Android (Chrome): ⋮ menu at the top right → at the bottom "Install and create shortcut" (Firefox: menu → "Install") · If Android shows "Unsafe app blocked" (Play Protect), it is a general notice about the app package Chrome builds, not about MemoFix: tap "Install anyway" · Without this, the browser can delete your cards after about 7 days without use'],
-      ['📚', '<strong>Import course set</strong> — BACKUP → "Import course set" → tap "Import" (internet required) · your own cards stay untouched'],
+      ['📚', '<strong>Import course set</strong> — BACKUP → "Import course set" → tap "Import" (internet required) · 🔒 = password-protected set: enter the password from your instructor, it is remembered on this device · your own cards stay untouched'],
       ['🚦', '<strong>Course set status</strong> — red: not loaded yet · green: up to date · orange: update available (tap "Update" or "Update all") · learning progress and favorites are kept · cards you changed yourself or that were removed from the set: you are asked first · offline the last known status stays visible'],
       ['💾', '<strong>Back up regularly</strong> — Cards live only on this device (no sync between devices) · BACKUP → Export · "Clear browser data" deletes everything'],
       ['🔄', '<strong>After an update</strong> — close the app completely and open it again, otherwise you may still see the old version'],
@@ -829,7 +835,7 @@ function getHelpHtml() {
     { title: '🚀 Erste Schritte', rows: [
       ['🌐', '<strong>Browser</strong> — iPhone und iPad: Safari · Android: Chrome oder Firefox · Computer: Safari, Firefox, Chrome oder Edge'],
       ['📲', '<strong>Zuerst zum Home-Bildschirm hinzufügen</strong> — iPhone/iPad: Teilen → „Zum Home-Bildschirm" · Android (Chrome): ⋮-Menü oben rechts → ganz unten „Installieren und Verknüpfung erstellen" (Firefox: Menü → „Installieren") · Zeigt Android die Warnung „Unsichere App blockiert" (Play Protect), betrifft sie allgemein das von Chrome gebaute App-Paket, nicht MemoFix: „Trotzdem installieren" antippen · Ohne das kann der Browser deine Karten nach etwa 7 Tagen ohne Nutzung löschen'],
-      ['📚', '<strong>Kursset importieren</strong> — SICHERUNG → „Kursset importieren" → „Importieren" antippen (Internet nötig) · eigene Karten bleiben unberührt'],
+      ['📚', '<strong>Kursset importieren</strong> — SICHERUNG → „Kursset importieren" → „Importieren" antippen (Internet nötig) · 🔒 = passwortgeschütztes Set: Passwort von der Kursleitung eingeben, es wird auf dem Gerät gemerkt · eigene Karten bleiben unberührt'],
       ['🚦', '<strong>Kursset-Status</strong> — rot: noch nicht geladen · grün: aktuell · orange: Update verfügbar (auf „Aktualisieren" oder „Alle aktualisieren" tippen) · Lernstand und Favoriten bleiben erhalten · selbst geänderte oder im Set entfallene Karten: es wird vorher nachgefragt · offline bleibt der letzte bekannte Status sichtbar'],
       ['💾', '<strong>Regelmäßig sichern</strong> — Karten liegen nur auf diesem Gerät (kein Abgleich zwischen Geräten) · SICHERUNG → Exportieren · „Browserdaten löschen" entfernt alles'],
       ['🔄', '<strong>Nach einem Update</strong> — App komplett schließen und neu öffnen, sonst siehst du eventuell noch die alte Version'],
@@ -3278,6 +3284,107 @@ async function holeJson(url, timeoutMs = 5000) {
   } finally { clearTimeout(timer); }
 }
 
+async function holeBinaer(url, timeoutMs = 30000) {
+  const ctrl  = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const r = await fetch(url + '?cb=' + Date.now(), { cache: 'no-store', signal: ctrl.signal });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return new Uint8Array(await r.arrayBuffer());
+  } finally { clearTimeout(timer); }
+}
+
+// Passwortgeschützte Sets (.mfx): "MFX1" | Iterationen | Salt 16 | IV 16 | AES-256-CTR(gzip(JSON)) | HMAC-SHA256 (siehe Kurssets-Werkzeug/mfx.py)
+// Liefert das JSON-Objekt, null bei falschem Passwort; wirft bei beschädigter Datei.
+async function mfxOeffnen(buf, passwort) {
+  const sub = window.crypto?.subtle;
+  if (!sub || typeof DecompressionStream === 'undefined') throw new Error(t('pw_alt'));
+  if (buf.length < 73 || String.fromCharCode(...buf.slice(0, 4)) !== 'MFX1') throw new Error(t('kursset_format'));
+  const iter = new DataView(buf.buffer, buf.byteOffset + 4, 4).getUint32(0);
+  const salt = buf.slice(8, 24), iv = buf.slice(24, 40), ct = buf.slice(40, buf.length - 32), mac = buf.slice(buf.length - 32);
+  const roh = await sub.importKey('raw', new TextEncoder().encode(passwort.normalize('NFC')), 'PBKDF2', false, ['deriveBits']);
+  const bits = new Uint8Array(await sub.deriveBits({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, roh, 512));
+  const kmac = await sub.importKey('raw', bits.slice(32), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']);
+  if (!await sub.verify('HMAC', kmac, mac, buf.subarray(0, buf.length - 32))) return null;
+  const kenc = await sub.importKey('raw', bits.slice(0, 32), 'AES-CTR', false, ['decrypt']);
+  const gz = await sub.decrypt({ name: 'AES-CTR', counter: iv, length: 64 }, kenc, ct);
+  const klar = await new Response(new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+  return JSON.parse(new TextDecoder().decode(klar));
+}
+
+const kurssetPwLesen = () => lsJson('kurssetPasswoerter');
+function kurssetPwMerken(setId, pw) {
+  const m = kurssetPwLesen(); m[setId] = pw;
+  try { localStorage.setItem('kurssetPasswoerter', JSON.stringify(m)); } catch (_) {}
+}
+
+// Passwort-Dialog; liefert das eingegebene Passwort (und ob es gemerkt werden soll) oder null bei Abbruch.
+// pruefe(pw) -> true/false entscheidet, ob der Dialog schließt.
+function fragePasswort(name, pruefe) {
+  return new Promise(resolve => {
+    const wrap = document.createElement('div');
+    wrap.className = 'modal-backdrop pw-dialog';
+    wrap.innerHTML = `<div class="modal"><div class="modal-header"><h2>${esc(t('pw_titel'))}</h2><button class="btn-modal-close" type="button" aria-label="${esc(t('pw_abbrechen'))}">✕</button></div>
+      <form class="modal-body"><p class="modal-hint">${esc(tf('pw_text', name))}</p>
+      <div class="form-group"><label for="pw-eingabe">${esc(t('pw_label'))}</label>
+      <input type="password" id="pw-eingabe" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+      <p class="pw-fehler hidden" role="alert">${esc(t('pw_falsch'))}</p>
+      <label class="pw-merken"><input type="checkbox" checked> <span>${esc(t('pw_merken'))}</span></label>
+      <button class="btn-primary btn-large" type="submit">${esc(t('pw_ok'))}</button></form></div>`;
+    document.body.appendChild(wrap);
+    const input = wrap.querySelector('input[type=password]'), fehler = wrap.querySelector('.pw-fehler'), ok = wrap.querySelector('.btn-primary');
+    const zu = wert => { wrap.remove(); resolve(wert); };
+    wrap.querySelector('.btn-modal-close').addEventListener('click', () => zu(null));
+    wrap.addEventListener('click', e => { if (e.target === wrap) zu(null); });
+    wrap.querySelector('form').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (!input.value) return;
+      ok.disabled = true; ok.textContent = t('pw_pruefe'); fehler.classList.add('hidden');
+      let gut = false;
+      try { gut = await pruefe(input.value); } finally { ok.disabled = false; ok.textContent = t('pw_ok'); }
+      if (gut) zu({ pw: input.value, merken: wrap.querySelector('input[type=checkbox]').checked });
+      else { fehler.classList.remove('hidden'); input.select(); }
+    });
+    setTimeout(() => input.focus(), 50);
+  });
+}
+
+// Entschlüsselt die erste Datei eines geschützten Sets: gemerkte Passwörter zuerst (auch die anderer Sets,
+// ein Passwort gilt oft für einen ganzen Ordner), sonst Dialog. Liefert {pw, erste} oder null bei Abbruch.
+async function kurssetEntsperren(set, name, ersteBytes) {
+  const gemerkt = kurssetPwLesen();
+  const kandidaten = [...new Set([gemerkt[set.id], ...Object.values(gemerkt)].filter(Boolean))];
+  for (const pw of kandidaten) {
+    const d = await mfxOeffnen(ersteBytes, pw);
+    if (d) { kurssetPwMerken(set.id, pw); return { pw, erste: d }; }
+  }
+  // Eingabe = Passwort des Ordners oder Admin-Passwort (öffnet den Schlüsselbund mit allen Ordner-Passwörtern)
+  let erste = null, gefunden = null, bund = [];
+  const antwort = await fragePasswort(name, async pw => {
+    erste = await mfxOeffnen(ersteBytes, pw);
+    if (erste) { gefunden = pw; return true; }
+    bund = await kurssetSchluesselbund(pw);
+    for (const k of bund) { erste = await mfxOeffnen(ersteBytes, k); if (erste) { gefunden = k; return true; } }
+    return false;
+  });
+  if (!antwort) return null;
+  if (antwort.merken) {
+    kurssetPwMerken(set.id, gefunden);
+    bund.forEach((k, i) => kurssetPwMerken('_schluessel:' + i, k));   // gilt dann für alle Ordner
+  }
+  return { pw: gefunden, erste };
+}
+
+// Schlüsselbund (kurssets/schluessel.mfx): alle Ordner-Passwörter, mit dem Admin-Passwort verschlüsselt.
+let KURSSET_SCHLUESSEL = 'kurssets/schluessel.mfx', kurssetBundBytes;
+async function kurssetSchluesselbund(adminPw) {
+  try {
+    if (!kurssetBundBytes) kurssetBundBytes = await holeBinaer(KURSSET_SCHLUESSEL);
+    const d = await mfxOeffnen(kurssetBundBytes, adminPw);
+    return d && Array.isArray(d.pw) ? d.pw.filter(x => typeof x === 'string') : [];
+  } catch (_) { return []; }
+}
+
 // manifest.json bevorzugt, sonst alte index.json, sonst letzter bekannter Stand (offline)
 async function ladeKurssetManifest() {
   try {
@@ -3449,7 +3556,7 @@ async function ladeKurssetListe() {
     const iconBtn = st === 'gruen';          // aktuell: nur ein kleines ↻ (Beschriftung als Tooltip)
     return `<div class="kursset-zeile">
       <div class="kursset-info">
-        <strong class="ks-${st}" title="${esc(t('kursset_status_' + st))}">${KURSSET_SYMBOL[st]} ${esc(name)}</strong>
+        <strong class="ks-${st}" title="${esc(t('kursset_status_' + st))}">${KURSSET_SYMBOL[st]} ${esc(name)}${set.geschuetzt ? ` <span class="ks-schloss" title="${esc(t('pw_geschuetzt'))}" aria-label="${esc(t('pw_geschuetzt'))}">🔒</span>` : ''}</strong>
         ${meta ? `<span>${meta}</span>` : ''}
         ${set.beschreibung ? `<span>${esc(set.beschreibung)}</span>` : ''}
         ${neu ? `<span>${esc(t('kursset_neu'))}: ${esc(neu)}</span>` : ''}
@@ -3530,10 +3637,23 @@ async function ladeKursset(set, opt = {}) {
     const mische = (liste, neuListe) => {
       for (const x of neuListe) { const i = liste.findIndex(y => y.id === x.id); if (i >= 0) liste[i] = x; else liste.push(x); }
     };
+    let setPw = null;
     for (let di = 0; di < set.dateien.length; di++) {
       const datei = set.dateien[di];
       if (lade) lade.textContent = tf('kursset_laedt', di + 1, set.dateien.length);
-      const d = await holeJson('kurssets/' + datei.split('/').map(encodeURIComponent).join('/'), 30000);
+      const url = 'kurssets/' + datei.split('/').map(encodeURIComponent).join('/');
+      let d;
+      if (set.geschuetzt) {
+        const bytes = await holeBinaer(url);
+        if (setPw === null) {
+          const frei = await kurssetEntsperren(set, name, bytes);
+          if (!frei) { if (lade) { lade.disabled = false; lade.textContent = ladeText; } return false; }
+          setPw = frei.pw; d = frei.erste;
+        } else {
+          d = await mfxOeffnen(bytes, setPw);
+          if (!d) throw new Error(t('pw_falsch'));
+        }
+      } else d = await holeJson(url, 30000);
       if (!Array.isArray(d.studenten) || !Array.isArray(d.gruppen)) throw new Error(t('kursset_format'));
       mische(daten.sammlungen, d.sammlungen || []); mische(daten.gruppen, d.gruppen); mische(daten.studenten, d.studenten);
     }

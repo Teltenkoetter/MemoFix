@@ -1,0 +1,3 @@
+Schriften: Inter und Instrument Serif (Google Fonts), lizenziert unter der SIL Open Font License 1.1 (https://openfontlicense.org).
+Die Dateien liegen lokal, damit die App beim Start nichts von Google lädt (Datenschutz, Offline-Betrieb).
+Quelle: https://fonts.google.com/specimen/Inter und https://fonts.google.com/specimen/Instrument+Serif
