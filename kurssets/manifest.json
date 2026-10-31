@@ -1,0 +1,187 @@
+{
+  "version": 1,
+  "sets": [
+    {
+      "id": "DE1-Designstrategien",
+      "name": "DE1 Design Strategies",
+      "name_en": "DE1 Design Strategies",
+      "beschreibung": "",
+      "stand": "2026-10-31",
+      "hash": "6566c1e70956cea402dbdcf872251b1adf88cf6acc2ba085ee2dc2e67c26d2d7",
+      "gruppen": 5,
+      "karten": 47,
+      "mb": 20.1,
+      "bilder": true,
+      "pfad": [
+        "Innenarchitektur",
+        "Digitales Entwerfen 1"
+      ],
+      "dateien": [
+        "Innenarchitektur/Digitales Entwerfen 1/DE1_2026_Designstrategien_01.mfx",
+        "Innenarchitektur/Digitales Entwerfen 1/DE1_2026_Designstrategien_02.mfx"
+      ],
+      "neu": "",
+      "neu_en": "",
+      "geschuetzt": true
+    },
+    {
+      "id": "DE1-Grundwissen",
+      "name": "DE1 Grundwissen",
+      "name_en": "",
+      "beschreibung": "",
+      "stand": "2026-10-31",
+      "hash": "e6b279620f0b6244c06db8eac4d26b2934d1901bbb086541696ada8bf1e4d027",
+      "gruppen": 6,
+      "karten": 75,
+      "mb": 5.0,
+      "bilder": true,
+      "pfad": [
+        "Innenarchitektur",
+        "Digitales Entwerfen 1"
+      ],
+      "dateien": [
+        "Innenarchitektur/Digitales Entwerfen 1/DE1_2026_Grundwissen_final.mfx"
+      ],
+      "neu": "",
+      "neu_en": "",
+      "geschuetzt": true
+    },
+    {
+      "id": "DE1-RhinoCommands",
+      "name": "DE1 Rhino Commands",
+      "name_en": "DE1 Rhino Commands",
+      "beschreibung": "",
+      "stand": "2026-10-31",
+      "hash": "307d4a484dd04a07f5ad7b79cf3ede209912fe9f7ac086331ea221cac7af0090",
+      "gruppen": 8,
+      "karten": 31,
+      "mb": 2.8,
+      "bilder": true,
+      "pfad": [
+        "Innenarchitektur",
+        "Digitales Entwerfen 1"
+      ],
+      "dateien": [
+        "Innenarchitektur/Digitales Entwerfen 1/DE1_2026_RhinoCommands_01.mfx"
+      ],
+      "neu": "",
+      "neu_en": "",
+      "geschuetzt": true
+    },
+    {
+      "id": "DE2-Designstrategien",
+      "name": "DE2 Design Strategies",
+      "name_en": "DE2 Design Strategies",
+      "beschreibung": "",
+      "stand": "2026-10-31",
+      "hash": "5435bdd40fa8ec3da37d614785664bc45971e80ee0212fb63defada46cfb1f63",
+      "gruppen": 5,
+      "karten": 31,
+      "mb": 16.8,
+      "bilder": true,
+      "pfad": [
+        "Innenarchitektur",
+        "Digitales Entwerfen 2"
+      ],
+      "dateien": [
+        "Innenarchitektur/Digitales Entwerfen 2/DE2_2026_Designstrategien_01.mfx",
+        "Innenarchitektur/Digitales Entwerfen 2/DE2_2026_Designstrategien_02.mfx"
+      ],
+      "neu": "",
+      "neu_en": "",
+      "geschuetzt": true
+    },
+    {
+      "id": "DE2-Grundwissen",
+      "name": "DE2 Grundwissen",
+      "name_en": "DE2 Fundamentals",
+      "beschreibung": "",
+      "stand": "2026-10-31",
+      "hash": "9c5573e67c7130733a4dd40f511260437dbfdfd7c6ef0ecf909215f9b9414b9b",
+      "gruppen": 6,
+      "karten": 60,
+      "mb": 10.5,
+      "bilder": true,
+      "pfad": [
+        "Innenarchitektur",
+        "Digitales Entwerfen 2"
+      ],
+      "dateien": [
+        "Innenarchitektur/Digitales Entwerfen 2/DE2_2026_Grundwissen_komplett.mfx"
+      ],
+      "neu": "",
+      "neu_en": "",
+      "geschuetzt": true
+    },
+    {
+      "id": "DE2-RhinoCommands",
+      "name": "DE2 Rhino Commands",
+      "name_en": "DE2 Rhino Commands",
+      "beschreibung": "",
+      "stand": "2026-10-31",
+      "hash": "a2e09da048682ec55334b53d4fb950ba8f7d3882d7b49ec996162509cee0d7e2",
+      "gruppen": 6,
+      "karten": 25,
+      "mb": 2.3,
+      "bilder": true,
+      "pfad": [
+        "Innenarchitektur",
+        "Digitales Entwerfen 2"
+      ],
+      "dateien": [
+        "Innenarchitektur/Digitales Entwerfen 2/DE2_2026_RhinoCommands_01.mfx"
+      ],
+      "neu": "",
+      "neu_en": "",
+      "geschuetzt": true
+    },
+    {
+      "id": "BG2-Baugeschichte",
+      "name": "BG2 Baugeschichte",
+      "name_en": "BG2 Architectural History",
+      "beschreibung": "",
+      "stand": "2026-10-31",
+      "hash": "bc364353ad6dec02c7815f9ba79b9a2695825c1be9bce8e368f5b52eae885c48",
+      "gruppen": 12,
+      "karten": 105,
+      "mb": 15.6,
+      "bilder": true,
+      "pfad": [
+        "Innenarchitektur",
+        "Under Construction",
+        "Baugeschichte"
+      ],
+      "dateien": [
+        "Innenarchitektur/Under Construction/Baugeschichte/BG2_2026_Baugeschichte_01.mfx",
+        "Innenarchitektur/Under Construction/Baugeschichte/BG2_2026_Baugeschichte_02.mfx"
+      ],
+      "neu": "",
+      "neu_en": "",
+      "geschuetzt": true
+    },
+    {
+      "id": "CAD2-Plangrafik",
+      "name": "CAD2 Plangrafik",
+      "name_en": "CAD2 Plan Graphics",
+      "beschreibung": "",
+      "stand": "2026-10-31",
+      "hash": "b06374b96d91a0185c0960100d6b1e875e626cd1cb12358b6361050eb18ad689",
+      "gruppen": 14,
+      "karten": 111,
+      "mb": 0.2,
+      "bilder": true,
+      "pfad": [
+        "Innenarchitektur",
+        "Under Construction",
+        "CAD 2"
+      ],
+      "dateien": [
+        "Innenarchitektur/Under Construction/CAD 2/CAD2_2026_Plangrafik_01.mfx",
+        "Innenarchitektur/Under Construction/CAD 2/CAD2_2026_Plangrafik_02.mfx"
+      ],
+      "neu": "",
+      "neu_en": "",
+      "geschuetzt": true
+    }
+  ]
+}
