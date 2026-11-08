@@ -153,7 +153,7 @@ const TRANS = {
     toast_kursset_entfernt: (name, n) => `„${name}" entfernt (${n} Karten)`,
     kursset_speicher: (u, q) => `Belegt auf diesem Gerät: ca. ${u} MB${q ? ' von ' + q : ''}`,
     kursset_laedt: (i, n) => n > 1 ? `Lädt Teil ${i}/${n} …` : 'Lädt …',
-    md_titel: '▶ MemoDive fortsetzen?', md_weiter: (l, i, n, d) => `Fortsetzen: ${l} · Karte ${i} von ${n} · ${d}`, md_neu: 'Neu starten', md_loeschen: 'Stand löschen',
+    md_titel: '▶ MemoDive fortsetzen?', lst_titel: '▶ Lernen fortsetzen?', md_weiter: (l, i, n, d) => `Fortsetzen: ${l} · Karte ${i} von ${n} · ${d}`, md_neu: 'Neu starten', md_loeschen: 'Stand löschen',
     md_entfallen: (n) => `${n} Karte${n !== 1 ? 'n' : ''} gibt es nicht mehr und ${n !== 1 ? 'wurden' : 'wurde'} übersprungen`,
     pw_titel: '🔒 Passwort für dieses Set', pw_text: (n) => `„${n}“ ist passwortgeschützt. Das Passwort hast du von der Kursleitung bekommen.`,
     pw_label: 'Passwort', pw_merken: 'Auf diesem Gerät merken (damit Updates ohne neue Eingabe laufen)', pw_ok: 'Entsperren', pw_abbrechen: 'Abbrechen',
@@ -419,7 +419,7 @@ const TRANS = {
     toast_kursset_entfernt: (name, n) => `"${name}" removed (${n} cards)`,
     kursset_speicher: (u, q) => `Used on this device: approx. ${u} MB${q ? ' of ' + q : ''}`,
     kursset_laedt: (i, n) => n > 1 ? `Loading part ${i}/${n} …` : 'Loading …',
-    md_titel: '▶ Continue MemoDive?', md_weiter: (l, i, n, d) => `Continue: ${l} · card ${i} of ${n} · ${d}`, md_neu: 'Start over', md_loeschen: 'Delete progress',
+    md_titel: '▶ Continue MemoDive?', lst_titel: '▶ Continue learning?', md_weiter: (l, i, n, d) => `Continue: ${l} · card ${i} of ${n} · ${d}`, md_neu: 'Start over', md_loeschen: 'Delete progress',
     md_entfallen: (n) => `${n} card${n !== 1 ? 's' : ''} no longer exist${n !== 1 ? '' : 's'} and ${n !== 1 ? 'were' : 'was'} skipped`,
     pw_titel: '🔒 Password for this set', pw_text: (n) => `"${n}" is password protected. You received the password from your instructor.`,
     pw_label: 'Password', pw_merken: 'Remember on this device (so updates need no new entry)', pw_ok: 'Unlock', pw_abbrechen: 'Cancel',
@@ -803,7 +803,7 @@ function getHelpHtml() {
       ['⭐', '<strong>Favourites</strong> — Tap the star to mark a card as favourite · export as Favourites group under BACKUP'],
       ['🤏', '<strong>Zoom photos</strong> — Pinch with two fingers to zoom into a photo (also photos on the back of term cards) · drag with two fingers to pan · double-tap to reset'],
       ['⛶', '<strong>Fullscreen 16:9</strong> — Button next to "Start learning": runs your selection full-screen on a 16:9 stage with large type, no menus · ideal for projectors and oral exams · tap = reveal / next, swipe = back · ✕ ends it · real fullscreen works on iPad, not on iPhone (there the bars are hidden instead — best as home-screen app, rotate to landscape)'],
-      ['🤿', `<strong>${SPIEL_NAME}</strong> — Learn together, playfully. Not a quiz duel, but a conversation game. In Dice-Mode the dice roll you through the set. · green button under "Start learning": the same stage with a score column · the group reveals a card, then you tap <em>Who knew it?</em> · +1 point (a switch gives −1 if needed, never below 0), nothing is saved · 🎲 Dice-Mode calls someone at random · ⏱ optional countdown · 🎯 guessing mode: the group sees four answers per card and votes by show of hands (off / this card only / always) · for your own cards: Backup → "AI briefing for guessing questions" · ? in the game shows the short rules`],
+      ['🤿', `<strong>${SPIEL_NAME}</strong> — Learn together, playfully. Not a quiz duel, but a conversation game. In Dice-Mode the dice roll you through the set. · green button under "Start learning": the same stage with a score column · the group reveals a card, then you tap <em>Who knew it?</em> · +1 point (a switch gives −1 if needed, never below 0) · only the progress is remembered on this device, no names or points · 🎲 Dice-Mode calls someone at random · ⏱ optional countdown · 🎯 guessing mode: the group sees four answers per card and votes by show of hands (off / this card only / always) · for your own cards: Backup → "AI briefing for guessing questions" · ? in the game shows the short rules`],
       ['🗣️', '<strong>Discuss with Claude</strong> — Send the current card, or your whole selection, to Claude for a deeper conversation about the topic · copies to clipboard and opens claude.ai in a new tab'],
     ]},
     { title: '⚙️ Manage', rows: [
@@ -859,7 +859,7 @@ function getHelpHtml() {
       ['⭐', '<strong>Favoriten</strong> — Stern antippen markiert eine Karte als Favorit · unter SICHERUNG gezielt als Favoriten-Gruppe exportieren'],
       ['🤏', '<strong>Fotos zoomen</strong> — mit zwei Fingern in ein Foto hineinzoomen (auch bei Fotos auf der Rückseite von Begriff-Karten) · mit zwei Fingern verschieben · Doppeltipp setzt den Zoom zurück'],
       ['⛶', '<strong>Fullscreen 16:9</strong> — Button neben „Lernen starten": zeigt deine Auswahl im Vollbild auf einer 16:9-Bühne mit großer Schrift, ohne Menüs · ideal für Beamer und Prüfungsgespräche · Tippen = aufdecken / weiter, Wischen = zurück · ✕ beendet · Vollbild geht auf dem iPad, auf dem iPhone nicht (dort werden stattdessen alle Leisten ausgeblendet — am besten als Home-Bildschirm-App, Handy quer halten)'],
-      ['🤿', `<strong>${SPIEL_NAME}</strong> — Lernt gemeinsam spielerisch. Kein Quiz-Duell, sondern ein Gesprächsspiel. Im Dice-Mode würfelt ihr euch durchs Set. · grüner Knopf unter „Lernen starten": dieselbe Bühne mit Punktespalte · die Gruppe deckt eine Karte auf, du tippst <em>Wer hat\'s gewusst?</em> · +1 Punkt (per Schalter auch −1, nie unter 0), nichts wird gespeichert · 🎲 Dice-Mode ruft zufällig jemanden auf · ⏱ optionaler Countdown · 🎯 Raten-Modus: Die Gruppe sieht pro Karte vier Antworten und stimmt per Handzeichen ab (aus / nur diese Karte / immer) · für eigene Karten: Sicherung → „KI-Briefing für Rate-Fragen“ · ? im Spiel zeigt die kurzen Regeln`],
+      ['🤿', `<strong>${SPIEL_NAME}</strong> — Lernt gemeinsam spielerisch. Kein Quiz-Duell, sondern ein Gesprächsspiel. Im Dice-Mode würfelt ihr euch durchs Set. · grüner Knopf unter „Lernen starten": dieselbe Bühne mit Punktespalte · die Gruppe deckt eine Karte auf, du tippst <em>Wer hat\'s gewusst?</em> · +1 Punkt (per Schalter auch −1, nie unter 0) · gemerkt wird nur der Fortschritt auf diesem Gerät, keine Namen oder Punkte · 🎲 Dice-Mode ruft zufällig jemanden auf · ⏱ optionaler Countdown · 🎯 Raten-Modus: Die Gruppe sieht pro Karte vier Antworten und stimmt per Handzeichen ab (aus / nur diese Karte / immer) · für eigene Karten: Sicherung → „KI-Briefing für Rate-Fragen“ · ? im Spiel zeigt die kurzen Regeln`],
       ['🗣️', '<strong>Mit Claude besprechen</strong> — aktuelle Karte oder die ganze Auswahl an Claude übergeben, um das Thema im Gespräch zu vertiefen · kopiert in die Zwischenablage und öffnet claude.ai in neuem Tab'],
     ]},
     { title: '⚙️ Verwaltung', rows: [
@@ -2918,7 +2918,7 @@ function zeigeKarte() {
     aufdeckBtn.textContent = t('begriff_zeigen');
   }
   starteAutoTimer();
-  if (spielAktiv) spielKarteAngezeigt();
+  if (spielAktiv) spielKarteAngezeigt(); else mdSpeichern();
 }
 
 function zeigeName(wertung) {
@@ -3005,7 +3005,8 @@ function naechsteKarteOderEnde() {
 
 async function zeigeEnde() {
   stoppeAutoTimer();
-  if (spielAktiv) { mdAbschliessen(); spielPodium(true); return; }   // Spiel: Auswertung statt Ergebnis-Seite, keine Statistik
+  mdAbschliessen();   // fertig: nichts mehr fortzusetzen
+  if (spielAktiv) { spielPodium(true); return; }   // Spiel: Auswertung statt Ergebnis-Seite, keine Statistik
   gebeWakeLockFrei();
   if (!autoRepeat) beendePraesentation();
   await speichereSitzung();
@@ -3027,6 +3028,7 @@ async function zeigeEnde() {
   if (nachBtn) nachBtn.classList.toggle('hidden', nichtGewusst === 0);
 }
 
+let lernStand = null, lernStandNaechster = null;   // {key,id} für „Lernen fortsetzen“ (key beginnt mit 'L:')
 let lernKartenOriginal = []; // unsortierte Ursprungsreihenfolge
 let lernIstGemischt    = true;
 
@@ -3041,11 +3043,12 @@ function aktualisiereMischenBtn() {
   }
 }
 
-function starteSession(karten, shuffle = true, startIndex = 0) {
+function starteSession(karten, shuffle = true, startIndex = 0, alsGemischt = false) {
   stoppeAutoTimer();
+  lernStand = lernStandNaechster; lernStandNaechster = null;   // Fortschritt nur für Starts aus der Auswahl merken
   try { lsStempel('kurssetZuletzt', [...new Set(karten.map(k => k.kurssetId).filter(Boolean))]); } catch (_) {}
   lernKartenOriginal = [...karten];
-  lernIstGemischt    = shuffle;
+  lernIstGemischt    = shuffle || alsGemischt;
   lernKarten         = shuffle ? mischen([...karten]) : [...karten];
   lernIndex    = startIndex;
   gewusst      = 0;
@@ -4625,7 +4628,22 @@ function starteAusAuswahl() {
   starteSession(karten, !isTutorial);
   return true;
 }
-document.getElementById('btn-lernen-start').addEventListener('click', starteAusAuswahl);
+// „Lernen starten“ / Fullscreen: gespeicherten Stand anbieten (nur Auswahl ohne Tutorial)
+async function starteLernenMitStand(vollbild) {
+  const gids = getSelectedGids();
+  if (!gids.length) return;
+  let wahl = { aktion: 'neu' }, key = null;
+  if (!gids.some(g => String(g).startsWith('tutorial-'))) {
+    key = 'L:' + [...gids].sort().join('|');
+    wahl = await mdWaehle(key, 'lern');
+    if (!wahl) return;
+    lernStandNaechster = { key, id: wahl.stand?.id || ('ls' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)) };
+  }
+  const ok = wahl.aktion === 'weiter' ? starteAusStand(wahl.stand, true) : starteAusAuswahl();
+  lernStandNaechster = null;
+  if (ok && vollbild) betretePraesentation();
+}
+document.getElementById('btn-lernen-start').addEventListener('click', () => starteLernenMitStand(false));
 
 // ── Fullscreen 16:9 (Präsentationsansicht für Beamer/Prüfungsgespräche) ──
 let praesentationAktiv = false;
@@ -4743,7 +4761,7 @@ function beendePraesentation() {
 }
 
 document.getElementById('btn-fullscreen169').addEventListener('click', () => {
-  if (starteAusAuswahl()) betretePraesentation();
+  starteLernenMitStand(true);
 });
 // ── MemoDive: Fortschritt merken und fortsetzen (nur Karten-IDs und Position, keine Namen) ──
 const MD_STAND_KEY = 'memodiveStaende', MD_STAND_MAX = 3, MD_STAND_TAGE = 90;
@@ -4777,28 +4795,35 @@ function mdLabel(karten) {
   const namen = ids.map(id => { const s = sammlungen.find(x => x.id === id); return s ? mdKuerzel((istEn() && s.name_en) || s.name) : ''; }).filter(Boolean);
   return namen.length > 3 ? namen.slice(0, 2).join(', ') + ' +' + (namen.length - 2) : namen.join(', ');
 }
+function mdKontext() {   // wohin gehört der Fortschritt: MemoDive oder normales Lernen?
+  if (spielAktiv) return spiel.standKey ? { key: spiel.standKey, id: spiel.standId } : null;
+  return lernStand;
+}
 function mdSpeichern() {
-  if (!spielAktiv || !spiel.standKey || !lernKarten.length) return;
+  const c = mdKontext();
+  if (!c || !lernKarten.length) return;
+  const lern = c.key.startsWith('L:');
   const m = mdStaende();
-  let l = (m[spiel.standKey] || []).filter(e => e.id !== spiel.standId);
-  if (lernIndex >= 1 && lernIndex < lernKarten.length) {
-    l.unshift({ id: spiel.standId, t: Date.now(), ids: lernKarten.map(k => k.id), i: lernIndex, label: mdLabel(lernKarten) });
-    l = l.slice(0, MD_STAND_MAX);
+  let l = (m[c.key] || []).filter(e => e.id !== c.id);
+  if (lernIndex >= 1 && lernIndex < lernKarten.length - (lern ? 1 : 0)) {
+    l.unshift({ id: c.id, t: Date.now(), ids: lernKarten.map(k => k.id), i: lernIndex, label: mdLabel(lernKarten) });
+    l = l.slice(0, lern ? 1 : MD_STAND_MAX);
   }
-  if (l.length) m[spiel.standKey] = l; else delete m[spiel.standKey];
+  if (l.length) m[c.key] = l; else delete m[c.key];
   mdSchreiben(m);
 }
-function mdAbschliessen() {   // fertig gespielt: nichts mehr fortzusetzen
-  if (!spiel.standKey) return;
+function mdAbschliessen() {   // fertig: nichts mehr fortzusetzen
+  const c = mdKontext();
+  if (!c) return;
   const m = mdStaende();
-  if (m[spiel.standKey]) { m[spiel.standKey] = m[spiel.standKey].filter(e => e.id !== spiel.standId); if (!m[spiel.standKey].length) delete m[spiel.standKey]; mdSchreiben(m); }
+  if (m[c.key]) { m[c.key] = m[c.key].filter(e => e.id !== c.id); if (!m[c.key].length) delete m[c.key]; mdSchreiben(m); }
 }
 function mdDatum(t) {
   const d = new Date(t);
   return istEn() ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : `${d.getDate()}.${d.getMonth() + 1}.`;
 }
 // Fragt, ob ein gespeicherter Stand fortgesetzt werden soll. -> {aktion:'neu'} | {aktion:'weiter', stand} | null (abgebrochen)
-function mdWaehle(key) {
+function mdWaehle(key, art) {
   if (!(mdStaende()[key] || []).length) return Promise.resolve({ aktion: 'neu' });
   return new Promise(resolve => {
     const wrap = document.createElement('div');
@@ -4806,7 +4831,7 @@ function mdWaehle(key) {
     const zeichne = () => {
       const l = mdStaende()[key] || [];
       if (!l.length) { wrap.remove(); resolve({ aktion: 'neu' }); return; }
-      wrap.innerHTML = `<div class="modal"><div class="modal-header"><h2>${esc(t('md_titel'))}</h2><button class="btn-modal-close" type="button" aria-label="${esc(t('beenden'))}">✕</button></div>
+      wrap.innerHTML = `<div class="modal"><div class="modal-header"><h2>${esc(t(art === 'lern' ? 'lst_titel' : 'md_titel'))}</h2><button class="btn-modal-close" type="button" aria-label="${esc(t('beenden'))}">✕</button></div>
         <div class="modal-body">${l.map(e => `<div class="md-zeile"><button class="btn-secondary md-weiter" type="button" data-id="${esc(e.id)}">▶ ${esc(tf('md_weiter', e.label || '', e.i + 1, e.ids.length, mdDatum(e.t)))}</button><button class="btn-kursset-del md-del" type="button" data-id="${esc(e.id)}" title="${esc(t('md_loeschen'))}" aria-label="${esc(t('md_loeschen'))}">✕</button></div>`).join('')}
         <button class="btn-primary btn-large md-neu" type="button">${esc(t('md_neu'))}</button></div></div>`;
     };
@@ -4822,7 +4847,7 @@ function mdWaehle(key) {
   });
 }
 // Karten in gespeicherter Reihenfolge ab gespeicherter Position; gelöschte Karten entfallen, neue kommen ans Ende
-function starteAusStand(stand) {
+function starteAusStand(stand, lern = false) {
   const alle = new Map();
   getSelectedGids().forEach(gid => getKartenFuerGid(gid).forEach(s => alle.set(s.id, s)));
   const behalten = stand.ids.map(id => alle.get(id));
@@ -4832,7 +4857,7 @@ function starteAusStand(stand) {
   const index = Math.min(behalten.slice(0, stand.i).filter(Boolean).length, Math.max(0, karten.length - 1));
   if (!karten.length) return false;
   document.getElementById('lernen-auswahl').classList.add('hidden');
-  starteSession(karten, false, index);
+  starteSession(karten, false, index, lern);
   if (fehlend) toast(tf('md_entfallen', fehlend));
   return true;
 }
@@ -4844,6 +4869,7 @@ document.getElementById('btn-spiel')?.addEventListener('click', async () => {
   if (!wahl) return;
   const ok = wahl.aktion === 'weiter' ? starteAusStand(wahl.stand) : starteAusAuswahl();
   if (!ok) return;
+  lernStand = null;
   spielStandKontext = { key, id: wahl.stand?.id || ('md' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)) };
   betretePraesentation(); spielStarten();
 });
@@ -5811,10 +5837,10 @@ const TUTORIAL_START = [
          'Under **LEARN** you choose groups – also single subgroups of a set – and the mode:\n\n- **Normal**: term or image first · **Reversed**: info first\n- **⭐** marks favorites, **Weakest** practises what you often looked up\n- **Discuss with Claude** opens a conversation about the current card',
          'Short rounds, repeated often, beat one long session.'] },
   { de: ['MemoDive: gemeinsam lernen',
-         'Der grüne Knopf **🤿 MemoDive** unter „Lernen starten“ macht aus dem Set ein Gruppenspiel.\n\n- Die Gruppe deckt eine Karte auf, du tippst **Wer hat\'s gewusst?**\n- **🎲** würfelt, wer dran ist\n- **🎯** schaltet Rate-Fragen mit vier Antworten dazu (aus · nur diese Karte · immer)\n- Nichts wird gespeichert',
+         'Der grüne Knopf **🤿 MemoDive** unter „Lernen starten“ macht aus dem Set ein Gruppenspiel.\n\n- Die Gruppe deckt eine Karte auf, du tippst **Wer hat\'s gewusst?**\n- **🎲** würfelt, wer dran ist\n- **🎯** schaltet Rate-Fragen mit vier Antworten dazu (aus · nur diese Karte · immer)\n- Gemerkt wird nur der Fortschritt auf diesem Gerät, keine Namen oder Punkte',
          'Kein Quiz-Duell, sondern ein Gesprächsspiel.'],
     en: ['MemoDive: learning together',
-         'The green **🤿 MemoDive** button under “Start learning” turns the set into a group game.\n\n- The group reveals a card, you tap **Who knew it?**\n- **🎲** rolls who is up\n- **🎯** adds guessing questions with four answers (off · this card only · always)\n- Nothing is saved',
+         'The green **🤿 MemoDive** button under “Start learning” turns the set into a group game.\n\n- The group reveals a card, you tap **Who knew it?**\n- **🎲** rolls who is up\n- **🎯** adds guessing questions with four answers (off · this card only · always)\n- Only the progress is remembered on this device, no names or points',
          'Not a quiz duel, but a conversation game.'] },
   { de: ['Statistik',
          'Unter **STATISTIK** siehst du, wie oft du Karten nachgeschaut hast.\n\n- **Schwierigste Karten** zuerst, mit „zuletzt“-Datum\n- **30 Tage** oder **Alle**\n- **Schwächste Karten jetzt üben** startet eine Runde',
