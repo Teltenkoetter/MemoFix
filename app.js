@@ -153,6 +153,8 @@ const TRANS = {
     toast_kursset_entfernt: (name, n) => `„${name}" entfernt (${n} Karten)`,
     kursset_speicher: (u, q) => `Belegt auf diesem Gerät: ca. ${u} MB${q ? ' von ' + q : ''}`,
     kursset_laedt: (i, n) => n > 1 ? `Lädt Teil ${i}/${n} …` : 'Lädt …',
+    md_titel: '▶ MemoDive fortsetzen?', md_weiter: (l, i, n, d) => `Fortsetzen: ${l} · Karte ${i} von ${n} · ${d}`, md_neu: 'Neu starten', md_loeschen: 'Stand löschen',
+    md_entfallen: (n) => `${n} Karte${n !== 1 ? 'n' : ''} gibt es nicht mehr und ${n !== 1 ? 'wurden' : 'wurde'} übersprungen`,
     pw_titel: '🔒 Passwort für dieses Set', pw_text: (n) => `„${n}“ ist passwortgeschützt. Das Passwort hast du von der Kursleitung bekommen.`,
     pw_label: 'Passwort', pw_merken: 'Auf diesem Gerät merken (damit Updates ohne neue Eingabe laufen)', pw_ok: 'Entsperren', pw_abbrechen: 'Abbrechen',
     pw_falsch: 'Passwort falsch', pw_pruefe: 'Prüfe …', pw_geschuetzt: 'Passwortgeschützt', pw_alt: 'Dieser Browser kann geschützte Sets nicht öffnen (bitte aktualisieren).',
@@ -417,6 +419,8 @@ const TRANS = {
     toast_kursset_entfernt: (name, n) => `"${name}" removed (${n} cards)`,
     kursset_speicher: (u, q) => `Used on this device: approx. ${u} MB${q ? ' of ' + q : ''}`,
     kursset_laedt: (i, n) => n > 1 ? `Loading part ${i}/${n} …` : 'Loading …',
+    md_titel: '▶ Continue MemoDive?', md_weiter: (l, i, n, d) => `Continue: ${l} · card ${i} of ${n} · ${d}`, md_neu: 'Start over', md_loeschen: 'Delete progress',
+    md_entfallen: (n) => `${n} card${n !== 1 ? 's' : ''} no longer exist${n !== 1 ? '' : 's'} and ${n !== 1 ? 'were' : 'was'} skipped`,
     pw_titel: '🔒 Password for this set', pw_text: (n) => `"${n}" is password protected. You received the password from your instructor.`,
     pw_label: 'Password', pw_merken: 'Remember on this device (so updates need no new entry)', pw_ok: 'Unlock', pw_abbrechen: 'Cancel',
     pw_falsch: 'Wrong password', pw_pruefe: 'Checking …', pw_geschuetzt: 'Password protected', pw_alt: 'This browser cannot open protected sets (please update it).',
@@ -3001,7 +3005,7 @@ function naechsteKarteOderEnde() {
 
 async function zeigeEnde() {
   stoppeAutoTimer();
-  if (spielAktiv) { spielPodium(true); return; }   // Spiel: Auswertung statt Ergebnis-Seite, keine Statistik
+  if (spielAktiv) { mdAbschliessen(); spielPodium(true); return; }   // Spiel: Auswertung statt Ergebnis-Seite, keine Statistik
   gebeWakeLockFrei();
   if (!autoRepeat) beendePraesentation();
   await speichereSitzung();
@@ -3037,13 +3041,13 @@ function aktualisiereMischenBtn() {
   }
 }
 
-function starteSession(karten, shuffle = true) {
+function starteSession(karten, shuffle = true, startIndex = 0) {
   stoppeAutoTimer();
   try { lsStempel('kurssetZuletzt', [...new Set(karten.map(k => k.kurssetId).filter(Boolean))]); } catch (_) {}
   lernKartenOriginal = [...karten];
   lernIstGemischt    = shuffle;
   lernKarten         = shuffle ? mischen([...karten]) : [...karten];
-  lernIndex    = 0;
+  lernIndex    = startIndex;
   gewusst      = 0;
   nichtGewusst = 0;
   isAnimating  = false;
@@ -4529,12 +4533,12 @@ document.getElementById('select-karten-sort').addEventListener('change', () => r
 // ============================================================
 
 // Lernmodus-Toggle
+function setLernModus(m) {
+  lernModus = m;
+  document.querySelectorAll('.lernmodus-btn').forEach(b => b.classList.toggle('active', b.dataset.modus === m));
+}
 document.querySelectorAll('.lernmodus-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    lernModus = btn.dataset.modus;
-    document.querySelectorAll('.lernmodus-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  });
+  btn.addEventListener('click', () => setLernModus(btn.dataset.modus));
 });
 
 document.getElementById('gruppen-checkboxen').addEventListener('click', e => {
@@ -4741,8 +4745,107 @@ function beendePraesentation() {
 document.getElementById('btn-fullscreen169').addEventListener('click', () => {
   if (starteAusAuswahl()) betretePraesentation();
 });
-document.getElementById('btn-spiel')?.addEventListener('click', () => {
-  if (starteAusAuswahl()) { betretePraesentation(); spielStarten(); }
+// ── MemoDive: Fortschritt merken und fortsetzen (nur Karten-IDs und Position, keine Namen) ──
+const MD_STAND_KEY = 'memodiveStaende', MD_STAND_MAX = 3, MD_STAND_TAGE = 90;
+let spielStandKontext = null;   // {key, id} für das nächste spielStarten()
+function mdStaende() {
+  const m = lsJson(MD_STAND_KEY), grenze = Date.now() - MD_STAND_TAGE * 864e5;
+  for (const k of Object.keys(m)) {
+    const l = (Array.isArray(m[k]) ? m[k] : []).filter(e => e && e.t > grenze && Array.isArray(e.ids) && e.ids.length);
+    if (l.length) m[k] = l; else delete m[k];
+  }
+  return m;
+}
+function mdSchreiben(m) { try { localStorage.setItem(MD_STAND_KEY, JSON.stringify(m)); } catch (_) {} }
+// "DE1 Rhino Commands" -> "DE1 RC": Wörter mit Ziffer oder nur Großbuchstaben bleiben, die übrigen werden zum Anfangsbuchstaben
+function mdKuerzel(name) {
+  name = String(name || '').trim();
+  const w = name.split(/\s+/).filter(Boolean);
+  if (w.length >= 2 && w.some(x => /\d/.test(x))) {
+    const out = []; let ini = '';
+    for (const x of w) {
+      if (/\d/.test(x) || (x === x.toUpperCase() && /[A-ZÄÖÜ]/.test(x))) { if (ini) { out.push(ini); ini = ''; } out.push(x); }
+      else ini += x[0].toLocaleUpperCase();
+    }
+    if (ini) out.push(ini);
+    return out.join(' ');
+  }
+  return name.length > 16 ? name.slice(0, 15).trimEnd() + '…' : name;
+}
+function mdLabel(karten) {
+  const ids = [...new Set(karten.map(k => gruppen.find(g => g.id === k.gruppeId)?.sammlungId).filter(Boolean))];
+  const namen = ids.map(id => { const s = sammlungen.find(x => x.id === id); return s ? mdKuerzel((istEn() && s.name_en) || s.name) : ''; }).filter(Boolean);
+  return namen.length > 3 ? namen.slice(0, 2).join(', ') + ' +' + (namen.length - 2) : namen.join(', ');
+}
+function mdSpeichern() {
+  if (!spielAktiv || !spiel.standKey || !lernKarten.length) return;
+  const m = mdStaende();
+  let l = (m[spiel.standKey] || []).filter(e => e.id !== spiel.standId);
+  if (lernIndex >= 1 && lernIndex < lernKarten.length) {
+    l.unshift({ id: spiel.standId, t: Date.now(), ids: lernKarten.map(k => k.id), i: lernIndex, label: mdLabel(lernKarten) });
+    l = l.slice(0, MD_STAND_MAX);
+  }
+  if (l.length) m[spiel.standKey] = l; else delete m[spiel.standKey];
+  mdSchreiben(m);
+}
+function mdAbschliessen() {   // fertig gespielt: nichts mehr fortzusetzen
+  if (!spiel.standKey) return;
+  const m = mdStaende();
+  if (m[spiel.standKey]) { m[spiel.standKey] = m[spiel.standKey].filter(e => e.id !== spiel.standId); if (!m[spiel.standKey].length) delete m[spiel.standKey]; mdSchreiben(m); }
+}
+function mdDatum(t) {
+  const d = new Date(t);
+  return istEn() ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : `${d.getDate()}.${d.getMonth() + 1}.`;
+}
+// Fragt, ob ein gespeicherter Stand fortgesetzt werden soll. -> {aktion:'neu'} | {aktion:'weiter', stand} | null (abgebrochen)
+function mdWaehle(key) {
+  if (!(mdStaende()[key] || []).length) return Promise.resolve({ aktion: 'neu' });
+  return new Promise(resolve => {
+    const wrap = document.createElement('div');
+    wrap.className = 'modal-backdrop pw-dialog md-dialog';
+    const zeichne = () => {
+      const l = mdStaende()[key] || [];
+      if (!l.length) { wrap.remove(); resolve({ aktion: 'neu' }); return; }
+      wrap.innerHTML = `<div class="modal"><div class="modal-header"><h2>${esc(t('md_titel'))}</h2><button class="btn-modal-close" type="button" aria-label="${esc(t('beenden'))}">✕</button></div>
+        <div class="modal-body">${l.map(e => `<div class="md-zeile"><button class="btn-secondary md-weiter" type="button" data-id="${esc(e.id)}">▶ ${esc(tf('md_weiter', e.label || '', e.i + 1, e.ids.length, mdDatum(e.t)))}</button><button class="btn-kursset-del md-del" type="button" data-id="${esc(e.id)}" title="${esc(t('md_loeschen'))}" aria-label="${esc(t('md_loeschen'))}">✕</button></div>`).join('')}
+        <button class="btn-primary btn-large md-neu" type="button">${esc(t('md_neu'))}</button></div></div>`;
+    };
+    wrap.addEventListener('click', e => {
+      const m = mdStaende(), l = m[key] || [];
+      const weiter = e.target.closest('.md-weiter'), del = e.target.closest('.md-del');
+      if (weiter) { const st = l.find(x => x.id === weiter.dataset.id); wrap.remove(); resolve(st ? { aktion: 'weiter', stand: st } : { aktion: 'neu' }); }
+      else if (del) { m[key] = l.filter(x => x.id !== del.dataset.id); if (!m[key].length) delete m[key]; mdSchreiben(m); zeichne(); }
+      else if (e.target.closest('.md-neu')) { wrap.remove(); resolve({ aktion: 'neu' }); }
+      else if (e.target.closest('.btn-modal-close') || e.target === wrap) { wrap.remove(); resolve(null); }
+    });
+    document.body.appendChild(wrap); zeichne();
+  });
+}
+// Karten in gespeicherter Reihenfolge ab gespeicherter Position; gelöschte Karten entfallen, neue kommen ans Ende
+function starteAusStand(stand) {
+  const alle = new Map();
+  getSelectedGids().forEach(gid => getKartenFuerGid(gid).forEach(s => alle.set(s.id, s)));
+  const behalten = stand.ids.map(id => alle.get(id));
+  const fehlend = behalten.filter(k => !k).length;
+  const neu = [...alle.values()].filter(k => !stand.ids.includes(k.id));
+  const karten = [...behalten.filter(Boolean), ...neu];
+  const index = Math.min(behalten.slice(0, stand.i).filter(Boolean).length, Math.max(0, karten.length - 1));
+  if (!karten.length) return false;
+  document.getElementById('lernen-auswahl').classList.add('hidden');
+  starteSession(karten, false, index);
+  if (fehlend) toast(tf('md_entfallen', fehlend));
+  return true;
+}
+document.getElementById('btn-spiel')?.addEventListener('click', async () => {
+  const gids = getSelectedGids();
+  if (!gids.length) return;
+  const key = [...gids].sort().join('|');
+  const wahl = await mdWaehle(key);
+  if (!wahl) return;
+  const ok = wahl.aktion === 'weiter' ? starteAusStand(wahl.stand) : starteAusAuswahl();
+  if (!ok) return;
+  spielStandKontext = { key, id: wahl.stand?.id || ('md' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)) };
+  betretePraesentation(); spielStarten();
 });
 window.addEventListener('resize', praesiAutofitPlanen);
 window.addEventListener('orientationchange', praesiAutofitPlanen);
@@ -6549,8 +6652,12 @@ function spielStarten() {
   spielAktiv = true;
   spiel.namen = []; spiel.klasse = 0; spiel.wuerfel = false; spiel.aktuell = null; spiel.helfer = false;
   spiel.vergeben = new Set(); spiel.verlauf = []; spiel.zeit = 0;
+  // MemoDive startet immer mit Standardeinstellungen; die Einstellungen der Kartei kommen beim Beenden zurück
+  spiel.standKey = spielStandKontext?.key || null; spiel.standId = spielStandKontext?.id || null; spielStandKontext = null;
+  spiel.gemerkt = { modus: lernModus, timer: timerSekunden, repeat: autoRepeat };
   if (timerSekunden) setTimerSekunden(0);
   if (autoRepeat) setAutoRepeat(false);
+  if (lernModus !== 'foto') { setLernModus('foto'); zeigeKarte(); }
   document.body.classList.add('spiel');
 
   const flash = document.getElementById('lernen-flashcard');
@@ -6588,6 +6695,13 @@ function spielAufraeumen() {
   ['spiel-hud', 'spiel-wer', 'spiel-banner', 'spiel-raten', 'spiel-zeitbalken', 'spiel-tron', 'spiel-podium', 'spiel-modal', 'spiel-kb', 'spiel-emoji', 'spiel-menue'].forEach(id => document.getElementById(id)?.remove());
   spiel.namen = []; spiel.verlauf = []; spiel.vergeben = new Set(); spiel.klasse = 0; spiel.aktuell = null;
   spiel.raten = 0; spiel.ratenId = null; spiel.ratenGew = null;
+  spiel.standKey = null; spiel.standId = null;
+  if (spiel.gemerkt) {
+    const g = spiel.gemerkt; spiel.gemerkt = null;
+    setLernModus(g.modus);
+    if (g.timer) setTimerSekunden(g.timer);
+    if (g.repeat) setAutoRepeat(true);
+  }
 }
 
 // ── Anzeige ──────────────────────────────────────────────────
@@ -6755,6 +6869,7 @@ function spielWuerfeln(ausser) {
 
 function spielKarteAngezeigt() {
   if (!spielAktiv) return;
+  mdSpeichern();
   spielZeitStop();
   spiel.helfer = false;
   spiel.aktuell = null;
