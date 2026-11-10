@@ -2780,3 +2780,15 @@ header::after { display: none; }
 .md-zeile { display: flex; gap: 0.5rem; align-items: stretch; margin-bottom: 0.5rem; }
 .md-weiter { flex: 1; text-align: left; line-height: 1.35; }
 .md-dialog .md-neu { margin-top: 0.6rem; }
+
+/* Klick auf „MemoFix“: Fortsetzen + Zuletzt genutzt */
+header h1.logo-klick { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+header h1.logo-klick:focus-visible { outline: 2px solid var(--accent, currentColor); outline-offset: 3px; border-radius: 4px; }
+.ml-dialog .ml-kopf { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.6; margin: 0.9rem 0 0.4rem; font-weight: 600; }
+.ml-dialog .ml-kopf:first-child { margin-top: 0; }
+.ml-dialog .ml-name { flex: 1; min-width: 0; align-self: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ml-dialog .ml-mini { flex: 0 0 auto; padding: 0.35rem 0.7rem; }
+.ml-dialog .ml-leer { opacity: 0.7; line-height: 1.5; margin: 0.2rem 0 0.8rem; }
+.ml-dialog .ml-version { opacity: 0.45; font-size: 0.72rem; text-align: center; margin: 1.1rem 0 0; }
+.ml-dialog h2 { font-size: 1.05rem; }
+.sp-hud-btn.sp-lang { font-size: 0.8em; font-weight: 700; letter-spacing: 0.02em; }

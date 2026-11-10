@@ -153,7 +153,7 @@ const TRANS = {
     toast_kursset_entfernt: (name, n) => `„${name}" entfernt (${n} Karten)`,
     kursset_speicher: (u, q) => `Belegt auf diesem Gerät: ca. ${u} MB${q ? ' von ' + q : ''}`,
     kursset_laedt: (i, n) => n > 1 ? `Lädt Teil ${i}/${n} …` : 'Lädt …',
-    md_titel: '▶ MemoDive fortsetzen?', lst_titel: '▶ Lernen fortsetzen?', md_weiter: (l, i, n, d) => `Fortsetzen: ${l} · Karte ${i} von ${n} · ${d}`, md_neu: 'Neu starten', md_loeschen: 'Stand löschen',
+    md_titel: '▶ MemoDive fortsetzen?', ml_fortsetzen: 'Fortsetzen', ml_zuletzt: 'Zuletzt genutzt', ml_leer: 'Noch nichts gespeichert. Hier erscheinen deine letzten Auswahlen und angefangene Runden.', ml_karten: (n) => `${n} Karte${n !== 1 ? 'n' : ''}`, ml_lernen: 'Lernen', ml_stand: (l, i, n, d) => `${l} · Karte ${i} von ${n} · ${d}`, ml_version: 'Stand', ml_weg: 'Diese Gruppen gibt es nicht mehr', lst_titel: '▶ Lernen fortsetzen?', md_weiter: (l, i, n, d) => `Fortsetzen: ${l} · Karte ${i} von ${n} · ${d}`, md_neu: 'Neu starten', md_loeschen: 'Stand löschen',
     md_entfallen: (n) => `${n} Karte${n !== 1 ? 'n' : ''} gibt es nicht mehr und ${n !== 1 ? 'wurden' : 'wurde'} übersprungen`,
     pw_titel: '🔒 Passwort für dieses Set', pw_text: (n) => `„${n}“ ist passwortgeschützt. Das Passwort hast du von der Kursleitung bekommen.`,
     pw_label: 'Passwort', pw_merken: 'Auf diesem Gerät merken (damit Updates ohne neue Eingabe laufen)', pw_ok: 'Entsperren', pw_abbrechen: 'Abbrechen',
@@ -419,7 +419,7 @@ const TRANS = {
     toast_kursset_entfernt: (name, n) => `"${name}" removed (${n} cards)`,
     kursset_speicher: (u, q) => `Used on this device: approx. ${u} MB${q ? ' of ' + q : ''}`,
     kursset_laedt: (i, n) => n > 1 ? `Loading part ${i}/${n} …` : 'Loading …',
-    md_titel: '▶ Continue MemoDive?', lst_titel: '▶ Continue learning?', md_weiter: (l, i, n, d) => `Continue: ${l} · card ${i} of ${n} · ${d}`, md_neu: 'Start over', md_loeschen: 'Delete progress',
+    md_titel: '▶ Continue MemoDive?', ml_fortsetzen: 'Continue', ml_zuletzt: 'Recently used', ml_leer: 'Nothing saved yet. Your latest selections and unfinished rounds will show up here.', ml_karten: (n) => `${n} card${n !== 1 ? 's' : ''}`, ml_lernen: 'Learn', ml_stand: (l, i, n, d) => `${l} · card ${i} of ${n} · ${d}`, ml_version: 'Version', ml_weg: 'These groups no longer exist', lst_titel: '▶ Continue learning?', md_weiter: (l, i, n, d) => `Continue: ${l} · card ${i} of ${n} · ${d}`, md_neu: 'Start over', md_loeschen: 'Delete progress',
     md_entfallen: (n) => `${n} card${n !== 1 ? 's' : ''} no longer exist${n !== 1 ? '' : 's'} and ${n !== 1 ? 'were' : 'was'} skipped`,
     pw_titel: '🔒 Password for this set', pw_text: (n) => `"${n}" is password protected. You received the password from your instructor.`,
     pw_label: 'Password', pw_merken: 'Remember on this device (so updates need no new entry)', pw_ok: 'Unlock', pw_abbrechen: 'Cancel',
@@ -803,7 +803,7 @@ function getHelpHtml() {
       ['⭐', '<strong>Favourites</strong> — Tap the star to mark a card as favourite · export as Favourites group under BACKUP'],
       ['🤏', '<strong>Zoom photos</strong> — Pinch with two fingers to zoom into a photo (also photos on the back of term cards) · drag with two fingers to pan · double-tap to reset'],
       ['⛶', '<strong>Fullscreen 16:9</strong> — Button next to "Start learning": runs your selection full-screen on a 16:9 stage with large type, no menus · ideal for projectors and oral exams · tap = reveal / next, swipe = back · ✕ ends it · real fullscreen works on iPad, not on iPhone (there the bars are hidden instead — best as home-screen app, rotate to landscape)'],
-      ['🤿', `<strong>${SPIEL_NAME}</strong> — Learn together, playfully. Not a quiz duel, but a conversation game. In Dice-Mode the dice roll you through the set. · green button under "Start learning": the same stage with a score column · the group reveals a card, then you tap <em>Who knew it?</em> · +1 point (a switch gives −1 if needed, never below 0) · only the progress is remembered on this device, no names or points · 🎲 Dice-Mode calls someone at random · ⏱ optional countdown · 🎯 guessing mode: the group sees four answers per card and votes by show of hands (off / this card only / always) · for your own cards: Backup → "AI briefing for guessing questions" · ? in the game shows the short rules`],
+      ['🤿', `<strong>${SPIEL_NAME}</strong> — Learn together, playfully. Not a quiz duel, but a conversation game. In Dice-Mode the dice roll you through the set. · green button under "Start learning": the same stage with a score column · the group reveals a card, then you tap <em>Who knew it?</em> · +1 point (a switch gives −1 if needed, never below 0) · only the progress is remembered on this device, no names or points · 🎲 Dice-Mode calls someone at random · ⏱ optional countdown · 🎯 guessing mode: the group sees four answers per card and votes by show of hands (off / this card only / always) · for your own cards: Backup → "AI briefing for guessing questions" · EN/DE in the game switches the card language, e.g. for guests · ? in the game shows the short rules`],
       ['🗣️', '<strong>Discuss with Claude</strong> — Send the current card, or your whole selection, to Claude for a deeper conversation about the topic · copies to clipboard and opens claude.ai in a new tab'],
     ]},
     { title: '⚙️ Manage', rows: [
@@ -859,7 +859,7 @@ function getHelpHtml() {
       ['⭐', '<strong>Favoriten</strong> — Stern antippen markiert eine Karte als Favorit · unter SICHERUNG gezielt als Favoriten-Gruppe exportieren'],
       ['🤏', '<strong>Fotos zoomen</strong> — mit zwei Fingern in ein Foto hineinzoomen (auch bei Fotos auf der Rückseite von Begriff-Karten) · mit zwei Fingern verschieben · Doppeltipp setzt den Zoom zurück'],
       ['⛶', '<strong>Fullscreen 16:9</strong> — Button neben „Lernen starten": zeigt deine Auswahl im Vollbild auf einer 16:9-Bühne mit großer Schrift, ohne Menüs · ideal für Beamer und Prüfungsgespräche · Tippen = aufdecken / weiter, Wischen = zurück · ✕ beendet · Vollbild geht auf dem iPad, auf dem iPhone nicht (dort werden stattdessen alle Leisten ausgeblendet — am besten als Home-Bildschirm-App, Handy quer halten)'],
-      ['🤿', `<strong>${SPIEL_NAME}</strong> — Lernt gemeinsam spielerisch. Kein Quiz-Duell, sondern ein Gesprächsspiel. Im Dice-Mode würfelt ihr euch durchs Set. · grüner Knopf unter „Lernen starten": dieselbe Bühne mit Punktespalte · die Gruppe deckt eine Karte auf, du tippst <em>Wer hat\'s gewusst?</em> · +1 Punkt (per Schalter auch −1, nie unter 0) · gemerkt wird nur der Fortschritt auf diesem Gerät, keine Namen oder Punkte · 🎲 Dice-Mode ruft zufällig jemanden auf · ⏱ optionaler Countdown · 🎯 Raten-Modus: Die Gruppe sieht pro Karte vier Antworten und stimmt per Handzeichen ab (aus / nur diese Karte / immer) · für eigene Karten: Sicherung → „KI-Briefing für Rate-Fragen“ · ? im Spiel zeigt die kurzen Regeln`],
+      ['🤿', `<strong>${SPIEL_NAME}</strong> — Lernt gemeinsam spielerisch. Kein Quiz-Duell, sondern ein Gesprächsspiel. Im Dice-Mode würfelt ihr euch durchs Set. · grüner Knopf unter „Lernen starten": dieselbe Bühne mit Punktespalte · die Gruppe deckt eine Karte auf, du tippst <em>Wer hat\'s gewusst?</em> · +1 Punkt (per Schalter auch −1, nie unter 0) · gemerkt wird nur der Fortschritt auf diesem Gerät, keine Namen oder Punkte · 🎲 Dice-Mode ruft zufällig jemanden auf · ⏱ optionaler Countdown · 🎯 Raten-Modus: Die Gruppe sieht pro Karte vier Antworten und stimmt per Handzeichen ab (aus / nur diese Karte / immer) · für eigene Karten: Sicherung → „KI-Briefing für Rate-Fragen“ · EN/DE im Spiel wechselt die Sprache der Karte, z. B. für Gäste · ? im Spiel zeigt die kurzen Regeln`],
       ['🗣️', '<strong>Mit Claude besprechen</strong> — aktuelle Karte oder die ganze Auswahl an Claude übergeben, um das Thema im Gespräch zu vertiefen · kopiert in die Zwischenablage und öffnet claude.ai in neuem Tab'],
     ]},
     { title: '⚙️ Verwaltung', rows: [
@@ -2918,7 +2918,7 @@ function zeigeKarte() {
     aufdeckBtn.textContent = t('begriff_zeigen');
   }
   starteAutoTimer();
-  if (spielAktiv) spielKarteAngezeigt(); else mdSpeichern();
+  if (spielAktiv) { if (!spiel.sprache) spielKarteAngezeigt(); } else mdSpeichern();
 }
 
 function zeigeName(wertung) {
@@ -2978,11 +2978,11 @@ function zeigeName(wertung) {
     total > 0 ? (answeredIds.size / total * 100) + '%' : '0%';
 
   document.getElementById('btn-aufdecken').style.visibility = 'hidden';
-  zeigeFeedback(wertung === 'gewusst' ? 'gewusst' : 'nicht');
+  if (!(spielAktiv && spiel.sprache)) zeigeFeedback(wertung === 'gewusst' ? 'gewusst' : 'nicht');
   // Favorit-Button im Header: Zustand nach Aufdecken aktualisieren
   const lernFavBtn = document.getElementById('btn-lern-favorit');
   if (lernFavBtn) { lernFavBtn.classList.toggle('aktiv', !!s.favorit); }
-  if (spielAktiv) spielAufgedeckt();
+  if (spielAktiv && !spiel.sprache) spielAufgedeckt();
 }
 
 function naechsteKarteOderEnde() {
@@ -4613,8 +4613,8 @@ document.getElementById('btn-schwaeche-waehlen').addEventListener('click', async
   toast(tf('toast_schwaechste', schwacheKarten.length, label));
 });
 
-function starteAusAuswahl() {
-  const selectedGids = getSelectedGids();
+function starteAusAuswahl(gids) {
+  const selectedGids = gids || getSelectedGids();
   const seen = new Set();
   const karten = [];
   selectedGids.forEach(gid => {
@@ -4629,18 +4629,19 @@ function starteAusAuswahl() {
   return true;
 }
 // „Lernen starten“ / Fullscreen: gespeicherten Stand anbieten (nur Auswahl ohne Tutorial)
-async function starteLernenMitStand(vollbild) {
-  const gids = getSelectedGids();
+async function starteLernenMitStand(vollbild, gidsVorgabe, vorgabe) {
+  const gids = gidsVorgabe || getSelectedGids();
   if (!gids.length) return;
   let wahl = { aktion: 'neu' }, key = null;
   if (!gids.some(g => String(g).startsWith('tutorial-'))) {
     key = 'L:' + [...gids].sort().join('|');
-    wahl = await mdWaehle(key, 'lern');
+    wahl = vorgabe || await mdWaehle(key, 'lern');
     if (!wahl) return;
     lernStandNaechster = { key, id: wahl.stand?.id || ('ls' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)) };
   }
-  const ok = wahl.aktion === 'weiter' ? starteAusStand(wahl.stand, true) : starteAusAuswahl();
+  const ok = wahl.aktion === 'weiter' ? starteAusStand(wahl.stand, true, gids) : starteAusAuswahl(gids);
   lernStandNaechster = null;
+  if (ok) mlMerken(gids);
   if (ok && vollbild) betretePraesentation();
 }
 document.getElementById('btn-lernen-start').addEventListener('click', () => starteLernenMitStand(false));
@@ -4847,9 +4848,9 @@ function mdWaehle(key, art) {
   });
 }
 // Karten in gespeicherter Reihenfolge ab gespeicherter Position; gelöschte Karten entfallen, neue kommen ans Ende
-function starteAusStand(stand, lern = false) {
+function starteAusStand(stand, lern = false, gids = getSelectedGids()) {
   const alle = new Map();
-  getSelectedGids().forEach(gid => getKartenFuerGid(gid).forEach(s => alle.set(s.id, s)));
+  gids.forEach(gid => getKartenFuerGid(gid).forEach(s => alle.set(s.id, s)));
   const behalten = stand.ids.map(id => alle.get(id));
   const fehlend = behalten.filter(k => !k).length;
   const neu = [...alle.values()].filter(k => !stand.ids.includes(k.id));
@@ -4861,18 +4862,99 @@ function starteAusStand(stand, lern = false) {
   if (fehlend) toast(tf('md_entfallen', fehlend));
   return true;
 }
-document.getElementById('btn-spiel')?.addEventListener('click', async () => {
-  const gids = getSelectedGids();
+async function starteDive(gidsVorgabe, vorgabe) {
+  const gids = gidsVorgabe || getSelectedGids();
   if (!gids.length) return;
   const key = [...gids].sort().join('|');
-  const wahl = await mdWaehle(key);
+  const wahl = vorgabe || await mdWaehle(key);
   if (!wahl) return;
-  const ok = wahl.aktion === 'weiter' ? starteAusStand(wahl.stand) : starteAusAuswahl();
+  const ok = wahl.aktion === 'weiter' ? starteAusStand(wahl.stand, false, gids) : starteAusAuswahl(gids);
   if (!ok) return;
   lernStand = null;
+  mlMerken(gids);
   spielStandKontext = { key, id: wahl.stand?.id || ('md' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)) };
   betretePraesentation(); spielStarten();
-});
+}
+document.getElementById('btn-spiel')?.addEventListener('click', () => starteDive());
+
+// ── Klick auf „MemoFix“: Fortsetzen (gespeicherte Stände) + Zuletzt genutzt (letzte Auswahlen) ──
+const ML_KEY = 'memoZuletzt', ML_MAX = 3;
+function mlListe() { try { const l = JSON.parse(localStorage.getItem(ML_KEY) || '[]'); return Array.isArray(l) ? l.filter(e => e && Array.isArray(e.gids) && e.gids.length) : []; } catch (_) { return []; } }
+function mlKarten(gids) {
+  const seen = new Set(), out = [];
+  gids.forEach(gid => { if (gruppen.some(g => g.id === gid)) getKartenFuerGid(gid).forEach(k => { if (!seen.has(k.id)) { seen.add(k.id); out.push(k); } }); });
+  return out;
+}
+function mlMerken(gids) {
+  if (!gids.length || gids.some(g => String(g).startsWith('tutorial-'))) return;
+  try {
+    const key = [...gids].sort().join('|'), karten = mlKarten(gids);
+    const l = mlListe().filter(e => [...e.gids].sort().join('|') !== key);
+    l.unshift({ gids: [...gids], label: mdLabel(karten), n: karten.length, t: Date.now() });
+    localStorage.setItem(ML_KEY, JSON.stringify(l.slice(0, ML_MAX)));
+  } catch (_) {}
+}
+function mlVersion() {
+  const src = [...document.scripts].map(x => x.src).find(x => /app\.js/.test(x)) || '';
+  return (src.match(/[?&]v=(\d+)/) || [])[1] || '';
+}
+function mlOeffnen() {
+  document.getElementById('ml-dialog')?.remove();
+  const wrap = document.createElement('div');
+  wrap.id = 'ml-dialog'; wrap.className = 'modal-backdrop pw-dialog md-dialog ml-dialog';
+  const zeichne = () => {
+    const stand = [];
+    Object.entries(mdStaende()).forEach(([key, l]) => l.forEach(e => stand.push({ key, e })));
+    stand.sort((a, b) => b.e.t - a.e.t);
+    const zuletzt = mlListe();
+    const stZeile = ({ key, e }) => {
+      const lern = key.startsWith('L:');
+      return `<div class="md-zeile"><button class="btn-secondary md-weiter" type="button" data-ml="stand" data-key="${esc(key)}" data-id="${esc(e.id)}">▶ ${lern ? '' : '🤿 '}${esc(tf('ml_stand', e.label || '', e.i + 1, e.ids.length, mdDatum(e.t)))}</button><button class="btn-kursset-del md-del" type="button" data-ml="del" data-key="${esc(key)}" data-id="${esc(e.id)}" title="${esc(t('md_loeschen'))}" aria-label="${esc(t('md_loeschen'))}">✕</button></div>`;
+    };
+    const zlZeile = (e, i) => `<div class="md-zeile"><span class="ml-name">${esc(e.label || '…')} · ${esc(tf('ml_karten', e.n))}</span><button class="btn-secondary ml-mini" type="button" data-ml="lernen" data-i="${i}">${esc(t('ml_lernen'))}</button><button class="btn-secondary ml-mini" type="button" data-ml="dive" data-i="${i}" title="${esc(SPIEL_NAME)}">🤿</button></div>`;
+    wrap.innerHTML = `<div class="modal"><div class="modal-header"><h2><span class="title-memo">Memo</span><span class="title-pix">Fix</span></h2><button class="btn-modal-close" type="button" aria-label="${esc(t('beenden'))}">✕</button></div>
+      <div class="modal-body">
+        ${stand.length ? `<h3 class="ml-kopf">${esc(t('ml_fortsetzen'))}</h3>${stand.map(stZeile).join('')}` : ''}
+        ${zuletzt.length ? `<h3 class="ml-kopf">${esc(t('ml_zuletzt'))}</h3>${zuletzt.map(zlZeile).join('')}` : ''}
+        ${!stand.length && !zuletzt.length ? `<p class="ml-leer">${esc(t('ml_leer'))}</p>` : ''}
+        <p class="ml-version">${esc(t('ml_version'))} ${esc(mlVersion())}</p></div></div>`;
+  };
+  wrap.addEventListener('click', e => {
+    const b = e.target.closest('[data-ml]');
+    if (!b) { if (e.target === wrap || e.target.closest('.btn-modal-close')) wrap.remove(); return; }
+    const a = b.dataset.ml;
+    if (a === 'del') {
+      const m = mdStaende(), l = (m[b.dataset.key] || []).filter(x => x.id !== b.dataset.id);
+      if (l.length) m[b.dataset.key] = l; else delete m[b.dataset.key];
+      mdSchreiben(m); zeichne(); return;
+    }
+    if (a === 'stand') {
+      const key = b.dataset.key, lern = key.startsWith('L:');
+      const st = (mdStaende()[key] || []).find(x => x.id === b.dataset.id);
+      if (!st) { zeichne(); return; }
+      const gids = key.replace(/^L:/, '').split('|');
+      wrap.remove(); showView('lernen');
+      if (!mlKarten(gids).length) { toast(t('ml_weg')); return; }
+      if (lern) starteLernenMitStand(false, gids, { aktion: 'weiter', stand: st });
+      else starteDive(gids, { aktion: 'weiter', stand: st });
+      return;
+    }
+    const z = mlListe()[Number(b.dataset.i)];
+    if (!z) return;
+    wrap.remove(); showView('lernen');
+    if (!mlKarten(z.gids).length) { toast(t('ml_weg')); return; }
+    if (a === 'dive') starteDive(z.gids, { aktion: 'neu' });
+    else starteLernenMitStand(false, z.gids, { aktion: 'neu' });
+  });
+  document.body.appendChild(wrap); zeichne();
+}
+(() => {
+  const h = document.querySelector('header h1');
+  if (!h) return;
+  h.setAttribute('role', 'button'); h.setAttribute('tabindex', '0'); h.classList.add('logo-klick');
+  h.addEventListener('click', mlOeffnen);
+  h.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); mlOeffnen(); } });
+})();
 window.addEventListener('resize', praesiAutofitPlanen);
 window.addEventListener('orientationchange', praesiAutofitPlanen);
 window.visualViewport?.addEventListener('resize', praesiAutofitPlanen);
@@ -6680,7 +6762,7 @@ function spielStarten() {
   spiel.vergeben = new Set(); spiel.verlauf = []; spiel.zeit = 0;
   // MemoDive startet immer mit Standardeinstellungen; die Einstellungen der Kartei kommen beim Beenden zurück
   spiel.standKey = spielStandKontext?.key || null; spiel.standId = spielStandKontext?.id || null; spielStandKontext = null;
-  spiel.gemerkt = { modus: lernModus, timer: timerSekunden, repeat: autoRepeat };
+  spiel.gemerkt = { modus: lernModus, timer: timerSekunden, repeat: autoRepeat, lang: currentLang };
   if (timerSekunden) setTimerSekunden(0);
   if (autoRepeat) setAutoRepeat(false);
   if (lernModus !== 'foto') { setLernModus('foto'); zeigeKarte(); }
@@ -6727,6 +6809,7 @@ function spielAufraeumen() {
     setLernModus(g.modus);
     if (g.timer) setTimerSekunden(g.timer);
     if (g.repeat) setAutoRepeat(true);
+    if (g.lang && g.lang !== currentLang) { currentLang = g.lang; applyTranslations(); }
   }
 }
 
@@ -6751,6 +6834,7 @@ function spielRender() {
         ${spiel.verlauf.length ? `<button data-sp="undo" class="sp-hud-btn sp-rund${nameVisible ? '' : ' sp-grau'}" ${nameVisible ? '' : 'disabled'} title="${esc(T.undo)}" aria-label="${esc(T.undo)}">↶</button>` : ''}
         <button data-sp="auswertung" class="sp-hud-btn">${esc(T.auswertung)}</button>
         <button data-sp="hilfe" class="sp-hud-btn sp-rund" title="${esc(T.hilfe)}" aria-label="${esc(T.hilfe)}">?</button>
+        <button data-sp="lang" class="sp-hud-btn sp-rund sp-lang" title="${istEn() ? 'Deutsch' : 'English'}" aria-label="${istEn() ? 'Deutsch' : 'English'}">${istEn() ? 'DE' : 'EN'}</button>
         <button data-sp="namen" class="sp-hud-btn sp-rund" title="${esc(T.namen)}" aria-label="${esc(T.namen)}">👥</button>
         <button data-sp="beenden" class="sp-hud-btn sp-rund" title="${esc(T.beenden)}" aria-label="${esc(T.beenden)}">✕</button>
       </div>`;
@@ -6891,6 +6975,24 @@ function spielWuerfeln(ausser) {
       if (spiel.zeit) spielZeitStart();
     }
   }, 85);
+}
+
+// Sprache mitten im Spiel wechseln (z. B. für Erasmus-Studierende): gleiche Karte, gleicher Zustand, neue Sprache
+function spielSpracheWechseln() {
+  if (!spielAktiv || !lernKarten[lernIndex]) return;
+  if (spiel.sprache) return;
+  if (spiel.gemerkt && spiel.gemerkt.lang == null) spiel.gemerkt.lang = currentLang;   // beim Beenden zurücksetzen
+  currentLang = istEn() ? 'de' : 'en';                                                  // nicht dauerhaft gespeichert
+  applyTranslations();
+  const sichtbar = nameVisible, wertung = aktuelleWertung, animiert = isAnimating;
+  spiel.sprache = true;
+  try {
+    zeigeKarte();
+    if (sichtbar) { zeigeName(wertung || 'gewusst'); }
+  } finally { spiel.sprache = false; }
+  isAnimating = animiert;
+  spielRender();
+  praesiAutofitPlanen();
 }
 
 function spielKarteAngezeigt() {
@@ -7045,7 +7147,8 @@ function spielKlick(e) {
     spiel.ratenGew = i;
     spielZeitStop();
     triggerFlip(i === 0 ? 'gewusst' : 'nicht-gewusst');
-  } else if (a === 'hilfe') spielHilfe();
+  } else if (a === 'lang') spielSpracheWechseln();
+  else if (a === 'hilfe') spielHilfe();
   else if (a === 'namen') spielNamen();
   else if (a === 'undo') spielUndo();
   else if (a === 'beenden') {
