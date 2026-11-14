@@ -2685,6 +2685,7 @@ function updateLernStartBtn() {
   if (fs) fs.disabled = total === 0;
   const sp = document.getElementById('btn-spiel');
   if (sp) sp.disabled = total === 0;
+  if (typeof updateLernFortsetzen === 'function') updateLernFortsetzen();
 }
 
 // ============================================================
@@ -3248,6 +3249,7 @@ function showView(name) {
     b.classList.toggle('active', b.dataset.view === name));
   if (name === 'lernen') {
     document.getElementById('lernen-auswahl').classList.remove('hidden');
+    try { updateLernStartBtn(); } catch (_) {}
     document.getElementById('lernen-flashcard').classList.add('hidden');
     document.getElementById('lernen-ende').classList.add('hidden');
     renderLernAuswahl();
@@ -4644,7 +4646,25 @@ async function starteLernenMitStand(vollbild, gidsVorgabe, vorgabe) {
   if (ok) mlMerken(gids);
   if (ok && vollbild) betretePraesentation();
 }
-document.getElementById('btn-lernen-start').addEventListener('click', () => starteLernenMitStand(false));
+document.getElementById('btn-lernen-start').addEventListener('click', () => starteLernenMitStand(false, undefined, { aktion: 'neu' }));
+// Schmale Zeile über „Lernen starten“: gespeicherten Stand dieser Auswahl fortsetzen
+function lernStandFuerAuswahl() {
+  const gids = getSelectedGids();
+  if (!gids.length || gids.some(g => String(g).startsWith('tutorial-'))) return null;
+  const st = (mdStaende()['L:' + [...gids].sort().join('|')] || [])[0];
+  return st && Array.isArray(st.ids) && st.i >= 1 && st.i < st.ids.length ? st : null;
+}
+function updateLernFortsetzen() {
+  const b = document.getElementById('lern-fortsetzen');
+  if (!b) return;
+  const st = lernStandFuerAuswahl();
+  b.classList.toggle('hidden', !st);
+  if (st) b.textContent = '▶ ' + tf('md_weiter', st.label || '', st.i + 1, st.ids.length, mdDatum(st.t));
+}
+document.getElementById('lern-fortsetzen')?.addEventListener('click', () => {
+  const st = lernStandFuerAuswahl();
+  if (st) starteLernenMitStand(false, undefined, { aktion: 'weiter', stand: st });
+});
 
 // ── Fullscreen 16:9 (Präsentationsansicht für Beamer/Prüfungsgespräche) ──
 let praesentationAktiv = false;
