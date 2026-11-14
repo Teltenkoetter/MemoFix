@@ -2784,7 +2784,7 @@ header::after { display: none; }
 /* Klick auf „MemoFix“: Fortsetzen + Zuletzt genutzt */
 header h1.logo-klick { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 header h1.logo-klick:focus-visible { outline: 2px solid var(--accent, currentColor); outline-offset: 3px; border-radius: 4px; }
-.ml-dialog .ml-kopf { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.6; margin: 0.9rem 0 0.4rem; font-weight: 600; }
+.ml-dialog .ml-kopf { font-size: 0.85rem; opacity: 0.65; margin: 0.9rem 0 0.4rem; font-weight: 600; }
 .ml-dialog .ml-kopf:first-child { margin-top: 0; }
 .ml-dialog .ml-name { flex: 1; min-width: 0; align-self: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ml-dialog .ml-mini { flex: 0 0 auto; padding: 0.35rem 0.7rem; }
@@ -2793,38 +2793,11 @@ header h1.logo-klick:focus-visible { outline: 2px solid var(--accent, currentCol
 .ml-dialog h2 { font-size: 1.05rem; }
 .sp-hud-btn.sp-lang { font-size: 0.8em; font-weight: 700; letter-spacing: 0.02em; }
 
-/* ── LERNEN-AUSWAHL: drei Zonen (Auswählen · Einstellen · Starten) ── */
-.selection-links { display: flex; gap: 1.1rem; align-items: center; margin: 0.15rem 0 0.9rem; padding: 0 0.1rem; }
-.link-btn {
-  background: none; border: none; padding: 0.2rem 0; cursor: pointer; font-family: inherit;
-  font-size: 0.8rem; font-weight: 600; color: var(--mf-blau, var(--accent, #7aa8ff));
-}
-.link-btn:active { opacity: 0.6; }
-.lern-einstellungen { border-top: 1px solid var(--border); margin-top: 0.2rem; padding-top: 0.9rem; }
-.lern-einstellungen .lernmodus-toggle { margin-bottom: 0; }
-.lern-einstellungen .lernmodus-btn { padding: 0.5rem 0.4rem; border-radius: 12px; }
-.lern-einstellungen .modus-label { margin-bottom: 0.1rem; }
-.lern-einstellungen .lern-timer-row { padding-top: 0.6rem; margin-top: 0; }
-.lern-startzone { margin-top: 1.1rem; padding-top: 0.95rem; border-top: 1px solid var(--border); }
-.lern-startzone .lern-start-row { margin-top: 0; }
-.btn-fullscreen-icon {
-  flex: 0 0 3.4rem; font-size: 1.25rem; line-height: 1; cursor: pointer; color: var(--text);
-  background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 14px;
-}
-.btn-fullscreen-icon:active { background: rgba(255,255,255,0.1); }
-.btn-fullscreen-icon:disabled { opacity: 0.25; cursor: not-allowed; }
+/* Fortsetzen-Zeile über „Lernen starten“ */
 .lern-fortsetzen {
-  display: block; width: 100%; margin: 0 0 0.55rem; padding: 0.55rem 0.8rem; text-align: left;
+  display: block; width: 100%; margin: 0.75rem 0 -0.2rem; padding: 0.55rem 0.8rem; text-align: left;
   font-family: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer; color: var(--text);
-  background: rgba(var(--mf-blau-rgb, 90,140,255), 0.12); border: 1px solid rgba(var(--mf-blau-rgb, 90,140,255), 0.45);
+  background: rgba(var(--mf-blau-rgb), 0.12); border: 1px solid rgba(var(--mf-blau-rgb), 0.45);
   border-radius: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .lern-fortsetzen.hidden { display: none; }
-.lern-zweit { display: flex; gap: 0.5rem; align-items: stretch; margin-top: 0.55rem; }
-.lern-zweit .btn-spiel-karte { flex: 1 1 auto; width: auto; margin-top: 0; min-width: 0; padding: 0.55rem 0.8rem; }
-.lern-zweit .btn-spiel-karte .bsk-text { display: none; }
-.lern-zweit .btn-claude-besprechen {
-  flex: 0 0 auto; margin: 0; max-width: 46%; padding: 0.4rem 0.8rem; border-radius: 14px; line-height: 1.2;
-  font-size: 0.75rem; text-align: center;
-}
-@media (min-width: 1000px) { .lern-zweit .btn-spiel-karte .bsk-text { display: inline; } }
