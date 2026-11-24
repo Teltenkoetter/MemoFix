@@ -1,840 +1,242 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" class="snap-heute">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="MemoFix">
+  <meta name="apple-mobile-web-app-title" content="MemoMe">
   <meta name="theme-color" content="#080808">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-  <title>MemoFix</title>
-  <link rel="stylesheet" href="style.css?v=109">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <title>MemoMe</title>
+  <link rel="stylesheet" href="style.css?v=50">
 </head>
 <body>
 
   <header>
-    <h1><span class="title-memo">Memo</span><span class="title-pix">Fix</span></h1>
+    <h1><span class="title-memo">Memo</span><span class="title-me">Me</span></h1>
     <div class="header-btns">
-      <button id="btn-modus" class="btn-modus" type="button">Einfach</button>
-      <button id="btn-lang" class="btn-lang">EN</button>
-      <button id="btn-info" class="btn-help" title="Hilfe">?</button>
+      <button id="btn-einstellungen" class="btn-help btn-zahnrad" type="button" title="Einstellungen" aria-label="Einstellungen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+      <button id="btn-info" class="btn-help" type="button" title="Hilfe" aria-label="Hilfe">?</button>
     </div>
   </header>
 
-  <!-- ── INFO-MODAL ────────────────────────────────────── -->
-  <div id="info-modal" class="modal-backdrop hidden">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>Hilfe</h2>
-        <button id="btn-info-close" class="btn-modal-close">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="modal-section">
-          <div class="modal-section-title">🎴 Lernmodus</div>
-          <div class="anleitung-zeilen">
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">🖼️</span>
-              <div class="anleitung-text"><strong>Foto-Karte: Bild → Begriff</strong> — Bild sehen, Begriff erinnern · Karte antippen → dreht sich um → Begriff erscheint</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">📖</span>
-              <div class="anleitung-text"><strong>Begriff-Karte: Begriff → Info</strong> — Begriff sehen, Info/Definition erinnern · Karte antippen → dreht sich um</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">🔄</span>
-              <div class="anleitung-text"><strong>Umgekehrt lernen</strong> — Modus „Begriff → Bild/Text": Begriff vorstellen, dann Bild/Definition aufdecken</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">🔍</span>
-              <div class="anleitung-text"><strong>„Begriff zeigen"</strong> — Antwort aufdecken ohne Tippen, zählt als nachgeschaut (✗)</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">✓✗</span>
-              <div class="anleitung-text"><strong>Wertung korrigieren</strong> — ✓ oder ✗ antippen, um die Wertung zu ändern</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">↺</span>
-              <div class="anleitung-text"><strong>Nachgeschaut üben</strong> — nach der Übung nur die nicht gewussten Karten wiederholen</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">🎯</span>
-              <div class="anleitung-text"><strong>Schwächste Karten</strong> — startet mit den Karten, die du am häufigsten nachgeschaut hast · bezieht sich auf deine aktuelle Auswahl</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">↔️</span>
-              <div class="anleitung-text"><strong>Pfeile / Wischen</strong> — Karten ohne Wertung vor- und zurückblättern · links/rechts wischen hat denselben Effekt</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">💬</span>
-              <div class="anleitung-text"><strong>Notiz</strong> — erscheint beim Aufdecken als Zusatzinfo</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">⏱</span>
-              <div class="anleitung-text"><strong>Auto-Timer</strong> — 3 · 5 · 8 · 12 s wählen: Karte dreht sich automatisch um, danach geht es zur nächsten · Timer-Durchläufe ohne Bewertung zählen nicht in die Statistik</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">🔁</span>
-              <div class="anleitung-text"><strong>Autorepeat</strong> — nach dem letzten Bild startet die Runde automatisch neu</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">⭐</span>
-              <div class="anleitung-text"><strong>Favoriten</strong> — Stern antippen markiert eine Karte als Favorit · unter SICHERUNG gezielt als Favoriten-Gruppe exportieren</div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-divider"></div>
-        <div class="modal-section">
-          <div class="modal-section-title">⚙️ Verwaltung</div>
-          <div class="anleitung-zeilen">
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">📂</span>
-              <div class="anleitung-text"><strong>3 Ebenen:</strong> Sammlung → Gruppe → Karte — z.B. „Hochschule" → „Biologie Kap. 3" → einzelne Karten</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">1️⃣</span>
-              <div class="anleitung-text"><strong>Sammlung erstellen</strong> — Oberkategorie für verwandte Gruppen · per ▲▼ sortieren · 📁 Gruppe zwischen Sammlungen verschieben</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">2️⃣</span>
-              <div class="anleitung-text"><strong>Gruppe erstellen</strong> — innerhalb einer Sammlung · per ▲▼ innerhalb der Sammlung sortieren</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">3️⃣</span>
-              <div class="anleitung-text"><strong>Karte hinzufügen</strong> — ＋ am Gruppen-Header tippt direkt in diese Gruppe · oder unten im Formular Gruppe wählen, Name eingeben, 📷 Foto <em>oder</em> 📖 Text wählen</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">📷</span>
-              <div class="anleitung-text"><strong>Foto-Karte</strong> — Foto als Vorderseite, Name als Rückseite · Foto antippen zum Austauschen</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">📖</span>
-              <div class="anleitung-text"><strong>Begriff-Karte</strong> — Begriff vorne, Info/Definition hinten · mehrzeilige Texte werden als Aufzählung dargestellt</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">🔍</span>
-              <div class="anleitung-text"><strong>Großansicht</strong> — Kartennamen antippen → Bild/Text wird groß angezeigt · links/rechts wischen zum Durchblättern</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">📋</span>
-              <div class="anleitung-text"><strong>Kopieren</strong> — Karte in eine andere Gruppe duplizieren (✏️ öffnet Bearbeiten-Modal)</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">🎨</span>
-              <div class="anleitung-text"><strong>Sammlungsfarbe</strong> — Farbpunkt neben dem Sammlungsnamen antippen · Farbe erscheint als Streifen links und als Kartenhintergrund im Lernmodus</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">🔗</span>
-              <div class="anleitung-text"><strong>Links</strong> — beim Bearbeiten einer Karte Links hinzufügen (z.&nbsp;B. Wikipedia, YouTube) · erscheinen beim Aufdecken als tippbare Verweise</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">💬</span>
-              <div class="anleitung-text"><strong>Notiz</strong> — kurze Zusatzinfo pro Karte (max. 250 Zeichen) · wird beim Aufdecken angezeigt</div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-divider"></div>
-        <div class="modal-section">
-          <div class="modal-section-title">💾 Datenspeicher &amp; Backup</div>
-          <div class="anleitung-zeilen">
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">📱</span>
-              <div class="anleitung-text">Karten werden <strong>lokal im Browser</strong> gespeichert — kein Server, kein Internet nötig</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">📤</span>
-              <div class="anleitung-text"><strong>Exportieren als Datei</strong> — einzelne Gruppen oder alles sichern und teilen · <strong>iPhone:</strong> Teilen-Menü → „In Dateien sichern"</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">🖨</span>
-              <div class="anleitung-text"><strong>Exportieren als PDF</strong> — unter SICHERUNG Gruppen wählen, Format „PDF" wählen · öffnet Druckansicht mit allen Karten · im Druckdialog „Als PDF sichern" wählen</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">📥</span>
-              <div class="anleitung-text"><strong>Importieren</strong> — Hinzufügen (bestehende behalten) oder Alles ersetzen · importiert auch Sammlungsstruktur</div>
-            </div>
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">⚠️</span>
-              <div class="anleitung-text">„Browserdaten löschen" (in den Einstellungen von Browser oder Handy) entfernt auch alle Karten — regelmäßig exportieren!</div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-divider"></div>
-        <div class="modal-section">
-          <div class="modal-section-title">🔧 Probleme &amp; Lösungen</div>
-          <div class="anleitung-zeilen">
-            <div class="anleitung-zeile">
-              <span class="anleitung-icon">🖼️</span>
-              <div class="anleitung-text"><strong>Bilder verschwunden oder Export hängt?</strong> — App schließen und neu öffnen · die Bilder werden sofort wieder geladen · keine Daten gehen verloren</div>
-            </div>
-          </div>
-        </div>
-        <p class="modal-meta-device">📱 Optimiert für iPhone im Hochformat</p>
-        <p class="modal-meta">Version 2.0 · Prof. Klaus Teltenkötter 2026 <span id="build-version" class="modal-meta-build"></span></p>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── KARTE BEARBEITEN / KOPIEREN MODAL ─────────────── -->
-  <!-- ── NAMEN (Sammlung / Gruppe) ─────────────────────── -->
-  <div id="namen-modal" class="modal-backdrop hidden">
-    <div class="modal">
-      <div class="modal-header">
-        <h2 id="namen-modal-titel">Bearbeiten</h2>
-        <button id="btn-namen-close" class="btn-modal-close">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="namen-de" id="namen-de-l">Name</label>
-          <input type="text" id="namen-de" maxlength="60">
-        </div>
-        <div class="form-group">
-          <label for="namen-en" id="namen-en-l">Name (EN)</label>
-          <input type="text" id="namen-en" maxlength="60">
-        </div>
-        <label class="check-zeile hidden" id="namen-zweisprachig-zeile">
-          <input type="checkbox" id="namen-zweisprachig">
-          <span id="namen-zweisprachig-l">Inhalt ist bereits zweisprachig (Sprachschalter ändert die Karten nicht)</span>
-        </label>
-        <button id="btn-namen-save" class="btn-primary" style="margin-top:0.75rem">Speichern</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="karte-edit-modal" class="modal-backdrop hidden">
-    <div class="modal">
-      <div class="modal-header">
-        <h2 id="karte-edit-titel">Karte bearbeiten</h2>
-        <button id="btn-karte-edit-close" class="btn-modal-close">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Typ</label>
-          <div class="karten-modus-chips">
-            <button type="button" id="karte-edit-chip-foto" class="karten-modus-chip">📷 Bild vorn</button>
-            <button type="button" id="karte-edit-chip-text" class="karten-modus-chip">📖 Begriff vorn, Bild hinten</button>
-          </div>
-          <p id="karte-edit-chip-hinweis" class="modal-hint" style="font-size:0.75rem;line-height:1.45;margin-top:0.4rem"></p>
-        </div>
-        <div class="form-group hidden" id="karte-edit-foto-gruppe">
-          <label id="karte-edit-foto-label">Fotos <span class="label-optional">(mehrere möglich)</span></label>
-          <div id="karte-edit-fotos-liste" class="karte-edit-fotos-liste hidden"></div>
-          <label for="karte-edit-foto-input" class="btn-datei-waehlen">📷 Foto hinzufügen</label>
-          <input type="file" id="karte-edit-foto-input" accept="image/*" multiple style="display:none">
-        </div>
-        <div class="form-group">
-          <label for="karte-edit-name" id="karte-edit-name-label">Name</label>
-          <input type="text" id="karte-edit-name" maxlength="100">
-        </div>
-        <div class="form-group">
-          <label for="karte-edit-gruppe">Gruppe</label>
-          <select id="karte-edit-gruppe"></select>
-        </div>
-        <div class="form-group hidden" id="karte-edit-vorderseite-gruppe">
-          <label for="karte-edit-vorderseite">Text / Vorderseite</label>
-          <textarea id="karte-edit-vorderseite" class="input-vorderseite" maxlength="1000"></textarea>
-        </div>
-        <div class="form-group">
-          <label for="karte-edit-notiz">Notiz <span class="label-optional">(optional)</span></label>
-          <textarea id="karte-edit-notiz" class="input-notiz" rows="4" maxlength="3000" placeholder="Zusatzinfo, erscheint beim Aufdecken… (max. 3000 Zeichen)"></textarea>
-        </div>
-        <div class="form-group">
-          <label for="karte-edit-merke">Merke <span class="label-optional">(optional, farbig hervorgehoben)</span></label>
-          <textarea id="karte-edit-merke" class="input-notiz" rows="2" maxlength="500" placeholder="Kernaussage in ein bis zwei Sätzen… (max. 500 Zeichen)"></textarea>
-        </div>
-        <details class="en-felder" id="karte-edit-en">
-          <summary id="karte-edit-en-summary">🇬🇧 English <span class="label-optional">(optional, für den Sprachschalter)</span></summary>
-          <div class="form-group">
-            <label for="karte-edit-name-en" id="l-name-en">Name (EN)</label>
-            <input type="text" id="karte-edit-name-en" maxlength="100">
-          </div>
-          <div class="form-group">
-            <label for="karte-edit-vorderseite-en" id="l-vorderseite-en">Vorderseite (EN)</label>
-            <textarea id="karte-edit-vorderseite-en" class="input-vorderseite" maxlength="1000"></textarea>
-          </div>
-          <div class="form-group">
-            <label for="karte-edit-notiz-en" id="l-notiz-en">Notiz (EN)</label>
-            <textarea id="karte-edit-notiz-en" class="input-notiz" rows="4" maxlength="3000"></textarea>
-          </div>
-          <div class="form-group">
-            <label for="karte-edit-merke-en" id="l-merke-en">Merke (EN)</label>
-            <textarea id="karte-edit-merke-en" class="input-notiz" rows="2" maxlength="500"></textarea>
-          </div>
-        </details>
-        <div class="form-group">
-          <label for="karte-edit-links">Links <span class="label-optional">(optional, eine URL pro Zeile)</span></label>
-          <textarea id="karte-edit-links" class="input-notiz" rows="2" maxlength="1000" placeholder="https://…"></textarea>
-        </div>
-        <div class="form-group">
-          <label for="karte-edit-video">YouTube <span class="label-optional">(optional — Video-ID oder URL)</span></label>
-          <input type="text" id="karte-edit-video" class="input-video" placeholder="z.B. KNDU2hgeLlc oder https://youtu.be/…" autocomplete="off" autocorrect="off" spellcheck="false">
-          <span id="karte-edit-video-status" class="video-input-status"></span>
-        </div>
-        <button id="btn-karte-edit-save" class="btn-primary">Speichern</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── GRUPPE VERSCHIEBEN MODAL ─────────────────────── -->
-  <div id="gruppe-verschieben-modal" class="modal-backdrop hidden">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>Gruppe verschieben</h2>
-        <button id="btn-gruppe-verschieben-close" class="btn-modal-close">✕</button>
-      </div>
-      <div class="modal-body">
-        <p class="modal-hint" id="gruppe-verschieben-info"></p>
-        <div id="sammlung-auswahl-liste" class="sammlung-auswahl-liste"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── EXPORT MODAL ──────────────────────────────────── -->
-  <div id="export-modal" class="modal-backdrop hidden">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>Gruppen exportieren</h2>
-        <button id="btn-export-modal-close" class="btn-modal-close">✕</button>
-      </div>
-      <div class="modal-body">
-        <p class="modal-hint">Welche Gruppen sollen exportiert werden?</p>
-        <div id="export-gruppen-liste" class="modal-check-liste"></div>
-        <div class="selection-actions" style="margin:0.5rem 0 0.75rem">
-          <button id="btn-export-alle" class="btn-secondary">Alle</button>
-          <button id="btn-export-keine" class="btn-secondary">Keine</button>
-        </div>
-        <div class="export-format-toggle">
-          <button class="export-fmt-btn active" data-fmt="datei">📦 Datei</button>
-          <button class="export-fmt-btn" data-fmt="pdf">🖨 PDF</button>
-        </div>
-        <label class="modal-hint" style="display:flex;align-items:center;gap:0.5rem;margin-top:0.6rem;cursor:pointer">
-          <input type="checkbox" id="export-ohne-bilder"> <span id="export-ohne-bilder-txt">Ohne Bilder (nur Text, Links, Struktur)</span>
-        </label>
-        <button id="btn-export-start" class="btn-primary" style="margin-top:0.75rem">Exportieren</button>
-        <p id="export-ios-hinweis" class="modal-hint hidden" style="margin-top:0.75rem;font-size:0.78rem;line-height:1.5">
-          📱 <strong>iPhone / iPad:</strong> Die Datei wird über das Teilen-Menü geöffnet. Tippe dort auf <em>„In Dateien sichern"</em>, um den Speicherort selbst zu wählen.
-        </p>
-        <p id="export-pdf-hinweis" class="modal-hint hidden" style="margin-top:0.75rem;font-size:0.78rem;line-height:1.5">
-          🖨 Im Druckdialog <em>„Als PDF sichern"</em> wählen · <strong>iPhone:</strong> Teilen-Symbol → „In Dateien sichern"
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── IMPORT MODAL ──────────────────────────────────── -->
-  <div id="import-modal" class="modal-backdrop hidden">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>Importieren</h2>
-        <button id="btn-import-modal-close" class="btn-modal-close">✕</button>
-      </div>
-      <div class="modal-body">
-        <p class="modal-hint">Gefundene Gruppen in der Datei:</p>
-        <div id="import-gruppen-info" class="import-gruppen-info"></div>
-        <div class="import-modus-toggle">
-          <button class="import-modus-btn active" data-modus="hinzufuegen">
-            <div class="modus-label">➕ Hinzufügen</div>
-            <div class="modus-desc">Neue Gruppen ergänzen · Bestehende behalten</div>
-          </button>
-          <button class="import-modus-btn" data-modus="ersetzen">
-            <div class="modus-label">🔄 Alles ersetzen</div>
-            <div class="modus-desc">Alle vorhandenen Karten werden überschrieben</div>
-          </button>
-        </div>
-        <button id="btn-import-start" class="btn-primary" style="margin-top:0.75rem">Importieren</button>
-      </div>
-    </div>
-  </div>
-
   <main>
-
-    <!-- ── VERWALTUNG ─────────────────────────────────── -->
-    <section id="view-verwaltung" class="view">
-
-      <div class="card">
-        <div class="card-header">
-          <h2>Sammlungen</h2>
-          <span id="sammlungen-badge" class="badge">0</span>
-          <span id="karten-gesamt" class="badge">0</span>
-          <button id="btn-toggle-alle-gruppen" class="btn-gruppen-toggle">Alle öffnen</button>
-        </div>
-        <div class="karten-filter">
-          <div class="suche-wrap">
-            <input type="text" id="input-karten-suche" placeholder="🔍 Karten suchen…" class="karten-suche">
-            <button id="btn-suche-clear" class="suche-clear-btn hidden" aria-label="Suche löschen">✕</button>
-          </div>
-          <select id="select-karten-sort" class="karten-sort">
-            <option value="manuell">Manuell ▲▼</option>
-            <option value="az" selected>A → Z</option>
-            <option value="za">Z → A</option>
-          </select>
-        </div>
-        <div class="input-row" style="margin-bottom:0.75rem">
-          <input type="text" id="input-neue-sammlung" placeholder="Neue Sammlung…" maxlength="60">
-          <button id="btn-sammlung-add" class="btn-icon" title="Sammlung hinzufügen">+</button>
-        </div>
-        <div id="sammlungen-liste"></div>
-        <p id="keine-sammlungen-hinweis" class="hinweis hidden">Noch keine Sammlungen. Bitte eine Sammlung anlegen.</p>
-        <p id="keine-karten-hinweis" class="hinweis hidden">Noch keine Karten vorhanden.</p>
+    <!-- ── HEUTE ─────────────────────────────────────── -->
+    <section id="view-heute" class="view">
+      <div class="tag-kopf">
+        <button type="button" class="tag-datum" id="heute-datum"></button>
+        <div class="tag-sub" id="heute-sub">Kann, nicht muss.</div>
       </div>
 
-      <div class="card">
-        <div class="card-header card-header-toggle" id="karte-hinzufuegen-header">
-          <h2>Karte hinzufügen</h2>
-          <span class="card-toggle-arrow">▶</span>
-        </div>
-        <div id="karte-hinzufuegen-body" class="hidden">
-        <form id="form-karte">
-          <div class="form-group">
-            <label for="select-gruppe">Gruppe</label>
-            <select id="select-gruppe" required>
-              <option value="">Gruppe wählen…</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="input-name" id="label-input-name">Name</label>
-            <input type="text" id="input-name" placeholder="Name oder Begriff…" required maxlength="100">
-          </div>
-          <div class="form-group">
-            <label>Karten-Inhalt</label>
-            <div class="karten-modus-chips">
-              <button type="button" class="karten-modus-chip active" id="chip-foto">📷 Bild vorn</button>
-              <button type="button" class="karten-modus-chip" id="chip-text">📖 Begriff vorn, Bild hinten</button>
-            </div>
-            <p id="chip-hinweis" class="modal-hint" style="font-size:0.75rem;line-height:1.45;margin-top:0.4rem"></p>
-            <div id="foto-bereich">
-              <label id="foto-bereich-label" class="hidden"></label>
-              <div id="neue-karte-fotos-liste" class="karte-edit-fotos-liste hidden"></div>
-              <div class="foto-upload" id="foto-upload">
-                <input type="file" id="input-foto" accept="image/*" multiple>
-                <div id="upload-placeholder" class="upload-placeholder">
-                  <span class="upload-icon">📷</span>
-                  <span>Tippen zum Foto auswählen</span>
-                </div>
-              </div>
-              <label for="input-foto" id="btn-neue-karte-foto-add" class="btn-datei-waehlen hidden">📷 Weiteres Foto hinzufügen</label>
-            </div>
-            <div id="text-bereich" class="hidden">
-              <textarea id="input-vorderseite" class="input-vorderseite" placeholder="Text, Definition oder Erklärung… (max. 1000 Zeichen)" maxlength="1000"></textarea>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="input-notiz">Notiz <span class="label-optional">(optional, erscheint beim Aufdecken)</span></label>
-            <textarea id="input-notiz" class="input-notiz" rows="4" maxlength="3000" placeholder="Zusatzinfo zum Begriff… (max. 3000 Zeichen)"></textarea>
-          </div>
-          <div class="form-group">
-            <label for="input-merke">Merke <span class="label-optional">(optional, farbig hervorgehoben)</span></label>
-            <textarea id="input-merke" class="input-notiz" rows="2" maxlength="500" placeholder="Kernaussage in ein bis zwei Sätzen… (max. 500 Zeichen)"></textarea>
-          </div>
-          <div class="form-group">
-            <label for="input-links">Links <span class="label-optional">(optional, eine URL pro Zeile)</span></label>
-            <textarea id="input-links" class="input-notiz" rows="2" maxlength="1000" placeholder="https://…"></textarea>
-          </div>
-          <div class="form-group">
-            <label for="input-video">YouTube <span class="label-optional">(optional — Video-ID oder URL)</span></label>
-            <input type="text" id="input-video" class="input-video" placeholder="z.B. KNDU2hgeLlc oder https://youtu.be/…" autocomplete="off" autocorrect="off" spellcheck="false">
-            <span id="input-video-status" class="video-input-status"></span>
-          </div>
-          <button type="submit" id="btn-karte-speichern" class="btn-primary">Karte speichern</button>
-        </form>
-        </div>
-      </div>
+      <div class="card balance-card" id="balance-heute"></div>
 
+      <div class="rahmen-raster" id="sonder-kacheln" aria-label="Rahmen des Tages"></div>
+      <hr class="rahmen-strich">
+      <p class="start-hinweis hidden" id="start-hinweis">Dies ist eine Starthilfe. In den Einstellungen kannst du alles umbenennen, entfernen oder Eigenes anlegen.</p>
+      <div class="momente-gruppen" id="moment-kacheln"></div>
+      <p class="raster-hinweis">Tippen zählt einen Moment. Lang drücken nimmt den letzten zurück.</p>
     </section>
 
-    <!-- ── LERNEN ──────────────────────────────────────── -->
-    <section id="view-lernen" class="view hidden">
-
-      <div id="lernen-auswahl">
-        <div class="card">
-          <div class="card-header" id="lernen-auswahl-header"><h2>Gruppen auswählen</h2><button id="btn-lern-toggle-alle" class="btn-gruppen-toggle" type="button">Alle öffnen</button></div>
-          <div id="gruppen-checkboxen" class="gruppen-checkboxen"></div>
-          <div class="selection-actions">
-            <button id="btn-alle-waehlen" class="btn-secondary">Alle</button>
-            <button id="btn-keine-waehlen" class="btn-secondary">Keine</button>
-            <button id="btn-schwaeche-waehlen" class="btn-secondary">Schwächste</button>
-          </div>
-          <div class="lern-einstellungen">
-          <div class="lernmodus-toggle">
-            <button class="lernmodus-btn active" data-modus="foto" id="btn-modus-foto">
-              <div class="modus-label">Normal</div>
-              <div class="modus-desc">📷 Foto · 📖 Begriff → Lösung</div>
-            </button>
-            <button class="lernmodus-btn" data-modus="name" id="btn-modus-name">
-              <div class="modus-label">Umgekehrt</div>
-              <div class="modus-desc">Lösung → 📷 Foto · 📖 Begriff</div>
-            </button>
-          </div>
-          <div class="lern-timer-row nur-erweitert">
-            <span class="lern-timer-label">⏱</span>
-            <div class="lern-timer-btns" id="auswahl-timer-btns">
-              <button class="timer-btn active" data-sek="0">Aus</button>
-              <button class="timer-btn" data-sek="1">1s</button>
-              <button class="timer-btn" data-sek="3">3s</button>
-              <button class="timer-btn" data-sek="5">5s</button>
-              <button class="timer-btn" data-sek="10">10s</button>
-              <button class="timer-btn timer-btn-repeat" id="btn-autorepeat-auswahl">🔁</button>
-            </div>
-          </div>
-          </div>
-          <div class="lern-startzone">
-          <button id="lern-fortsetzen" class="lern-fortsetzen hidden" type="button"></button>
-          <div class="lern-start-row">
-            <button id="btn-lernen-start" class="btn-primary btn-large" disabled>Lernen starten</button>
-            <button id="btn-fullscreen169" class="btn-secondary btn-large-sec nur-erweitert" disabled>⛶ Fullscreen 16:9</button>
-          </div>
-          <button id="btn-spiel" class="btn-spiel-karte" disabled>
-            <span class="bsk-titel">🤿 <span class="title-memo">Memo</span><span class="title-pix">Dive</span></span>
-            <span class="bsk-text">Lernt gemeinsam spielerisch.</span>
-          </button>
-          <!-- TEST-FEATURE: bei Bedarf komplett entfernbar (HTML/CSS/JS je 1 Block) -->
-          <button type="button" id="btn-claude-auswahl-besprechen" class="btn-claude-besprechen" disabled>🗣️ Auswahl mit Claude besprechen</button>
-          </div>
+    <!-- ── WOCHE ─────────────────────────────────────── -->
+    <section id="view-woche" class="view hidden">
+      <div class="woche-kopf">
+        <button class="btn-rund" id="woche-zurueck" type="button" aria-label="Vorige Woche">‹</button>
+        <div class="woche-titel">
+          <div class="woche-kw" id="woche-kw"></div>
+          <div class="woche-spanne" id="woche-spanne"></div>
+          <button class="woche-heute hidden" id="woche-heute" type="button">zurück zu dieser Woche ›</button>
         </div>
+        <button class="btn-rund" id="woche-vor" type="button" aria-label="Nächste Woche">›</button>
       </div>
-
-      <div id="lernen-flashcard" class="hidden">
-        <div class="lern-header">
-          <div class="lern-header-links">
-            <button id="btn-beenden" class="btn-text">✕ Beenden</button>
-            <button id="btn-lern-favorit" class="btn-lern-favorit hidden" title="Favorit">★</button>
-          </div>
-          <div class="lern-progress-wrap">
-            <div class="lern-progress-track">
-              <div id="lern-progress-fill" class="lern-progress-fill" style="width:0%"></div>
-            </div>
-            <span id="lern-position" class="lern-position-counter">1 / 1</span>
-          </div>
-          <button id="btn-mischen" class="btn-text nur-erweitert">⇄ Gemischt</button>
-        </div>
-        <div class="lern-karte-area">
-          <div id="stack-card-2" class="stack-card stack-card-2"></div>
-          <div id="stack-card-1" class="stack-card stack-card-1"></div>
-          <div id="lernkarte" class="lernkarte">
-            <span id="lern-favorit-stern" class="lern-favorit-stern hidden">⭐</span>
-            <div id="lernkarte-foto-wrapper" class="lernkarte-foto-wrapper">
-              <img id="lern-foto" src="" alt="Foto">
-              <div id="lern-foto-slideshow" class="foto-slideshow hidden">
-                <div id="lern-foto-slides" class="foto-slides"></div>
-                <div id="lern-foto-dots" class="foto-dots"></div>
-              </div>
-            </div>
-            <div class="lernkarte-text-scroll-wrap hidden" id="lernkarte-text-scroll-wrap">
-              <div id="lernkarte-text-vorderseite" class="lernkarte-text-vorderseite">
-                <div id="lern-text-gruppe" class="lern-text-gruppe"></div>
-                <p id="lern-vorderseite-text"></p>
-                <p id="lern-notiz-text-rueck" class="lern-notiz hidden"></p>
-                <div id="lern-text-fotos" class="lern-text-fotos hidden">
-                  <div id="lern-text-fotos-slides" class="lern-text-fotos-slides"></div>
-                  <div id="lern-text-fotos-dots" class="lern-text-fotos-dots"></div>
-                </div>
-              </div>
-              <div class="scroll-ind scroll-ind-top hidden" id="scroll-ind-top">▲</div>
-              <div class="scroll-ind scroll-ind-bottom hidden" id="scroll-ind-bottom">▼</div>
-            </div>
-            <div id="lern-name-karte" class="lern-name-karte hidden">
-              <span id="lern-name-karte-text"></span>
-              <span id="lern-name-karte-gruppe" class="lern-name-karte-gruppe"></span>
-            </div>
-            <div id="lern-hint-pill" class="lern-hint-pill">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11.24V7.5a2.5 2.5 0 0 1 5 0v3.74M7 11h10l-1 9H8z"/></svg>
-              <span>Tippen zum Aufdecken</span>
-            </div>
-            <div id="lern-name-overlay" class="lern-name-overlay hidden">
-              <span id="lern-name-text"></span>
-              <span id="lern-gruppe-text" class="lern-gruppe-text"></span>
-              <p id="lern-notiz-text" class="lern-notiz hidden"></p>
-            </div>
-          </div>
-        </div>
-        <div id="lern-repeat-pause" class="lern-repeat-pause hidden"></div>
-        <div id="lern-card-links" class="lern-card-links hidden"></div>
-        <div id="lern-card-video" class="lern-card-video hidden"></div>
-        <div id="lern-swipe-hint" class="lern-swipe-hint hidden">
-          <div class="lern-swipe-hint-inner">
-            <span class="lern-swipe-arrow">←</span>
-            <span class="lern-swipe-label">wischen</span>
-            <span class="lern-swipe-arrow">→</span>
-          </div>
-          <div class="lern-swipe-sub">navigiert vor &amp; zurück</div>
-        </div>
-        <div id="lern-countdown" class="lern-countdown hidden">3</div>
-        <div id="timer-bar-wrap" class="timer-bar-wrap hidden">
-          <div id="timer-bar" class="timer-bar"></div>
-        </div>
-        <div class="session-timer-row nur-erweitert" id="session-timer-row">
-          <span class="lern-timer-label">⏱</span>
-          <div class="lern-timer-btns">
-            <button class="timer-btn active" data-sek="0">Aus</button>
-            <button class="timer-btn" data-sek="1">1s</button>
-            <button class="timer-btn" data-sek="3">3s</button>
-            <button class="timer-btn" data-sek="5">5s</button>
-            <button class="timer-btn" data-sek="10">10s</button>
-            <button class="timer-btn timer-btn-repeat" id="btn-autorepeat-session">🔁</button>
-          </div>
-        </div>
-        <div class="lern-steuerung">
-          <button id="btn-zurueck" class="btn-nav">&#8592;</button>
-          <div class="mitte-bereich">
-            <button id="btn-aufdecken" class="btn-aufdecken">Begriff zeigen</button>
-            <div id="lern-feedback" class="lern-feedback hidden"></div>
-          </div>
-          <div class="btn-weiter-wrap">
-            <button id="btn-weiter" class="btn-nav">&#8594;</button>
-          </div>
-        </div>
-        <!-- TEST-FEATURE: bei Bedarf komplett entfernbar (HTML/CSS/JS je 1 Block) -->
-        <button type="button" id="btn-claude-besprechen" class="btn-claude-besprechen">🗣️ Mit Claude besprechen</button>
-      </div>
-
-      <div id="lernen-ende" class="hidden">
-        <div class="ende-card">
-          <h2>Übung beendet!</h2>
-          <p class="ende-subtitle" id="ende-subtitle"></p>
-          <div class="ende-stats">
-            <div class="stat stat-gewusst">
-              <span class="stat-zahl" id="stat-gewusst">0</span>
-              <span class="stat-label">Gewusst ✓</span>
-            </div>
-            <div class="stat stat-nicht">
-              <span class="stat-zahl" id="stat-nicht">0</span>
-              <span class="stat-label">Nachgeschaut ✗</span>
-            </div>
-          </div>
-          <div class="ende-buttons">
-            <button id="btn-neue-uebung" class="btn-primary">Neue Übung starten</button>
-            <button id="btn-nachgeschaut-ueben" class="btn-text hidden">↺ Nachgeschaut üben</button>
-            <button id="btn-ende-auswahl" class="btn-text">Andere Gruppen auswählen</button>
-          </div>
-        </div>
-      </div>
-
+      <div class="archiv-band hidden" id="archiv-band"></div>
+      <div id="woche-inhalt" class="view"></div>
     </section>
 
-    <!-- ── STATISTIK ───────────────────────────────────── -->
-    <section id="view-statistik" class="view hidden">
+    <!-- ── VERWALTUNG ────────────────────────────────── -->
+    <section id="view-verwaltung" class="view hidden">
+      <div class="einst-kopf">
+        <button class="btn-zurueck" id="btn-zurueck" type="button">‹ Zurück</button>
+        <h2 class="einst-titel">Einstellungen</h2>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2>Gruppen &amp; Momente</h2><button class="btn-klein rechts" id="btn-sort" type="button">Reihenfolge ändern</button></div>
+        <p class="card-text">Tippe auf eine Gruppe, um sie umzubenennen oder zu entfernen, und auf einen Moment, um ihn zu bearbeiten. Ob etwas aktiv oder erholsam ist, legt der Moment fest.</p>
+        <p class="card-text hidden" id="sort-hinweis">Mit den Pfeilen verschiebst du Gruppen und Momente. Momente bleiben in ihrer Gruppe. Die Reihenfolge gilt auch für Heute und die Woche.</p>
+        <div id="gm-liste" class="gm-liste"></div>
+        <button class="btn-secondary" id="btn-gruppe-neu" type="button">+ Neue Gruppe</button>
+      </div>
 
       <div class="card">
-        <div class="card-header"><h2>Übersicht</h2></div>
-        <div class="stat-overview">
-          <div class="stat-overview-item">
-            <span class="stat-overview-zahl" id="stat-total-sitzungen">0</span>
-            <span class="stat-overview-label">Sitzungen</span>
-          </div>
-          <div class="stat-overview-item">
-            <span class="stat-overview-zahl" id="stat-avg-score">—</span>
-            <span class="stat-overview-label">Ø Trefferquote</span>
-          </div>
-          <div class="stat-overview-item">
-            <span class="stat-overview-zahl" id="stat-total-abgefragt">0</span>
-            <span class="stat-overview-label">Abfragen gesamt</span>
-          </div>
+        <div class="card-header"><h2>Rahmen des Tages</h2></div>
+        <p class="card-text">Was du auf Heute neben der Arbeit festhalten möchtest, nur gefühlt. Ausgeschaltetes verschwindet von Heute, Einträge bleiben erhalten.</p>
+        <div class="schalter-liste">
+          <label class="schalter-zeile" for="zeige-schlaf"><input type="checkbox" id="zeige-schlaf"><span>Schlaf</span></label>
+          <label class="schalter-zeile" for="zeige-essen"><input type="checkbox" id="zeige-essen"><span>Essen</span></label>
+          <label class="schalter-zeile" for="zeige-trinken"><input type="checkbox" id="zeige-trinken"><span>Trinken</span></label>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-header"><h2>Schwierigste Karten</h2>
-          <div id="stat-zeitraum" class="stat-zeitraum"><button type="button" data-tage="30">30 Tage</button><button type="button" data-tage="0">Alle</button></div>
-        </div>
-        <div id="schwierigste-namen"></div>
-        <p id="keine-schwierig-hinweis" class="hinweis">Noch keine Daten vorhanden.</p>
-        <button id="btn-schwaeche-ueben" class="btn-schwaeche hidden">⟳ Schwächste Karten jetzt üben</button>
-      </div>
-
-      <div class="card">
-        <div class="card-header"><h2>Letzte Sitzungen</h2></div>
-        <div id="sitzungen-verlauf"></div>
-        <p id="keine-verlauf-hinweis" class="hinweis">Noch keine Sitzungen absolviert.</p>
-      </div>
-
-      <div class="card">
-        <div class="sicherung-zeile">
-          <div class="sicherung-info">
-            <strong>Statistik zurücksetzen</strong>
-            <p>Alle Sitzungsdaten löschen, Karten bleiben erhalten</p>
-          </div>
-          <button id="btn-statistik-loeschen" class="btn-danger">Löschen</button>
+        <div class="card-header"><h2>Arbeitstage &amp; Feierabend</h2></div>
+        <p class="card-text">Auf Heute startet und beendet die Spalte „Arbeit“ den Arbeitstag, gern in mehreren Blöcken. Lange drücken: Zeiten ändern und wählen, wie der Tag war (etwas · halb · normal · viel). An freien Tagen zählt Arbeit nur, wenn du sie einträgst.</p>
+        <div class="tage-wahl" id="arbeitstage" role="group" aria-label="Arbeitstage"></div>
+        <div class="form-group" style="margin-top:1rem"><label for="arbeit-gewicht">Arbeit in der Balance</label>
+          <div class="regler-reihe"><span>weniger Einfluss</span><input type="range" id="arbeit-gewicht" min="1" max="6" step="0.5"><span>mehr Einfluss</span></div>
+          <p class="form-hinweis" id="arbeit-gewicht-text"></p></div>
+        <div class="form-group"><label for="tag-wechsel">Tageswechsel</label>
+          <select id="tag-wechsel"><option value="0">Mitternacht</option><option value="1">1 Uhr nachts</option><option value="2">2 Uhr nachts</option><option value="3">3 Uhr nachts</option><option value="4">4 Uhr nachts</option><option value="5">5 Uhr nachts</option><option value="6">6 Uhr nachts</option></select>
+          <p class="form-hinweis">Bis zu dieser Uhrzeit gehört alles noch zum Vortag, etwa ein Kinoabend bis 0:30.</p></div>
+        <p class="card-text">Wann soll dein Arbeitstag ungefähr enden? Also der Moment, in dem du bei „Arbeit“ das Ende tippst, zum Beispiel 17:30 bis 19:00. Kein Muss: In der Woche erscheint der Korridor als weiches Band hinter deinen Feierabenden.</p>
+        <div class="zeit-reihe">
+          <div class="form-group"><label for="korridor-von">Arbeitstag endet ab</label><input type="time" id="korridor-von"></div>
+          <div class="form-group"><label for="korridor-bis">spätestens gegen</label><input type="time" id="korridor-bis"></div>
         </div>
       </div>
 
+      <div class="card">
+        <div class="card-header"><h2>Daten</h2></div>
+        <p class="card-text">Alles bleibt auf diesem Gerät. Nichts wird übertragen. Mit einer Sicherungsdatei lassen sich die Daten auf ein anderes Gerät mitnehmen.</p>
+        <div class="btn-reihe">
+          <button class="btn-secondary" id="btn-export" type="button">Daten sichern (Datei)</button>
+          <button class="btn-secondary" id="btn-import" type="button">Sicherung laden …</button>
+          <input type="file" id="import-datei" accept="application/json,.json" hidden>
+          <button class="btn-leise" id="btn-alles-loeschen" type="button">Alle Einträge löschen …</button>
+        </div>
+      </div>
     </section>
-
-    <!-- ── SICHERUNG ───────────────────────────────────── -->
-    <section id="view-sicherung" class="view hidden">
-
-      <div id="kursset-hinweis" class="kursset-hinweis-box hidden">
-        <span></span>
-        <button type="button" id="kursset-hinweis-link" class="btn-text">Anzeigen</button>
-      </div>
-
-      <div class="card willkommen-card hidden" id="willkommen-card">
-        <strong id="willkommen-titel">Willkommen bei MemoFix</strong>
-        <p id="willkommen-text">Lade unten dein Kursset und lerne los. Neu hier? Der Schnelleinstieg zeigt dir in 2 Minuten, wie es geht.</p>
-        <div class="willkommen-btns">
-          <button type="button" id="btn-willkommen-laden" class="btn-primary">Kurssets laden</button>
-          <button type="button" id="btn-willkommen-start" class="btn-secondary">Schnelleinstieg (2 Min)</button>
-        </div>
-      </div>
-
-      <div class="card" id="kursset-card">
-        <strong id="kursset-titel">Kursset importieren</strong>
-        <p id="kursset-desc" class="kursset-desc">Fertige Kartensets zum Kurs — ein Tipp importiert sie direkt in die App. Erneutes Importieren aktualisiert die Karten des Sets.</p>
-        <div id="kursset-liste" class="kursset-liste"></div>
-        <button type="button" id="btn-kursset-alle" class="btn-secondary hidden" style="margin-top:0.6rem;width:100%">Alle aktualisieren</button>
-        <button type="button" id="btn-kursset-aufraeumen" class="btn-secondary hidden" style="margin-top:0.5rem;width:100%">🧹 Speicher aufräumen</button>
-      </div>
-
-      <div class="card nur-erweitert">
-        <div class="sicherung-zeile">
-          <div class="sicherung-info">
-            <strong>Aus Datei importieren</strong>
-            <p>Karten aus einer Backup-Datei laden</p>
-          </div>
-          <button id="btn-import-trigger" class="btn-secondary btn-inline">Importieren</button>
-          <input type="file" id="input-import" accept=".json" class="hidden">
-        </div>
-      </div>
-
-      <div class="card nur-erweitert">
-        <div class="sicherung-zeile">
-          <div class="sicherung-info">
-            <strong>Exportieren</strong>
-            <p>Einzelne Gruppen oder alles als Backup speichern</p>
-          </div>
-          <button id="btn-export" class="btn-primary btn-inline">Exportieren</button>
-        </div>
-      </div>
-
-      <div class="card nur-erweitert">
-        <div class="sicherung-zeile">
-          <div class="sicherung-info">
-            <strong>Fotos komprimieren</strong>
-            <p>Verkleinert große, unkomprimierte Fotos (z.&nbsp;B. über „Bearbeiten" hinzugefügt), spart Speicherplatz und macht Exporte zuverlässiger</p>
-          </div>
-          <button id="btn-fotos-komprimieren" class="btn-secondary btn-inline">Komprimieren</button>
-        </div>
-      </div>
-
-      <div class="card nur-erweitert">
-        <div class="sicherung-zeile">
-          <div class="sicherung-info">
-            <strong>KI-Briefing für neue Karten</strong>
-            <p>Fertiger Prompt für ChatGPT, Gemini, Claude &amp; Co. — erklärt der KI das MemoFix-Datenformat, damit sie direkt passende Karten-Sets zum Import erzeugen kann</p>
-          </div>
-          <button type="button" id="btn-ki-briefing" class="btn-secondary btn-inline">Anzeigen</button>
-        </div>
-      </div>
-
-      <div class="card nur-erweitert">
-        <div class="sicherung-zeile">
-          <div class="sicherung-info">
-            <strong>🎯 KI-Briefing für Rate-Fragen</strong>
-            <p>Prompt, mit dem eine KI zu deinen eigenen Karten Multiple-Choice-Fragen für den Raten-Modus in MemoDive erstellt. Export (ohne Bilder) → KI → Import „Hinzufügen“</p>
-          </div>
-          <button type="button" id="btn-ki-raten" class="btn-secondary btn-inline">Anzeigen</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="sicherung-zeile">
-          <div class="sicherung-info">
-            <strong id="tutorial-titel">🎓 Tutorial wiederherstellen</strong>
-            <p id="tutorial-desc">Legt die Einführungskarten neu an, falls du sie gelöscht hast</p>
-          </div>
-          <button id="btn-tutorial-neu" class="btn-secondary btn-inline">Wiederherstellen</button>
-        </div>
-      </div>
-
-      <div class="card info-card">
-        <strong>⚠️ Nur auf diesem Gerät gespeichert</strong>
-        <p>Deine Karten liegen nur auf diesem Gerät. Exportiere sie ab und zu als Backup — z.&nbsp;B. bevor du Browserdaten löschst oder das Gerät wechselst.</p>
-      </div>
-
-      <p class="impressum-link"><a id="link-impressum" href="impressum.html#de" target="_blank" rel="noopener">Impressum &amp; Datenschutz</a></p>
-
-    </section>
-
   </main>
 
   <nav class="bottom-nav">
-    <button class="nav-item active nur-erweitert" data-view="verwaltung">
+    <button class="nav-item active" data-view="heute" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+        <rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/>
+        <rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/>
       </svg>
-      <span>Verwaltung</span>
+      <span>Heute</span>
     </button>
-    <button class="nav-item" data-view="lernen">
+    <button class="nav-item" data-view="woche" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 12h8M12 8v8"/>
+        <path d="M3 17c3-6 6-6 9-3s6 3 9-3"/><path d="M3 21h18"/>
       </svg>
-      <span>Lernen</span>
-    </button>
-    <button class="nav-item" data-view="statistik">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/>
-      </svg>
-      <span>Statistik</span>
-    </button>
-    <button class="nav-item" data-view="sicherung">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 3v12M8 11l4 4 4-4"/><path d="M4 18h16"/>
-      </svg>
-      <span>Sicherung</span>
+      <span>Verlauf</span>
     </button>
   </nav>
 
-  <!-- ── KARTE DETAIL OVERLAY ──────────────────────────── -->
-  <div id="karte-detail-overlay" class="karte-detail-overlay hidden" role="dialog" aria-modal="true">
-    <div class="karte-detail-inner">
-      <div id="karte-detail-foto-wrap" class="karte-detail-foto-wrap">
-        <img id="karte-detail-foto" src="" alt="">
-        <div id="karte-detail-foto-slideshow" class="foto-slideshow hidden">
-          <div id="karte-detail-foto-slides" class="foto-slides"></div>
-          <div id="karte-detail-foto-dots" class="foto-dots"></div>
-        </div>
+  <!-- ── SHEET (Bearbeiten, Feierabend, Bestätigen) ─── -->
+  <div id="sheet" class="modal-backdrop hidden">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sheet-titel">
+      <div class="modal-header">
+        <h2 id="sheet-titel"></h2>
+        <button class="btn-modal-close" id="sheet-zu" type="button" aria-label="Schließen">✕</button>
       </div>
-      <div id="karte-detail-text-wrap" class="karte-detail-text-wrap hidden">
-        <div id="karte-detail-text"></div>
-        <div id="karte-detail-text-fotos" class="lern-text-fotos hidden">
-          <div id="karte-detail-text-fotos-slides" class="lern-text-fotos-slides"></div>
-          <div id="karte-detail-text-fotos-dots" class="lern-text-fotos-dots"></div>
-        </div>
-      </div>
-      <div class="karte-detail-meta">
-        <span id="karte-detail-name" class="karte-detail-name"></span>
-        <span id="karte-detail-gruppe" class="karte-detail-gruppe"></span>
-        <span id="karte-detail-counter" class="karte-detail-counter"></span>
-        <span id="karte-detail-notiz" class="karte-detail-notiz hidden"></span>
-        <div id="karte-detail-links" class="karte-detail-links hidden"></div>
-        <div id="karte-detail-video" class="lern-card-video hidden"></div>
-      </div>
+      <div class="modal-body" id="sheet-body"></div>
     </div>
-    <div id="karte-detail-swipe-hint" class="karte-detail-swipe-hint hidden">‹ wischen ›</div>
-    <button id="btn-karte-teilen" class="karte-detail-share-btn" aria-label="Karte teilen">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-    </button>
-    <button id="btn-detail-favorit" class="karte-detail-fav-btn" aria-label="Favorit">★</button>
   </div>
 
-  <div id="toast" class="toast hidden"></div>
-
-  <!-- ── PRINT VIEW (nur für PDF-Export) ───────────────── -->
-  <div id="print-view"></div>
-
-  <!-- ── VIDEO OVERLAY ─────────────────────────────────── -->
-  <div id="video-overlay" class="video-overlay hidden" role="dialog" aria-modal="true">
-    <button id="btn-video-close" class="video-overlay-close" aria-label="Video schließen">✕</button>
-    <div class="video-iframe-wrap" id="video-iframe-wrap">
-      <iframe id="video-iframe" src="" allowfullscreen
-        allow="autoplay; encrypted-media; picture-in-picture"
-        frameborder="0" title="YouTube Video"></iframe>
+  <!-- ── HILFE ─────────────────────────────────────── -->
+  <div id="hilfe" class="modal-backdrop hidden">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="hilfe-titel">
+      <div class="modal-header">
+        <h2 id="hilfe-titel">Hilfe</h2>
+        <button class="btn-modal-close" id="hilfe-zu" type="button" aria-label="Schließen">✕</button>
+      </div>
+      <div class="modal-body">
+        <aside class="haltung">
+          <h4>Rhythm is it!</h4>
+          <p>Boxenstopps über den Tag bringen Regeneration und halten dich im Takt. MemoMe zeigt, wie sich Aktivität und Regeneration bei dir verteilen, ohne Punkte, ohne Lücken, ohne Mahnung. Die Mischung macht’s.</p>
+          <p><em>Anhalten. Auftanken. Weiter im eigenen Takt.</em></p>
+        </aside>
+        <div class="modal-section">
+          <div class="modal-section-title"><span class="hz-i klein" data-i="installieren"></span>Erste Schritte</div>
+          <div class="hz-liste">
+            <div class="hz"><span class="hz-i" data-i="browser" data-ton=""></span><div class="hz-t"><strong>Browser</strong> — iPhone und iPad: Safari · Android: Chrome oder Firefox · Computer: Safari, Firefox, Chrome oder Edge</div></div>
+            <div class="hz"><span class="hz-i" data-i="installieren" data-ton=""></span><div class="hz-t"><strong>Zuerst zum Home-Bildschirm</strong> — iPhone/iPad: Safari → Teilen □↑ → „Zum Home-Bildschirm“ · Android (Chrome): ⋮ oben rechts → ganz unten „Installieren und Verknüpfung erstellen“ (Firefox: Menü → „Installieren“) · bei der Warnung „Unsichere App blockiert“ (Play Protect): „Trotzdem installieren“, sie betrifft allgemein das von Chrome gebaute App-Paket, nicht MemoMe</div></div>
+            <div class="hz"><span class="hz-i" data-i="geraet" data-ton=""></span><div class="hz-t"><strong>Warum installieren?</strong> — danach startet MemoMe wie eine App, auch offline · ohne Installation kann der Browser die Daten nach etwa 7 Tagen ohne Nutzung löschen</div></div>
+            <div class="hz"><span class="hz-i" data-i="update" data-ton=""></span><div class="hz-t"><strong>Nach einem Update</strong> — App ganz schließen und neu öffnen · oder „Neu laden“ im Hinweis unten</div></div>
+          </div>
+        </div>
+        <div class="modal-divider"></div>
+        <div class="modal-section">
+          <div class="modal-section-title"><span class="hz-i klein" data-i="heute"></span>Heute</div>
+          <div class="hz-liste">
+            <div class="hz"><span class="hz-i" data-i="tippen" data-ton="reg"></span><div class="hz-t"><strong>Tippen</strong> — Moment zählen, mit seiner üblichen Dauer</div></div>
+            <div class="hz"><span class="hz-i" data-i="woche" data-ton=""></span><div class="hz-t"><strong>Datum oben</strong> — antippen → gestern ansehen und ergänzen · erneut antippen → heute · Tag endet um 4 Uhr nachts</div></div>
+            <div class="hz"><span class="hz-i" data-i="halten" data-ton=""></span><div class="hz-t"><strong>Halten</strong> — Ring füllt sich → Fenster zum Moment: nachtragen (jetzt · vor 30 min · vor 1 h · vor 2 h · Uhrzeit, Dauer, heute/gestern) · Einträge antippen → ändern · ✕ entfernen · letzten zurücknehmen</div></div>
+            <div class="hz"><span class="hz-i" data-i="runden" data-ton="reg"></span><div class="hz-t"><strong>Runden</strong> — erneut tippen, solange die Zeit läuft → eine längere Runde · 3 × 15 min = 45 min · 1×</div></div>
+            <div class="hz"><span class="hz-i" data-i="rahmen" data-ton=""></span><div class="hz-t"><strong>Rahmen des Tages</strong> — Schlaf · Arbeit · Essen · Trinken · nur gefühlt · erneut tippen hebt die Wahl auf</div></div>
+            <div class="hz"><span class="hz-i" data-i="schlaf" data-ton="reg"></span><div class="hz-t"><strong>Schlaf</strong> — morgens, für die Nacht davor · erholt · mittel · kurz</div></div>
+            <div class="hz"><span class="hz-i" data-i="feierabend" data-ton="akt"></span><div class="hz-t"><strong>Arbeit</strong> — tippen → Start · nochmal → Ende · wieder tippen → neuer Block · halten → Zeiten ändern, Tag war etwas · halb · normal · viel (Arbeitstag ohne Wahl normal) · Stunden zählen nie mit</div></div>
+            <div class="hz"><span class="hz-i" data-i="frei" data-ton="akt"></span><div class="hz-t"><strong>Freier Tag</strong> — ohne Eintrag frei · Arbeit eintragen → zählt (ohne Wahl als „etwas“)</div></div>
+            <div class="hz"><span class="hz-i" data-i="essen" data-ton=""></span><div class="hz-t"><strong>Essen</strong> — frisch · gemischt · gegönnt (Genuss, kein Ausrutscher)</div></div>
+            <div class="hz"><span class="hz-i" data-i="trinken" data-ton=""></span><div class="hz-t"><strong>Trinken</strong> — reichlich · mittel · wenig · Wasser, Tee &amp; Co.</div></div>
+            <div class="hz"><span class="hz-i" data-i="herz" data-ton=""></span><div class="hz-t"><strong>Herz</strong> — Angebot für andere</div></div>
+            <div class="hz"><span class="hz-i" data-i="balance" data-ton=""></span><div class="hz-t"><strong>Balance</strong> — eher aktiv oder eher erholsam · Arbeit zählt gedämpft mit · ohne Zahl, ohne Ziel</div></div>
+            <div class="hz"><span class="hz-i" data-i="wischen" data-ton=""></span><div class="hz-t"><strong>Schnell wischen</strong> — stoppt an jeder Gruppe</div></div>
+          </div>
+        </div>
+        <div class="modal-divider"></div>
+        <div class="modal-section">
+          <div class="modal-section-title"><span class="hz-i klein" data-i="woche"></span>Verlauf</div>
+          <div class="hz-liste">
+            <div class="hz"><span class="hz-i" data-i="woche" data-ton=""></span><div class="hz-t"><strong>Woche</strong> — Mo–So · ‹ › oder wischen · ab der ersten Woche · frühere Wochen kühler</div></div>
+            <div class="hz"><span class="hz-i" data-i="balance" data-ton=""></span><div class="hz-t"><strong>Balance der Woche</strong> — mit Arbeit · ohne Arbeit umschalten</div></div>
+            <div class="hz"><span class="hz-i" data-i="gruppen" data-ton=""></span><div class="hz-t"><strong>Momente</strong> — Balken je Gruppe · warm = aktiv, kühl = erholsam · antippen → Gruppe öffnet sich · ▸ Alle</div></div>
+            <div class="hz"><span class="hz-i" data-i="licht" data-ton="licht"></span><div class="hz-t"><strong>Scheinwerfer</strong> — Symbol eines Moments antippen → seine Wolken golden, der Rest blass · zurück zu Heute → aus</div></div>
+            <div class="hz"><span class="hz-i" data-i="wolke" data-ton="reg"></span><div class="hz-t"><strong>Über den Tag</strong> — antippen oder ⤢ → Vollbild · eine Wolke je Runde · Länge = Dauer · Breite &amp; Leuchten = Bedeutung · Strich = Feierabend</div></div>
+            <div class="hz"><span class="hz-i" data-i="filter" data-ton=""></span><div class="hz-t"><strong>Filter</strong> — erholsam · für mich · aktiv · Alle</div></div>
+            <div class="hz"><span class="hz-i" data-i="zoom" data-ton=""></span><div class="hz-t"><strong>Zoomen</strong> — zwei Finger aufziehen → Namen erscheinen · in der Karte federt sie zurück · im Vollbild bleibt der Zoom: ein Finger schiebt, Doppeltipp zurück, nach unten wischen schließt</div></div>
+            <div class="hz"><span class="hz-i" data-i="druck" data-ton=""></span><div class="hz-t"><strong>Langer Druck</strong> — auf eine Wolke → Name und Uhrzeit</div></div>
+            <div class="hz"><span class="hz-i" data-i="schirm" data-ton="reg"></span><div class="hz-t"><strong>Ganze Tage</strong> — z. B. Urlaub · Schleier über dem Tag · klingt drei Tage nach</div></div>
+            <div class="hz"><span class="hz-i" data-i="rahmen" data-ton=""></span><div class="hz-t"><strong>Rahmen des Tages</strong> — ein Punkt je Tag · Ring = Mitte der Woche · erscheint erst mit Einträgen</div></div>
+            <div class="hz"><span class="hz-i" data-i="abschluss" data-ton=""></span><div class="hz-t"><strong>Woche abschließen</strong> — Angebote · eine Frage · ein Satz, wenn gewünscht · auch später möglich</div></div>
+            <div class="hz"><span class="hz-i" data-i="rueckschau" data-ton=""></span><div class="hz-t"><strong>Rückschau</strong> — alle Sätze mit Frage · neueste zuerst · antippen → Woche öffnet sich</div></div>
+          </div>
+        </div>
+        <div class="modal-divider"></div>
+        <div class="modal-section">
+          <div class="modal-section-title"><span class="hz-i klein" data-i="zahnrad"></span>Einstellungen · Zahnrad oben rechts</div>
+          <div class="hz-liste">
+            <div class="hz"><span class="hz-i" data-i="gruppen" data-ton=""></span><div class="hz-t"><strong>Gruppen &amp; Momente</strong> — Gruppe antippen → aufklappen · ✎ → umbenennen oder entfernen · Momente anlegen · sortieren ↑↓ · Reihenfolge gilt überall</div></div>
+            <div class="hz"><span class="hz-i" data-i="modus" data-ton="mich"></span><div class="hz-t"><strong>Modus</strong> — erholsam · aktiv für mich (Sport, Musik) · aktiv (Hausarbeit)</div></div>
+            <div class="hz"><span class="hz-i" data-i="dauer" data-ton=""></span><div class="hz-t"><strong>Dauer</strong> — min · Std · Tage · Tage = ganzer Tag (Urlaub): Kachel „Tag 3“ · erneut tippen → heute aus · nicht in der Balance · Arbeit wie am freien Tag</div></div>
+            <div class="hz"><span class="hz-i" data-i="leuchtturm" data-ton="licht"></span><div class="hz-t"><strong>Bedeutung</strong> — normal · mehr · stark · nur das Leuchten, nie die Balance · bei Änderung: ab jetzt oder auch rückwirkend</div></div>
+            <div class="hz"><span class="hz-i" data-i="herz" data-ton=""></span><div class="hz-t"><strong>Angebot · Richtwert · Genug ab</strong> — Herz · etwa so oft, kein Soll · leise „genug für heute“</div></div>
+            <div class="hz"><span class="hz-i" data-i="rahmen" data-ton=""></span><div class="hz-t"><strong>Rahmen des Tages</strong> — Schlaf · Essen · Trinken einzeln ausblenden</div></div>
+            <div class="hz"><span class="hz-i" data-i="feierabend" data-ton="akt"></span><div class="hz-t"><strong>Arbeitstage &amp; Korridor</strong> — Arbeitstage wählen (Mo–Fr) · Regler: weniger oder mehr Einfluss der Arbeit auf die Balance · Tageswechsel (4 Uhr) · Korridor = ungefähres Ende des Arbeitstags</div></div>
+          </div>
+        </div>
+        <div class="modal-divider"></div>
+        <div class="modal-section">
+          <div class="modal-section-title"><span class="hz-i klein" data-i="sichern"></span>Daten &amp; Backup</div>
+          <div class="hz-liste">
+            <div class="hz"><span class="hz-i" data-i="geraet" data-ton=""></span><div class="hz-t"><strong>Nur auf diesem Gerät</strong> — nichts wird übertragen</div></div>
+            <div class="hz"><span class="hz-i" data-i="sichern" data-ton=""></span><div class="hz-t"><strong>Daten sichern</strong> — erzeugt eine Datei · ab und zu sichern</div></div>
+            <div class="hz"><span class="hz-i" data-i="laden" data-ton=""></span><div class="hz-t"><strong>Sicherung laden</strong> — Umzug auf ein anderes Gerät</div></div>
+            <div class="hz"><span class="hz-i" data-i="update" data-ton=""></span><div class="hz-t"><strong>Neue Version</strong> — Hinweis unten → „Neu laden“</div></div>
+          </div>
+        </div>
+        <div class="modal-divider"></div>
+        <div class="modal-section">
+          <div class="modal-section-title"><span class="hz-i klein" data-i="werkzeug"></span>Probleme &amp; Lösungen</div>
+          <div class="hz-liste">
+            <div class="hz"><span class="hz-i" data-i="loeschen" data-ton=""></span><div class="hz-t"><strong>Daten weg?</strong> — „Browserdaten löschen“ entfernt auch MemoMe → Sicherung laden</div></div>
+            <div class="hz"><span class="hz-i" data-i="update" data-ton=""></span><div class="hz-t"><strong>Alte Version sichtbar?</strong> — App schließen und neu öffnen · oder „Neu laden“ im Hinweis</div></div>
+            <div class="hz"><span class="hz-i" data-i="geraet" data-ton=""></span><div class="hz-t"><strong>Home-Bildschirm &amp; Safari</strong> — getrennte Speicher · immer die App vom Home-Bildschirm nutzen</div></div>
+            <div class="hz"><span class="hz-i" data-i="tippen" data-ton=""></span><div class="hz-t"><strong>Versehentlich getippt?</strong> — „Rückgängig“ im Hinweis unten · oder Kachel halten → letzten zurücknehmen</div></div>
+          </div>
+        </div>
+        <div class="modal-divider"></div>
+        <p class="modal-meta">Daten bleiben auf diesem Gerät. MemoMe ersetzt keine ärztliche oder psychologische Beratung.</p>
+        <p class="modal-meta modal-meta-build">Version 1.4 · Klaus Teltenkötter 2026</p>
+      </div>
     </div>
-    <div id="video-overlay-title" class="video-overlay-title"></div>
   </div>
 
-  <script src="app.js?v=149"></script>
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"><span id="toast-text"></span><button id="toast-btn" type="button" class="hidden">Rückgängig</button></div>
+
+  <script src="app.js?v=50"></script>
 </body>
 </html>
