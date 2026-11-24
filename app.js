@@ -1,1665 +1,7499 @@
-/* MemoMe
-   Keine Leistungs-App: sammeln statt fordern, zeigen was da war, nie was fehlt. */
-'use strict';
-
-// ── Grunddaten ─────────────────────────────────────────
-// Gruppen liegen in S (selbst anlegbar, sortierbar). GRUPPEN ist daraus gebaut: id → Name, in der eingestellten Reihenfolge.
-const START_GRUPPEN = [ { id: 'family', name: 'Family' }, { id: 'metime', name: 'Me-Time' }, { id: 'social', name: 'Social' } ];
-let GRUPPEN = {};
-function gruppenAktualisieren() {
-  GRUPPEN = {}; for (const g of S.gruppen) GRUPPEN[g.id] = g.name;
+// ── Hilfsfunktionen ─────────────────────────────────────────
+function debounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
 }
-const MODI = { akt: 'Aktivierung', reg: 'Regeneration', beides: 'aktiv für mich' };
-// Rahmen des Tages: drei gefühlte Werte, oben der eine Pol, unten der andere. Keine Wertung, keine Ampel.
-const WAHL = {
-  schlaf:  { name: 'Schlaf',  icon: 'schlaf',  werte: [['erholt', 'erholt'], ['mittel', 'mittel'], ['kurz', 'kurz']] },
-  essen:   { name: 'Essen',   icon: 'essen',   werte: [['frisch', 'frisch'], ['gemischt', 'gemischt'], ['gegoennt', 'gegönnt']] },
-  trinken: { name: 'Trinken', icon: 'trinken', werte: [['viel', 'reichlich'], ['mittel', 'mittel'], ['wenig', 'wenig']] },   // Schlüssel bleibt 'viel', angezeigt „reichlich“
-  // Arbeit: eine Skala für alle Tage (gefühlt). Keine eigene Spalte, gewählt im Arbeitsfenster.
-  arbeit:  { name: 'Arbeit',  icon: 'feierabend', frei: true, werte: [['etwas', 'etwas'], ['halb', 'halb'], ['normal', 'normal'], ['viel', 'viel']] },
+
+// ============================================================
+// INTERNATIONALISATION (DE / EN)
+// ============================================================
+
+let currentLang = localStorage.getItem('memoLang') || 'de';
+
+/** Simple string lookup */
+function t(key) {
+  return (TRANS[currentLang] ?? TRANS.de)[key] ?? TRANS.de[key] ?? key;
+}
+/** Parametrised lookup – calls function values with supplied args */
+function tf(key, ...args) {
+  const v = (TRANS[currentLang] ?? TRANS.de)[key] ?? TRANS.de[key];
+  return typeof v === 'function' ? v(...args) : (v ?? key);
+}
+
+const TRANS = {
+  de: {
+    // ── Navigation ────────────────────────────────────────
+    nav_verwaltung: 'Verwaltung',
+    nav_lernen: 'Lernen',
+    nav_statistik: 'Statistik',
+    nav_sicherung: 'Sicherung',
+    nav_kurssets: 'Kurssets',
+    modus_einfach: 'Einfach', modus_erweitert: 'Erweitert',
+    modus_tip_einfach: 'Einfach – tippen für alle Funktionen (Erweitert)', modus_tip_erweitert: 'Erweitert – tippen für die einfache Ansicht',
+    modus_confirm: 'Zur einfachen Ansicht wechseln?\n\nDeine eigenen Karten bleiben erhalten und du kannst sie weiter lernen. Bearbeiten, Export und Import findest du wieder unter „Erweitert“.',
+    willkommen_titel: 'Willkommen bei MemoFix', willkommen_text: 'Lade hier dein Kursset und lerne los. Neu hier? Der Schnelleinstieg zeigt dir in 2 Minuten, wie es geht.',
+    willkommen_laden: 'Kurssets laden', willkommen_start: 'Schnelleinstieg (2 Min)',
+    // ── Header ────────────────────────────────────────────
+    help_title: 'Hilfe',
+    // ── Verwaltung ────────────────────────────────────────
+    sammlungen: 'Sammlungen',
+    alle_oeffnen: 'Alle öffnen',
+    alle_schliessen: 'Alle schließen',
+    karten_suchen: '🔍 Karten suchen…',
+    manuell: 'Manuell ▲▼',
+    sort_az: 'A → Z',
+    sort_za: 'Z → A',
+    neue_sammlung: 'Neue Sammlung…',
+    keine_sammlungen: 'Noch keine Sammlungen. Bitte eine Sammlung anlegen.',
+    keine_karten: 'Noch keine Karten vorhanden.',
+    keine_karten_gefunden: 'Keine Karten gefunden.',
+    keine_inhalte: 'Keine Inhalte vorhanden.',
+    // ── Karte hinzufügen ──────────────────────────────────
+    karte_hinzufuegen: 'Karte hinzufügen',
+    gruppe_waehlen: 'Gruppe wählen…',
+    karten_inhalt: 'Karten-Inhalt',
+    tippen_foto: 'Tippen zum Foto auswählen',
+    notiz_ph: 'Zusatzinfo zum Begriff… (max. 3000 Zeichen)',
+    text_ph: 'Text, Definition oder Erklärung… (max. 1000 Zeichen)',
+    karte_speichern: 'Karte speichern',
+    wird_gespeichert: 'Wird gespeichert…',
+    name_label: 'Name',
+    begriff_label: 'Begriff',
+    gruppe_label: 'Gruppe',
+    notiz_label: 'Notiz',
+    merke_label: 'Merke',
+    toast_namen_gespeichert: 'Gespeichert',
+    namen_titel_sammlung: 'Sammlung bearbeiten',
+    namen_titel_gruppe: 'Gruppe bearbeiten',
+    namen_zweisprachig: 'Inhalt ist bereits zweisprachig (Sprachschalter ändert die Karten nicht)',
+    en_summary: '🇬🇧 English <span class="label-optional">(optional, für den Sprachschalter)</span>',
+    l_name_en: 'Name (EN)', l_vorderseite_en: 'Vorderseite (EN)', l_notiz_en: 'Notiz (EN)', l_merke_en: 'Merke (EN)',
+    namen_de: 'Name', namen_en: 'Name (EN)', speichern_btn: 'Speichern',
+    merke_optional: '(optional, farbig hervorgehoben)',
+    merke_ph: 'Kernaussage in ein bis zwei Sätzen… (max. 500 Zeichen)',
+    links_label: 'Links',
+    youtube_label: 'YouTube',
+    optional: '(optional)',
+    optional_aufdecken: '(optional, erscheint beim Aufdecken)',
+    optional_url: '(optional, eine URL pro Zeile)',
+    optional_video: '(optional — Video-ID oder URL)',
+    foto_wechseln: 'Foto wechseln',
+    fotos_label_foto: 'Fotos <span class="label-optional">(mehrere möglich)</span>',
+    fotos_label_begriff: 'Fotos für Rückseite <span class="label-optional">(optional, mehrere möglich)</span>',
+    typ_label: 'Typ',
+    chip_foto: '📷 Bild vorn',
+    chip_text: '📖 Begriff vorn, Bild hinten',
+    chip_hinweis: '<strong>Bild vorn:</strong> erst das Bild, beim Aufdecken der Begriff · <strong>Begriff vorn:</strong> erst der Begriff, beim Aufdecken Text, Notiz und Bilder (z. B. wenn das Bild die Antwort verrät)',
+    text_vorderseite: 'Text / Vorderseite',
+    speichern: 'Speichern',
+    name_ph: 'Name oder Begriff…',
+    // ── Karte detail ──────────────────────────────────────
+    swipe_hint: '‹ wischen ›',
+    // ── Lernen ────────────────────────────────────────────
+    gruppen_auswaehlen: 'Gruppen auswählen',
+    alle: 'Alle',
+    keine: 'Keine',
+    schwaechste: 'Schwächste',
+    normal: 'Normal',
+    normal_desc: '📷 Foto · 📖 Begriff → Lösung',
+    umgekehrt: 'Umgekehrt',
+    umgekehrt_desc: 'Lösung → 📷 Foto · 📖 Begriff',
+    lernen_starten: 'Lernen starten',
+    lernen_starten_n: (n) => `Lernen starten (${n} Karte${n !== 1 ? 'n' : ''})`,
+    beenden: '✕ Beenden',
+    gemischt: '⇄ Gemischt',
+    sortiert: '↕ Sortiert',
+    tippen_aufdecken: 'Tippen zum Aufdecken',
+    begriff_zeigen: 'Begriff zeigen',
+    info_zeigen: 'Info zeigen',
+    bild_zeigen: 'Bild zeigen',
+    // ── Ende ──────────────────────────────────────────────
+    uebung_beendet: 'Übung beendet!',
+    gewusst_lbl: 'Gewusst ✓',
+    nachgeschaut_lbl: 'Nachgeschaut ✗',
+    neue_uebung: 'Neue Übung starten',
+    nachgeschaut_ueben: '↺ Nachgeschaut üben',
+    andere_gruppen: 'Andere Gruppen auswählen',
+    // ── Statistik ─────────────────────────────────────────
+    uebersicht: 'Übersicht',
+    sitzungen: 'Sitzungen',
+    trefferquote: 'Ø Trefferquote',
+    abfragen: 'Abfragen gesamt',
+    schwerste_karten: 'Schwierigste Karten',
+    keine_daten: 'Noch keine Daten vorhanden.',
+    stat_30: '30 Tage', stat_alle: 'Alle', stat_keine_zeitraum: 'Keine Auffälligkeiten in diesem Zeitraum.', stat_von: (n, t, d) => `${n} von ${t} nachgeschaut · zuletzt ${d}`, stat_titel_rate: 'Anteil nicht gewusst',
+    schwaechste_ueben: '⟳ Schwächste Karten jetzt üben',
+    letzte_sitzungen: 'Letzte Sitzungen',
+    keine_sitzungen: 'Noch keine Sitzungen absolviert.',
+    statistik_reset: 'Statistik zurücksetzen',
+    statistik_reset_desc: 'Alle Sitzungsdaten löschen, Karten bleiben erhalten',
+    loeschen: 'Löschen',
+    // ── Sicherung ─────────────────────────────────────────
+    exportieren: 'Exportieren',
+    exportieren_desc: 'Einzelne Gruppen oder alles als Backup speichern',
+    importieren: 'Importieren',
+    importieren_datei: 'Aus Datei importieren',
+    importieren_desc: 'Karten aus einer Backup-Datei laden',
+    fotos_komprimieren: 'Fotos komprimieren',
+    fotos_komprimieren_desc: 'Verkleinert große, unkomprimierte Fotos (z. B. über „Bearbeiten" hinzugefügt), spart Speicherplatz und macht Exporte zuverlässiger',
+    komprimieren: 'Komprimieren',
+    kursset_titel: 'Kursset importieren',
+    kursset_desc: 'Fertige Kartensets zum Kurs — ein Tipp importiert sie direkt in die App. Erneutes Importieren aktualisiert die Karten des Sets.',
+    kursset_laden: 'Importieren',
+    kursset_aktualisieren: 'Aktualisieren',
+    kursset_keine: 'Derzeit sind keine Kurssets hinterlegt.',
+    kursset_offline: 'Kurssets können nur mit Internetverbindung geladen werden.',
+    kursset_format: 'Ungültiges Set-Format',
+    confirm_kursset: (name) => `Set „${name}" importieren?\n\nKarten dieses Sets werden ersetzt bzw. aktualisiert. Eigene Karten bleiben unberührt.`,
+    toast_kursset_ok: (name, n, a, e, k) => `„${name}": ${n} neu, ${a} aktualisiert${e ? `, ${e} entfernt` : ''}${k ? `, ${k} lokal behalten` : ''}`,
+    toast_kursset_alle: (n) => `${n} Kurs${n !== 1 ? 'sets' : 'set'} aktualisiert`,
+    kursset_stand: 'Stand',
+    kursset_belegt: 'MB auf dem Gerät', kursset_wort_orange: 'groß', kursset_wort_rot: 'sehr groß',
+    kursset_entfernen_title: 'Vom Gerät entfernen', kursset_aufraeumen: '🧹 Speicher aufräumen',
+    toast_kursset_entfernt: (name, n) => `„${name}" entfernt (${n} Karten)`,
+    kursset_speicher: (u, q) => `Belegt auf diesem Gerät: ca. ${u} MB${q ? ' von ' + q : ''}`,
+    kursset_laedt: (i, n) => n > 1 ? `Lädt Teil ${i}/${n} …` : 'Lädt …',
+    md_titel: '▶ MemoDive fortsetzen?', ml_fortsetzen: 'Fortsetzen', ml_zuletzt: 'Zuletzt genutzt', ml_leer: 'Noch nichts gespeichert. Hier erscheinen deine letzten Auswahlen und angefangene Runden.', ml_karten: (n) => `${n} Karte${n !== 1 ? 'n' : ''}`, ml_lernen: 'Lernen', ml_stand: (l, i, n, d) => `${l} · Karte ${i} von ${n} · ${d}`, ml_version: 'Stand', ml_weg: 'Diese Gruppen gibt es nicht mehr', lst_titel: '▶ Lernen fortsetzen?', md_weiter: (l, i, n, d) => `Fortsetzen: ${l} · Karte ${i} von ${n} · ${d}`, md_neu: 'Neu starten', md_loeschen: 'Stand löschen',
+    md_entfallen: (n) => `${n} Karte${n !== 1 ? 'n' : ''} gibt es nicht mehr und ${n !== 1 ? 'wurden' : 'wurde'} übersprungen`,
+    pw_titel: '🔒 Passwort für dieses Set', pw_text: (n) => `„${n}“ ist passwortgeschützt. Das Passwort hast du von der Kursleitung bekommen.`,
+    pw_label: 'Passwort', pw_merken: 'Auf diesem Gerät merken (damit Updates ohne neue Eingabe laufen)', pw_ok: 'Entsperren', pw_abbrechen: 'Abbrechen',
+    pw_falsch: 'Passwort falsch', pw_pruefe: 'Prüfe …', pw_geschuetzt: 'Passwortgeschützt', pw_alt: 'Dieser Browser kann geschützte Sets nicht öffnen (bitte aktualisieren).',
+    confirm_kursset_gross: (name, mb) => `„${name}" ist ${mb} MB groß.\n\nIm Mobilfunk kann das langsam sein und Datenvolumen verbrauchen – besser im WLAN laden.\n\nJetzt laden?`, kursset_neu: 'Neu', kursset_gruppen: 'Gruppe(n)', kursset_erneut: 'Erneut laden',
+    kursset_alle: 'Alle aktualisieren', kursset_anzeigen: 'Anzeigen',
+    kursset_status_rot: 'Noch nicht geladen', kursset_status_gruen: 'Aktuell', kursset_status_orange: 'Update verfügbar',
+    kursset_updates_hinweis: (n) => `${n} Kurs${n !== 1 ? 'sets haben' : 'set hat'} Updates`,
+    confirm_kursset_konflikt: (name, n) => `„${name}": ${n} Karte${n !== 1 ? 'n wurden' : ' wurde'} bei dir geändert.\n\nOK = mit der neuen Fassung überschreiben\nAbbrechen = deine Änderungen behalten`,
+    confirm_kursset_entfallen: (n) => `${n} Karte${n !== 1 ? 'n entfallen' : ' entfällt'} im neuen Set.\n\nOK = entfernen\nAbbrechen = behalten`,
+    toast_kursset_fehler: (msg) => `Set konnte nicht importiert werden: ${msg}`,
+    ki_briefing: 'KI-Briefing für neue Karten',
+    ki_briefing_btn: 'Anzeigen',
+    ki_raten: '🎯 KI-Briefing für Rate-Fragen',
+    ki_raten_desc: 'Prompt, mit dem eine KI zu deinen eigenen Karten Multiple-Choice-Fragen für den Raten-Modus in MemoDive erstellt. Export (ohne Bilder) → KI → Import „Hinzufügen“',
+    ki_raten_hinweis: 'Kopieren und in einen neuen KI-Chat einfügen, dazu deine Export-Datei (ohne Bilder) anhängen.',
+    ki_kopieren: '📋 Kopieren', ki_kopiert: '✓ Kopiert', ki_schliessen: 'Schließen',
+    ki_hinweis: 'Kopieren und in einen neuen Chat bei ChatGPT, Gemini oder Claude einfügen. Danach dein Thema ergänzen.',
+    ki_briefing_desc: 'Fertiger Prompt für ChatGPT, Gemini, Claude & Co. — erklärt der KI das MemoFix-Datenformat, damit sie direkt passende Karten-Sets zum Import erzeugen kann',
+    herunterladen: 'Herunterladen',
+    tutorial_titel: '🎓 Tutorial wiederherstellen',
+    tutorial_desc: 'Legt die Einführungskarten neu an, falls du sie gelöscht hast',
+    tutorial_neu: 'Wiederherstellen',
+    toast_tutorial_neu: 'Tutorial wiederhergestellt',
+    datenspeicher_title: '⚠️ Nur auf diesem Gerät gespeichert',
+    datenspeicher_text: 'Deine Karten liegen nur auf diesem Gerät. Exportiere sie ab und zu als Backup — z. B. bevor du Browserdaten löschst oder das Gerät wechselst.',
+    // ── Export-Modal ──────────────────────────────────────
+    gruppen_exportieren: 'Gruppen exportieren',
+    welche_gruppen: 'Welche Gruppen sollen exportiert werden?',
+    exportieren_start: 'Exportieren',
+    export_ohne_bilder: 'Ohne Bilder (nur Text, Links, Struktur)',
+    pdf_drucken: '🖨 PDF drucken',
+    ios_hinweis: '📱 <strong>iPhone / iPad:</strong> Die Datei wird über das Teilen-Menü geöffnet. Tippe dort auf <em>„In Dateien sichern"</em>, um den Speicherort selbst zu wählen.',
+    pdf_hinweis: '🖨 Im Druckdialog <em>„Als PDF sichern"</em> wählen · <strong>iPhone:</strong> Teilen-Symbol → „In Dateien sichern"',
+    // ── Import-Modal ──────────────────────────────────────
+    gefundene_gruppen: 'Gefundene Gruppen in der Datei:',
+    hinzufuegen_label: '➕ Hinzufügen',
+    hinzufuegen_desc: 'Neue Gruppen ergänzen · Bestehende behalten',
+    ersetzen_label: '🔄 Alles ersetzen',
+    ersetzen_desc: 'Alle vorhandenen Karten werden überschrieben',
+    importieren_start: 'Importieren',
+    // ── Gruppe verschieben ────────────────────────────────
+    gruppe_verschieben: 'Gruppe verschieben',
+    keine_anderen_sammlungen: 'Keine anderen Sammlungen vorhanden.',
+    // ── Modals ────────────────────────────────────────────
+    karte_bearbeiten: 'Karte bearbeiten',
+    karte_kopieren: 'Karte kopieren',
+    // ── Video ─────────────────────────────────────────────
+    auf_youtube: 'Auf YouTube öffnen',
+    video_ungueltig: 'Ungültige Video-ID oder URL',
+    video_laden: 'Titel wird geladen…',
+    video_extern: '↗ Embedding gesperrt — wird als YouTube-Link gespeichert',
+    // ── Favoriten ─────────────────────────────────────────
+    fav_entfernen: 'Favorit entfernen',
+    fav_markieren: 'Als Favorit markieren',
+    favoriten: '★ Favoriten',
+    // ── Karten-Aktionen ───────────────────────────────────
+    bearbeiten: 'Bearbeiten',
+    kopieren: 'Kopieren',
+    karte_loeschen_title: 'Löschen',
+    foto_fehlt: 'Foto fehlt noch',
+    sammlung_wechseln: 'Sammlung wechseln',
+    sammlung_zuweisen: 'Sammlung zuweisen',
+    farbe_aendern: 'Farbe ändern',
+    neue_gruppe: 'Neue Gruppe…',
+    ohne_sammlung: 'Ohne Sammlung',
+    alle_gruppen_toggle: 'Alle Gruppen dieser Sammlung auswählen / abwählen',
+    // ── Toast-Meldungen ───────────────────────────────────
+    toast_gruppe_erstellt:      (name)    => `Gruppe „${name}" erstellt`,
+    toast_kopiert:              'Inhalt kopiert ✓',
+    toast_teilen_nv:            'Teilen nicht verfügbar',
+    toast_neue_runde:           '🔁 Neue Runde…',
+    toast_karte_kopiert:        (name)    => `Karte kopiert: „${name}"`,
+    toast_foto_fehlt:           'Bitte ein Foto auswählen.',
+    toast_karte_aktualisiert:   (name)    => `Karte aktualisiert: „${name}"`,
+    toast_sammlung_erstellt:    (name)    => `Sammlung „${name}" erstellt`,
+    toast_sammlung_umbenannt:   (name)    => `Sammlung umbenannt in „${name}"`,
+    toast_sammlung_geloescht:   (g, k)    => g > 0 ? `Sammlung gelöscht (${g} Gruppe${g !== 1 ? 'n' : ''}, ${k} Karte${k !== 1 ? 'n' : ''} entfernt)` : 'Sammlung gelöscht',
+    toast_verschoben:           (gN, sN)  => `„${gN}" → ${sN}`,
+    toast_foto_aktualisiert:    'Foto aktualisiert',
+    confirm_fotos_komprimieren: 'Große Fotos in der Sammlung komprimieren? Das kann bei vielen Karten einen Moment dauern.',
+    toast_keine_fotos:          'Keine Foto-Karten vorhanden.',
+    toast_fotos_bereits_klein:  'Alle Fotos sind bereits klein genug — nichts zu tun.',
+    toast_fotos_komprimiert:    (n, mb)   => `${n} Karte${n !== 1 ? 'n' : ''} komprimiert — ${mb} MB gespart`,
+    toast_fehler:               (msg)     => `Fehler: ${msg}`,
+    toast_gruppe_umbenannt:     (name)    => `Gruppe umbenannt in „${name}"`,
+    toast_gruppe_geloescht:     (n)       => n > 0 ? `Gruppe gelöscht (${n} Karte${n !== 1 ? 'n' : ''} entfernt)` : 'Gruppe gelöscht',
+    toast_gemischt:             'Karten gemischt',
+    toast_sortiert:             'Reihenfolge wiederhergestellt',
+    toast_statistik:            'Statistik gelöscht',
+    toast_keine_gruppen:        'Keine Gruppen vorhanden',
+    toast_keine_auswahl:        'Keine Gruppe ausgewählt',
+    toast_popup:                'Popups erlauben und nochmal versuchen',
+    toast_schwaechste:          (n, src)  => `${n} schwächste Karte${n !== 1 ? 'n' : ''} ${src}`,
+    toast_aus_auswahl:          'aus Auswahl',
+    toast_ausgewaehlt:          'ausgewählt',
+    toast_keine_stat_auswahl:   'Noch keine Statistikdaten für diese Auswahl',
+    toast_keine_stat:           'Noch keine Statistikdaten vorhanden',
+    toast_nachgeschaut:         (n)       => `${n} nachgeschaute Karte${n !== 1 ? 'n' : ''} nochmal`,
+    toast_foto_pflicht:         'Bitte ein Foto auswählen',
+    toast_text_pflicht:         'Bitte einen Text eingeben',
+    toast_karte_gespeichert:    (name)    => `Karte „${name}" gespeichert`,
+    toast_lesefehler:           (msg)     => `Fehler beim Lesen: ${msg}`,
+    toast_import_ok:            (n)       => `Import erfolgreich – ${n} Karten geladen`,
+    toast_import_neu:           (n)       => `${n} neue Karte${n !== 1 ? 'n' : ''} hinzugefügt`,
+    toast_import_nichts:        'Alle Karten bereits vorhanden – nichts hinzugefügt',
+    toast_import_fehler:        (msg)     => `Fehler beim Import: ${msg}`,
+    toast_exportiert:           (n, fav)  => fav ? `${n} Favorit${n !== 1 ? 'en' : ''} exportiert` : `${n} Gruppe${n !== 1 ? 'n' : ''} exportiert`,
+    toast_export_dateien_ok:    (n)       => `✅ ${n} Dateien erfolgreich gespeichert`,
+    toast_export_datei_ok:      (name)    => `✅ Gespeichert: ${name}`,
+    toast_export_dateien_dl:    (n)       => `📥 ${n} Dateien heruntergeladen`,
+    toast_export_datei_dl:      (name)    => `📥 Download gestartet: ${name}`,
+    // ── Confirm-Dialoge ───────────────────────────────────
+    confirm_karte:       (name)       => `Karte „${name}" löschen?`,
+    confirm_sammlung:    (name, g, k) => g > 0 ? `Sammlung „${name}" löschen?\n\nDabei werden auch ${g} Gruppe${g !== 1 ? 'n' : ''} und ${k} Karte${k !== 1 ? 'n' : ''} unwiderruflich gelöscht.` : `Sammlung „${name}" löschen?`,
+    confirm_gruppe:      (name, n)    => n > 0 ? `Gruppe „${name}" löschen?\n\nDabei werden auch ${n} Karte${n !== 1 ? 'n' : ''} unwiderruflich gelöscht.` : `Gruppe „${name}" löschen?`,
+    confirm_statistik:   'Alle Statistikdaten löschen? Die Karten bleiben erhalten.',
+    confirm_pdf:         (warn)       => `${warn}\n\nTrotzdem als PDF exportieren?`,
+    // ── Prompt-Dialoge ────────────────────────────────────
+    prompt_sammlung: 'Neuer Sammlungsname:',
+    prompt_gruppe:   'Neuer Gruppenname:',
+    // ── Sonstige ──────────────────────────────────────────
+    lernen_hinweis:      'Bitte zuerst Sammlungen, Gruppen und Karten anlegen.',
+    schwaechste_n:       (n) => `⟳ Schwächste ${n} Karte${n !== 1 ? 'n' : ''} jetzt üben`,
+    import_vorhanden:    'vorhanden',
+    import_neu_badge:    '· neu',
+    wird_aufbereitet:    'Wird aufbereitet…',
+    karte_n:             (n) => `${n} Karte${n !== 1 ? 'n' : ''}`,
+    gr_abbr: 'Gr.', k_abbr: 'K.',
+    pdf_warn_mixed: (sam) => `„${sam}": enthält Foto- und Text-Karten`,
+    pdf_warn_multi: 'Mehrere Sammlungen ausgewählt',
+    schlies_app:    '✓ Schließen & zur App',
+  },
+  en: {
+    // ── Navigation ────────────────────────────────────────
+    nav_verwaltung: 'Manage',
+    nav_lernen: 'Learn',
+    nav_statistik: 'Stats',
+    nav_sicherung: 'Backup',
+    nav_kurssets: 'Course sets',
+    modus_einfach: 'Simple', modus_erweitert: 'Advanced',
+    modus_tip_einfach: 'Simple – tap for all features (Advanced)', modus_tip_erweitert: 'Advanced – tap for the simple view',
+    modus_confirm: 'Switch to the simple view?\n\nYour own cards are kept and you can keep learning them. Editing, export and import are back under “Advanced”.',
+    willkommen_titel: 'Welcome to MemoFix', willkommen_text: 'Load your course set here and start learning. New here? The quick start shows you in 2 minutes how it works.',
+    willkommen_laden: 'Load course sets', willkommen_start: 'Quick start (2 min)',
+    // ── Header ────────────────────────────────────────────
+    help_title: 'Help',
+    // ── Verwaltung ────────────────────────────────────────
+    sammlungen: 'Collections',
+    alle_oeffnen: 'Expand all',
+    alle_schliessen: 'Collapse all',
+    karten_suchen: '🔍 Search cards…',
+    manuell: 'Manual ▲▼',
+    sort_az: 'A → Z',
+    sort_za: 'Z → A',
+    neue_sammlung: 'New collection…',
+    keine_sammlungen: 'No collections yet. Please create one.',
+    keine_karten: 'No cards yet.',
+    keine_karten_gefunden: 'No cards found.',
+    keine_inhalte: 'No content available.',
+    // ── Karte hinzufügen ──────────────────────────────────
+    karte_hinzufuegen: 'Add card',
+    gruppe_waehlen: 'Choose group…',
+    karten_inhalt: 'Card content',
+    tippen_foto: 'Tap to select photo',
+    notiz_ph: 'Extra info… (max. 3000 chars)',
+    text_ph: 'Text, definition or explanation… (max. 1000 chars)',
+    karte_speichern: 'Save card',
+    wird_gespeichert: 'Saving…',
+    name_label: 'Name',
+    begriff_label: 'Term',
+    gruppe_label: 'Group',
+    notiz_label: 'Note',
+    merke_label: 'Memo',
+    toast_namen_gespeichert: 'Saved',
+    namen_titel_sammlung: 'Edit collection',
+    namen_titel_gruppe: 'Edit group',
+    namen_zweisprachig: 'Content is already bilingual (language switch does not change the cards)',
+    en_summary: '🇬🇧 English <span class="label-optional">(optional, for the language switch)</span>',
+    l_name_en: 'Name (EN)', l_vorderseite_en: 'Front (EN)', l_notiz_en: 'Note (EN)', l_merke_en: 'Memo (EN)',
+    namen_de: 'Name', namen_en: 'Name (EN)', speichern_btn: 'Save',
+    merke_optional: '(optional, highlighted)',
+    merke_ph: 'Key point in one or two sentences… (max. 500 chars)',
+    links_label: 'Links',
+    youtube_label: 'YouTube',
+    optional: '(optional)',
+    optional_aufdecken: '(optional, shown when revealed)',
+    optional_url: '(optional, one URL per line)',
+    optional_video: '(optional — Video ID or URL)',
+    foto_wechseln: 'Change photo',
+    fotos_label_foto: 'Photos <span class="label-optional">(multiple allowed)</span>',
+    fotos_label_begriff: 'Photos for back <span class="label-optional">(optional, multiple allowed)</span>',
+    typ_label: 'Type',
+    chip_foto: '📷 Image on front',
+    chip_text: '📖 Term on front, image on back',
+    chip_hinweis: '<strong>Image on front:</strong> image first, term on reveal · <strong>Term on front:</strong> term first, text, note and images on reveal (e.g. when the image gives the answer away)',
+    text_vorderseite: 'Text / Front side',
+    speichern: 'Save',
+    name_ph: 'Name or term…',
+    // ── Karte detail ──────────────────────────────────────
+    swipe_hint: '‹ swipe ›',
+    // ── Lernen ────────────────────────────────────────────
+    gruppen_auswaehlen: 'Select groups',
+    alle: 'All',
+    keine: 'None',
+    schwaechste: 'Weakest',
+    normal: 'Normal',
+    normal_desc: '📷 Photo · 📖 Term → Answer',
+    umgekehrt: 'Reversed',
+    umgekehrt_desc: 'Answer → 📷 Photo · 📖 Term',
+    lernen_starten: 'Start learning',
+    lernen_starten_n: (n) => `Start learning (${n} card${n !== 1 ? 's' : ''})`,
+    beenden: '✕ Quit',
+    gemischt: '⇄ Shuffled',
+    sortiert: '↕ Sorted',
+    tippen_aufdecken: 'Tap to reveal',
+    begriff_zeigen: 'Show term',
+    info_zeigen: 'Show info',
+    bild_zeigen: 'Show image',
+    // ── Ende ──────────────────────────────────────────────
+    uebung_beendet: 'Session complete!',
+    gewusst_lbl: 'Correct ✓',
+    nachgeschaut_lbl: 'Looked up ✗',
+    neue_uebung: 'Start new session',
+    nachgeschaut_ueben: '↺ Practise looked-up',
+    andere_gruppen: 'Choose other groups',
+    // ── Statistik ─────────────────────────────────────────
+    uebersicht: 'Overview',
+    sitzungen: 'Sessions',
+    trefferquote: 'Avg. score',
+    abfragen: 'Total queries',
+    schwerste_karten: 'Hardest cards',
+    keine_daten: 'No data yet.',
+    stat_30: '30 days', stat_alle: 'All', stat_keine_zeitraum: 'Nothing stands out in this period.', stat_von: (n, t, d) => `${n} of ${t} looked up · last ${d}`, stat_titel_rate: 'Share not known',
+    schwaechste_ueben: '⟳ Practise weakest cards now',
+    letzte_sitzungen: 'Recent sessions',
+    keine_sitzungen: 'No sessions yet.',
+    statistik_reset: 'Reset statistics',
+    statistik_reset_desc: 'Delete all session data, cards are kept',
+    loeschen: 'Delete',
+    // ── Sicherung ─────────────────────────────────────────
+    exportieren: 'Export',
+    exportieren_desc: 'Save individual groups or everything as a backup',
+    importieren: 'Import',
+    importieren_datei: 'Import from file',
+    importieren_desc: 'Load cards from a backup file',
+    fotos_komprimieren: 'Compress photos',
+    fotos_komprimieren_desc: 'Shrinks large, uncompressed photos (e.g. added via "Edit"), saves storage space and makes exports more reliable',
+    komprimieren: 'Compress',
+    kursset_titel: 'Import course set',
+    kursset_desc: 'Ready-made card sets for your course — one tap imports them into the app. Importing again updates the cards of the set.',
+    kursset_laden: 'Import',
+    kursset_aktualisieren: 'Update',
+    kursset_keine: 'No course sets available right now.',
+    kursset_offline: 'Course sets can only be loaded with an internet connection.',
+    kursset_format: 'Invalid set format',
+    confirm_kursset: (name) => `Import set "${name}"?\n\nCards of this set are replaced or updated. Your own cards stay untouched.`,
+    toast_kursset_ok: (name, n, a, e, k) => `"${name}": ${n} new, ${a} updated${e ? `, ${e} removed` : ''}${k ? `, ${k} kept locally` : ''}`,
+    toast_kursset_alle: (n) => `${n} course set${n !== 1 ? 's' : ''} updated`,
+    kursset_stand: 'As of',
+    kursset_belegt: 'MB on this device', kursset_wort_orange: 'large', kursset_wort_rot: 'very large',
+    kursset_entfernen_title: 'Remove from this device', kursset_aufraeumen: '🧹 Free up storage',
+    toast_kursset_entfernt: (name, n) => `"${name}" removed (${n} cards)`,
+    kursset_speicher: (u, q) => `Used on this device: approx. ${u} MB${q ? ' of ' + q : ''}`,
+    kursset_laedt: (i, n) => n > 1 ? `Loading part ${i}/${n} …` : 'Loading …',
+    md_titel: '▶ Continue MemoDive?', ml_fortsetzen: 'Continue', ml_zuletzt: 'Recently used', ml_leer: 'Nothing saved yet. Your latest selections and unfinished rounds will show up here.', ml_karten: (n) => `${n} card${n !== 1 ? 's' : ''}`, ml_lernen: 'Learn', ml_stand: (l, i, n, d) => `${l} · card ${i} of ${n} · ${d}`, ml_version: 'Version', ml_weg: 'These groups no longer exist', lst_titel: '▶ Continue learning?', md_weiter: (l, i, n, d) => `Continue: ${l} · card ${i} of ${n} · ${d}`, md_neu: 'Start over', md_loeschen: 'Delete progress',
+    md_entfallen: (n) => `${n} card${n !== 1 ? 's' : ''} no longer exist${n !== 1 ? '' : 's'} and ${n !== 1 ? 'were' : 'was'} skipped`,
+    pw_titel: '🔒 Password for this set', pw_text: (n) => `"${n}" is password protected. You received the password from your instructor.`,
+    pw_label: 'Password', pw_merken: 'Remember on this device (so updates need no new entry)', pw_ok: 'Unlock', pw_abbrechen: 'Cancel',
+    pw_falsch: 'Wrong password', pw_pruefe: 'Checking …', pw_geschuetzt: 'Password protected', pw_alt: 'This browser cannot open protected sets (please update it).',
+    confirm_kursset_gross: (name, mb) => `"${name}" is ${mb} MB.\n\nOn mobile data this can be slow and use up your data allowance – better load it on Wi-Fi.\n\nLoad now?`, kursset_neu: 'New', kursset_gruppen: 'group(s)', kursset_erneut: 'Reload',
+    kursset_alle: 'Update all', kursset_anzeigen: 'Show',
+    kursset_status_rot: 'Not loaded yet', kursset_status_gruen: 'Up to date', kursset_status_orange: 'Update available',
+    kursset_updates_hinweis: (n) => `${n} course set${n !== 1 ? 's have' : ' has'} updates`,
+    confirm_kursset_konflikt: (name, n) => `"${name}": ${n} card${n !== 1 ? 's were' : ' was'} changed on your device.\n\nOK = overwrite with the new version\nCancel = keep your changes`,
+    confirm_kursset_entfallen: (n) => `${n} card${n !== 1 ? 's are' : ' is'} no longer part of the new set.\n\nOK = remove\nCancel = keep`,
+    toast_kursset_fehler: (msg) => `Could not import set: ${msg}`,
+    ki_briefing: 'AI briefing for new cards',
+    ki_briefing_btn: 'Show',
+    ki_raten: '🎯 AI briefing for guessing questions',
+    ki_raten_desc: 'Prompt that lets an AI write multiple-choice questions for the guessing mode in MemoDive from your own cards. Export (without images) → AI → import "Add"',
+    ki_raten_hinweis: 'Copy and paste into a new AI chat, and attach your export file (without images).',
+    ki_kopieren: '📋 Copy', ki_kopiert: '✓ Copied', ki_schliessen: 'Close',
+    ki_hinweis: 'Copy it and paste it into a new chat with ChatGPT, Gemini or Claude. Then add your topic.',
+    ki_briefing_desc: 'Ready-made prompt for ChatGPT, Gemini, Claude & co. — explains the MemoFix data format to the AI so it can generate ready-to-import card sets',
+    herunterladen: 'Download',
+    tutorial_titel: '🎓 Restore tutorial',
+    tutorial_desc: 'Recreates the introduction cards in case you deleted them',
+    tutorial_neu: 'Restore',
+    toast_tutorial_neu: 'Tutorial restored',
+    datenspeicher_title: '⚠️ Stored on this device only',
+    datenspeicher_text: 'Your cards are stored only on this device. Export a backup now and then — e.g. before clearing browser data or switching devices.',
+    // ── Export-Modal ──────────────────────────────────────
+    gruppen_exportieren: 'Export groups',
+    welche_gruppen: 'Which groups should be exported?',
+    exportieren_start: 'Export',
+    export_ohne_bilder: 'Without images (text, links, structure only)',
+    pdf_drucken: '🖨 Print PDF',
+    ios_hinweis: '📱 <strong>iPhone / iPad:</strong> The file opens via the share menu. Tap <em>"Save to Files"</em> to choose the location.',
+    pdf_hinweis: '🖨 In the print dialog choose <em>"Save as PDF"</em> · <strong>iPhone:</strong> Share icon → "Save to Files"',
+    // ── Import-Modal ──────────────────────────────────────
+    gefundene_gruppen: 'Groups found in file:',
+    hinzufuegen_label: '➕ Add',
+    hinzufuegen_desc: 'Add new groups · Keep existing',
+    ersetzen_label: '🔄 Replace all',
+    ersetzen_desc: 'All existing cards will be overwritten',
+    importieren_start: 'Import',
+    // ── Gruppe verschieben ────────────────────────────────
+    gruppe_verschieben: 'Move group',
+    keine_anderen_sammlungen: 'No other collections available.',
+    // ── Modals ────────────────────────────────────────────
+    karte_bearbeiten: 'Edit card',
+    karte_kopieren: 'Copy card',
+    // ── Video ─────────────────────────────────────────────
+    auf_youtube: 'Open on YouTube',
+    video_ungueltig: 'Invalid video ID or URL',
+    video_laden: 'Loading title…',
+    video_extern: '↗ Embedding blocked — saved as YouTube link',
+    // ── Favoriten ─────────────────────────────────────────
+    fav_entfernen: 'Remove favourite',
+    fav_markieren: 'Mark as favourite',
+    favoriten: '★ Favourites',
+    // ── Karten-Aktionen ───────────────────────────────────
+    bearbeiten: 'Edit',
+    kopieren: 'Copy',
+    karte_loeschen_title: 'Delete',
+    foto_fehlt: 'Photo missing',
+    sammlung_wechseln: 'Change collection',
+    sammlung_zuweisen: 'Assign collection',
+    farbe_aendern: 'Change colour',
+    neue_gruppe: 'New group…',
+    ohne_sammlung: 'No collection',
+    alle_gruppen_toggle: 'Select / deselect all groups in this collection',
+    // ── Toast-Meldungen ───────────────────────────────────
+    toast_gruppe_erstellt:      (name)    => `Group "${name}" created`,
+    toast_kopiert:              'Copied ✓',
+    toast_teilen_nv:            'Sharing not available',
+    toast_neue_runde:           '🔁 New round…',
+    toast_karte_kopiert:        (name)    => `Card copied: "${name}"`,
+    toast_foto_fehlt:           'Please select a photo.',
+    toast_karte_aktualisiert:   (name)    => `Card updated: "${name}"`,
+    toast_sammlung_erstellt:    (name)    => `Collection "${name}" created`,
+    toast_sammlung_umbenannt:   (name)    => `Collection renamed to "${name}"`,
+    toast_sammlung_geloescht:   (g, k)    => g > 0 ? `Collection deleted (${g} group${g !== 1 ? 's' : ''}, ${k} card${k !== 1 ? 's' : ''} removed)` : 'Collection deleted',
+    toast_verschoben:           (gN, sN)  => `"${gN}" → ${sN}`,
+    toast_foto_aktualisiert:    'Photo updated',
+    confirm_fotos_komprimieren: 'Compress large photos in your collection? This may take a moment for many cards.',
+    toast_keine_fotos:          'No photo cards found.',
+    toast_fotos_bereits_klein:  'All photos are already small enough — nothing to do.',
+    toast_fotos_komprimiert:    (n, mb)   => `${n} card${n !== 1 ? 's' : ''} compressed — ${mb} MB saved`,
+    toast_fehler:               (msg)     => `Error: ${msg}`,
+    toast_gruppe_umbenannt:     (name)    => `Group renamed to "${name}"`,
+    toast_gruppe_geloescht:     (n)       => n > 0 ? `Group deleted (${n} card${n !== 1 ? 's' : ''} removed)` : 'Group deleted',
+    toast_gemischt:             'Cards shuffled',
+    toast_sortiert:             'Order restored',
+    toast_statistik:            'Statistics deleted',
+    toast_keine_gruppen:        'No groups available',
+    toast_keine_auswahl:        'No group selected',
+    toast_popup:                'Allow pop-ups and try again',
+    toast_schwaechste:          (n, src)  => `${n} weakest card${n !== 1 ? 's' : ''} ${src}`,
+    toast_aus_auswahl:          'from selection',
+    toast_ausgewaehlt:          'selected',
+    toast_keine_stat_auswahl:   'No statistics yet for this selection',
+    toast_keine_stat:           'No statistics available yet',
+    toast_nachgeschaut:         (n)       => `${n} looked-up card${n !== 1 ? 's' : ''} again`,
+    toast_foto_pflicht:         'Please select a photo',
+    toast_text_pflicht:         'Please enter some text',
+    toast_karte_gespeichert:    (name)    => `Card "${name}" saved`,
+    toast_lesefehler:           (msg)     => `Read error: ${msg}`,
+    toast_import_ok:            (n)       => `Import successful – ${n} card${n !== 1 ? 's' : ''} loaded`,
+    toast_import_neu:           (n)       => `${n} new card${n !== 1 ? 's' : ''} added`,
+    toast_import_nichts:        'All cards already present – nothing added',
+    toast_import_fehler:        (msg)     => `Import error: ${msg}`,
+    toast_exportiert:           (n, fav)  => fav ? `${n} favourite${n !== 1 ? 's' : ''} exported` : `${n} group${n !== 1 ? 's' : ''} exported`,
+    toast_export_dateien_ok:    (n)       => `✅ ${n} files saved successfully`,
+    toast_export_datei_ok:      (name)    => `✅ Saved: ${name}`,
+    toast_export_dateien_dl:    (n)       => `📥 ${n} files downloaded`,
+    toast_export_datei_dl:      (name)    => `📥 Download started: ${name}`,
+    // ── Confirm-Dialoge ───────────────────────────────────
+    confirm_karte:       (name)       => `Delete card "${name}"?`,
+    confirm_sammlung:    (name, g, k) => g > 0 ? `Delete collection "${name}"?\n\nThis will also permanently delete ${g} group${g !== 1 ? 's' : ''} and ${k} card${k !== 1 ? 's' : ''}.` : `Delete collection "${name}"?`,
+    confirm_gruppe:      (name, n)    => n > 0 ? `Delete group "${name}"?\n\nThis will also permanently delete ${n} card${n !== 1 ? 's' : ''}.` : `Delete group "${name}"?`,
+    confirm_statistik:   'Delete all statistics? Cards are kept.',
+    confirm_pdf:         (warn)       => `${warn}\n\nExport as PDF anyway?`,
+    // ── Prompt-Dialoge ────────────────────────────────────
+    prompt_sammlung: 'New collection name:',
+    prompt_gruppe:   'New group name:',
+    // ── Sonstige ──────────────────────────────────────────
+    lernen_hinweis:      'Please create collections, groups and cards first.',
+    schwaechste_n:       (n) => `⟳ Practise ${n} weakest card${n !== 1 ? 's' : ''} now`,
+    import_vorhanden:    'existing',
+    import_neu_badge:    '· new',
+    wird_aufbereitet:    'Preparing…',
+    karte_n:             (n) => `${n} card${n !== 1 ? 's' : ''}`,
+    gr_abbr: 'Gr.', k_abbr: 'C.',
+    pdf_warn_mixed: (sam) => `"${sam}": contains photo and text cards`,
+    pdf_warn_multi: 'Multiple collections selected',
+    schlies_app:    '✓ Close & back to app',
+  }
 };
-const TAGE_KURZ = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-const istArbeitstag = d => (S.einstellungen.arbeitstage || [1, 2, 3, 4, 5]).includes(d.getDay());
-const WAHL_TEXT = (art, w) => (WAHL[art].werte.find(x => x[0] === w) || [w, w])[1];
-const wahlAn = art => S.einstellungen['zeige_' + art] !== false;
 
-// Piktogramme: 24er-Raster, Linie 1.75, runde Enden, currentColor (wie im MemoMe Design System)
-const PIKTO = {"kaffee":"<path d=\"M4 9h12v4.5A5.5 5.5 0 0 1 10.5 19h-1A5.5 5.5 0 0 1 4 13.5Z\"/><path d=\"M16 10.5h1.5a2.75 2.75 0 0 1 0 5.5H16\"/><path d=\"M8 3.5v2.5M12 3.5v2.5\"/><path d=\"M3 21.5h14\"/>","cello":"<path d=\"M12 7.4C9.8 7.4 8.4 8.5 8.4 10.3c0 1.2 1 1.8 1 2.8s-2 1.7-2 3.9c0 2.4 2 3.7 4.6 3.7s4.6-1.3 4.6-3.7c0-2.2-2-2.9-2-3.9s1-1.6 1-2.8c0-1.8-1.4-2.9-3.6-2.9Z\"/><path d=\"M12 16.2V1.8M10.9 3.4h2.2M10.4 16.2h3.2M12 20.7v2.3\"/>","sport":"<circle cx=\"15.5\" cy=\"4.2\" r=\"1.9\"/><path d=\"M13.6 8 10.6 13.6\"/><path d=\"M13.6 8l2.8 2.6 2.4-1.4\"/><path d=\"M13.6 8 10.2 8.6 8 10.8\"/><path d=\"M10.6 13.6l3.4 2.8-1 4.8\"/><path d=\"M10.6 13.6 8.4 17.2 4.6 17.6\"/>","meditation":"<circle cx=\"12\" cy=\"4.6\" r=\"2\"/><path d=\"M12 8.4v6.2\"/><path d=\"M12 9.6l-4.4 4.6 3 2.2M12 9.6l4.4 4.6-3 2.2\"/><path d=\"M4 19.5c2.4-2.6 5.2-3.2 8-3.2s5.6.6 8 3.2Z\"/>","spaziergang":"<circle cx=\"12.6\" cy=\"4.2\" r=\"1.9\"/><path d=\"M12.2 8l-.8 6.2\"/><path d=\"M11.4 14.2l2.4 3.2.6 3.6M11.4 14.2l-1.8 3.4-1.4 3.4\"/><path d=\"M12.2 8.6l2.6 3.2M12.2 8.6 9.6 11.6\"/><path d=\"M17.4 11v10\"/>","lesen":"<path d=\"M3 5.6c3-1 6-1 9 1 3-2 6-2 9-1v13c-3-1-6-1-9 1-3-2-6-2-9-1Z\"/><path d=\"M12 6.6v13\"/>","offline":"<rect x=\"7\" y=\"2.5\" width=\"10\" height=\"19\" rx=\"2.6\"/><path d=\"M10.6 5h2.8\"/><path d=\"M4 4l16 16\"/>","familie":"<circle cx=\"7\" cy=\"6\" r=\"2.2\"/><circle cx=\"17\" cy=\"6\" r=\"2.2\"/><circle cx=\"12\" cy=\"12.6\" r=\"1.4\"/><path d=\"M3.5 20.5v-6a3.5 3.5 0 0 1 7 0v6M13.5 20.5v-6a3.5 3.5 0 0 1 7 0v6M10.6 20.5v-3a1.4 1.4 0 0 1 2.8 0v3\"/>","zuzweit":"<circle cx=\"9\" cy=\"12\" r=\"5.6\"/><circle cx=\"15\" cy=\"12\" r=\"5.6\"/>","email":"<rect x=\"3\" y=\"5.5\" width=\"18\" height=\"13\" rx=\"2.2\"/><path d=\"M3.8 7.2l8.2 6.3 8.2-6.3\"/>","freunde":"<g transform=\"rotate(-12 7.5 13)\"><path d=\"M4.6 8h5.8l-.9 10a1.4 1.4 0 0 1-1.4 1.3H6.9a1.4 1.4 0 0 1-1.4-1.3Z\"/></g><g transform=\"rotate(12 16.5 13)\"><path d=\"M13.6 8h5.8l-.9 10a1.4 1.4 0 0 1-1.4 1.3h-1.2a1.4 1.4 0 0 1-1.4-1.3Z\"/></g><path d=\"M12 2.5v2.2M9.4 3.3l.9 1.6M14.6 3.3l-.9 1.6\"/>","coding":"<path d=\"M8 7l-5 5 5 5M16 7l5 5-5 5M13.6 5l-3.2 14\"/>","brot":"<path d=\"M3 14c0-4 4-6.5 9-6.5s9 2.5 9 6.5c0 2-1.5 3.5-3.5 3.5h-11C4.5 17.5 3 16 3 14Z\"/><path d=\"M8 9.4l1.4 3.2M12 8.8v3.6M16 9.4l-1.4 3.2\"/><path d=\"M5 20.5h14\"/>","feierabend":"<path d=\"M5.5 21.5V3\"/><path d=\"M5.5 3.8h12.5l-2.6 4.2 2.6 4.2H5.5\"/>","schlaf":"<path d=\"M19.5 14.6A8 8 0 1 1 9.4 4.5a6.4 6.4 0 0 0 10.1 10.1Z\"/>","kultur":"<path d=\"M4 9.5 12 4l8 5.5\"/><path d=\"M5 20.5h14M6.5 10.5v8M10 10.5v8M14 10.5v8M17.5 10.5v8\"/>","gruene":"<path d=\"M6 19c0-8 5-13 13-13 0 8-5 13-13 13Z\"/><path d=\"M4 21l9-9\"/>","kinder":"<circle cx=\"8\" cy=\"4.6\" r=\"1.9\"/><path d=\"M8 8.2v7.3M8 15.5l-2.2 5.5M8 15.5l2.2 5.5M8 10.2l4.6 2.8\"/><circle cx=\"16.5\" cy=\"10.8\" r=\"1.5\"/><path d=\"M16.5 13.6v4.2M16.5 17.8l-1.6 3.2M16.5 17.8l1.6 3.2M16.5 14.6l-3.9-1.6\"/>","orga":"<rect x=\"5\" y=\"4.5\" width=\"14\" height=\"16.5\" rx=\"2.5\"/><rect x=\"8.5\" y=\"2.6\" width=\"7\" height=\"3.8\" rx=\"1.3\"/><path d=\"M8.6 11.2h.4M11.8 11.2h3.8M8.6 14.6h.4M11.8 14.6h3.8M8.6 18h.4M11.8 18h3.8\"/>","haus":"<path d=\"M12 2.5v9\"/><path d=\"M7.5 11.5h9l1.6 9H5.9Z\"/><path d=\"M9.6 15v5.5M12 15v5.5M14.4 15v5.5\"/>","kraft":"<path d=\"M7 12h10\"/><rect x=\"3.5\" y=\"7.5\" width=\"3.5\" height=\"9\" rx=\"1.2\"/><rect x=\"17\" y=\"7.5\" width=\"3.5\" height=\"9\" rx=\"1.2\"/><path d=\"M2 10.5v3M22 10.5v3\"/>","musik":"<path d=\"M4 15v-3a8 8 0 0 1 16 0v3\"/><rect x=\"3\" y=\"14\" width=\"4.2\" height=\"6.5\" rx=\"1.8\"/><rect x=\"16.8\" y=\"14\" width=\"4.2\" height=\"6.5\" rx=\"1.8\"/>","wlanaus":"<path d=\"M2.5 9a14 14 0 0 1 19 0M5.5 12.5a9.5 9.5 0 0 1 13 0M8.5 16a5 5 0 0 1 7 0\"/><circle cx=\"12\" cy=\"19.4\" r=\".9\"/><path d=\"M4 4l16 16\"/>","buehne":"<path d=\"M5 3.5h14v7.5a7 7 0 0 1-14 0Z\"/><path d=\"M8.3 9.2c.6-.8 1.6-.8 2.2 0M13.5 9.2c.6-.8 1.6-.8 2.2 0\"/><path d=\"M8.8 13.6a3.6 3.6 0 0 0 6.4 0\"/>","tee":"<path d=\"M4 10.5h16c0 4.7-3.6 8.5-8 8.5s-8-3.8-8-8.5Z\"/><path d=\"M9 19l-.6 2h7.2l-.6-2\"/><path d=\"M9.5 3.5c-1 1.2 1 2 0 3.3M14.5 3.5c-1 1.2 1 2 0 3.3\"/>","essen":"<circle cx=\"14\" cy=\"12.5\" r=\"6.8\"/><circle cx=\"14\" cy=\"12.5\" r=\"3.6\"/><path d=\"M2.8 3.5v4.2a1.7 1.7 0 0 0 3.4 0V3.5M4.5 3.5v17\"/>","trinken":"<path d=\"M5.5 3.5h13l-1.7 16.3a1.8 1.8 0 0 1-1.8 1.6H9a1.8 1.8 0 0 1-1.8-1.6Z\"/><path d=\"M6.4 11.2c1.9-.9 3.7-.9 5.6 0s3.7.9 5.6 0\"/>","gespraech":"<path d=\"M4.5 4h9a2 2 0 0 1 2 2v4.5a2 2 0 0 1-2 2H8.5L5.5 15v-2.5h-1a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z\"/><path d=\"M18 9h1.5a2 2 0 0 1 2 2v4.5a2 2 0 0 1-2 2h-1V20l-3-2.5h-4a2 2 0 0 1-2-1.6\"/>","urlaub":"<circle cx=\"12\" cy=\"9\" r=\"3.5\"/><path d=\"M12 2.5v1.5M6.3 4.3l1 1M17.7 4.3l-1 1M4 9h1.5M18.5 9H20\"/><path d=\"M3 15.5c1.5 0 1.5-1 3-1s1.5 1 3 1 1.5-1 3-1 1.5 1 3 1 1.5-1 3-1 1.5 1 3 1\"/><path d=\"M6 19.5c1.2 0 1.2-.8 2.4-.8s1.2.8 2.4.8 1.2-.8 2.4-.8 1.2.8 2.4.8 1.2-.8 2.4-.8\"/>","telefon":"<path d=\"M6.6 3.5h2.6l1.6 4.2-2.1 1.5a11.5 11.5 0 0 0 6.1 6.1l1.5-2.1 4.2 1.6v2.6a2.1 2.1 0 0 1-2.2 2.1A16.4 16.4 0 0 1 4.5 5.7a2.1 2.1 0 0 1 2.1-2.2Z\"/>","nixtun":"<path d=\"M3 4v16.5M21 4v16.5\"/><path d=\"M3 6.5l3.2 4.8M21 6.5l-3.2 4.8\"/><path d=\"M6.2 11.3Q12 17.2 17.8 11.3\"/><circle cx=\"8.6\" cy=\"9.4\" r=\"1.6\"/><path d=\"M10.6 11.6Q13.6 13.4 16.4 10.9\"/>","abklatschen":"<circle cx=\"6.5\" cy=\"4.6\" r=\"1.9\"/><path d=\"M6.5 8.2v7.3M6.5 15.5l-2 5.5M6.5 15.5l2 5.5M6.5 10.2l4.9-3.4\"/><circle cx=\"17.5\" cy=\"4.6\" r=\"1.9\"/><path d=\"M17.5 8.2v7.3M17.5 15.5l-2 5.5M17.5 15.5l2 5.5M17.5 10.2l-4.9-3.4\"/><path d=\"M12 2v1.6M10.2 2.6l.6 1M13.8 2.6l-.6 1\"/>"};
-// nicht mehr in der Auswahl (bleiben für Schlaf, Arbeit und ältere Momente erhalten)
-const PIKTO_VERSTECKT = ['gruene', 'feierabend', 'schlaf', 'zuzweit'];   // nur noch sichtbar, wenn ein Moment es schon nutzt
-function pikto(name, cls = 'pikto', strich = 1.75) {
-  const p = PIKTO[name]; if (!p) return '';
-  return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strich}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
-}
-// Hilfe: schlichte Liniensymbole, wo vorhanden aus den Piktogrammen der App
-const HZ = {"browser": "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M3.5 12h17M12 3.5c2.6 2.4 3.8 5.2 3.8 8.5S14.6 18.1 12 20.5M12 3.5C9.4 5.9 8.2 8.7 8.2 12s1.2 6.1 3.8 8.5\"/>", "installieren": "<rect x=\"7\" y=\"2.5\" width=\"10\" height=\"19\" rx=\"2.5\"/><path d=\"M12 8v6M9 11h6\"/>", "heute": "<rect x=\"4\" y=\"4\" width=\"7\" height=\"7\" rx=\"2\"/><rect x=\"13\" y=\"4\" width=\"7\" height=\"7\" rx=\"2\"/><rect x=\"4\" y=\"13\" width=\"7\" height=\"7\" rx=\"2\"/><rect x=\"13\" y=\"13\" width=\"7\" height=\"7\" rx=\"2\"/>", "tippen": "<circle cx=\"12\" cy=\"12\" r=\"2.5\"/><circle cx=\"12\" cy=\"12\" r=\"7.5\"/>", "halten": "<path d=\"M4.5 12a7.5 7.5 0 1 0 2.2-5.3\"/><path d=\"M4.5 4.5v4h4\"/>", "runden": "<path d=\"M16.5 3l3 3-3 3\"/><path d=\"M4.5 11V9.5A3.5 3.5 0 0 1 8 6h11.5\"/><path d=\"M7.5 21l-3-3 3-3\"/><path d=\"M19.5 13v1.5A3.5 3.5 0 0 1 16 18H4.5\"/>", "rahmen": "<rect x=\"3.5\" y=\"5\" width=\"4\" height=\"14\" rx=\"1.5\"/><rect x=\"10\" y=\"5\" width=\"4\" height=\"14\" rx=\"1.5\"/><rect x=\"16.5\" y=\"5\" width=\"4\" height=\"14\" rx=\"1.5\"/>", "frei": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4\"/>", "herz": "<path d=\"M12 19.5s-7-4.3-7-9.6A3.9 3.9 0 0 1 12 7.6a3.9 3.9 0 0 1 7 2.3c0 5.3-7 9.6-7 9.6Z\"/>", "balance": "<path d=\"M12 4v16M7 20h10M5.5 8h13\"/><path d=\"M5.5 8l-2.5 6a2.5 2.5 0 0 0 5 0Z\"/><path d=\"M18.5 8l-2.5 6a2.5 2.5 0 0 0 5 0Z\"/>", "wischen": "<path d=\"M12 3.5v12\"/><path d=\"M7.5 11l4.5 4.5 4.5-4.5\"/><path d=\"M5 20.5h14\"/>", "woche": "<rect x=\"3.5\" y=\"5\" width=\"17\" height=\"15\" rx=\"2.5\"/><path d=\"M3.5 10h17M8 3v4M16 3v4\"/>", "gruppen": "<path d=\"M4 7h11M4 12h16M4 17h7\"/>", "licht": "<path d=\"M12 3.5l2 5.5 5.5 2-5.5 2-2 5.5-2-5.5-5.5-2 5.5-2Z\"/>", "wolke": "<ellipse cx=\"12\" cy=\"12\" rx=\"4.5\" ry=\"8\"/><circle cx=\"12\" cy=\"12\" r=\"0.9\"/>", "filter": "<path d=\"M4 5.5h16l-6 7v5.5l-4 2v-7.5Z\"/>", "zoom": "<circle cx=\"10.5\" cy=\"10.5\" r=\"6.5\"/><path d=\"M15.5 15.5l5 5M10.5 8v5M8 10.5h5\"/>", "druck": "<circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21\"/>", "schirm": "<path d=\"M3.5 11.5a8.5 8.5 0 0 1 17 0Z\"/><path d=\"M12 11.5v7a2 2 0 0 1-4 0\"/>", "abschluss": "<path d=\"M5 12.5l4.5 4.5L19 7.5\"/>", "rueckschau": "<path d=\"M5 5.5A2.5 2.5 0 0 1 7.5 3H19v15H7.5A2.5 2.5 0 0 0 5 20.5Z\"/><path d=\"M5 20.5v-15M19 18v3H7.5\"/>", "zahnrad": "<circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1\"/>", "modus": "<circle cx=\"12\" cy=\"12\" r=\"8\"/><path d=\"M12 4a8 8 0 0 1 0 16Z\" fill=\"currentColor\" stroke=\"none\" opacity=\"0.45\"/>", "dauer": "<circle cx=\"12\" cy=\"12\" r=\"8\"/><path d=\"M12 7.5V12l3 2\"/>", "leuchtturm": "<path d=\"M10 21l.9-11h2.2l.9 11Z\"/><path d=\"M8.5 21h7M10.5 10V7.5h3V10M12 7.5V5.5\"/><path d=\"M4.5 6l3.5 1.5M19.5 6L16 7.5\"/>", "geraet": "<rect x=\"7\" y=\"2.5\" width=\"10\" height=\"19\" rx=\"2.5\"/><path d=\"M11 18.5h2\"/>", "sichern": "<path d=\"M12 3.5v10.5\"/><path d=\"M8 10l4 4 4-4\"/><path d=\"M4.5 15v3.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V15\"/>", "laden": "<path d=\"M12 14V3.5\"/><path d=\"M8 7.5l4-4 4 4\"/><path d=\"M4.5 15v3.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V15\"/>", "update": "<path d=\"M19.5 12a7.5 7.5 0 1 1-2.2-5.3\"/><path d=\"M19.5 4.5v4h-4\"/>", "loeschen": "<path d=\"M5 7h14M10 7V4.5h4V7M7 7l1 13h8l1-13\"/>", "werkzeug": "<path d=\"M14.5 4a5 5 0 0 0-4.3 7.2L4 17.4V20h2.6l6.2-6.2A5 5 0 0 0 20 9.5l-2.8 1.1-2-2L16.3 5.8A5 5 0 0 0 14.5 4Z\"/>"};
-const hzIcon = name => { const p = HZ[name] || PIKTO[name]; return p ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>` : ''; };
-// Herz für „Angebot für andere“: Umriss grau = offen, gefüllt = angekommen
-const HERZ = '<svg class="herz" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.3s-7.6-4.7-7.6-10.2A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.6 2.7c0 5.5-7.6 10.2-7.6 10.2Z"/></svg>';
-const herzHTML = (voll, extra = '') => `<span class="herz-wrap${voll ? ' voll' : ''}${extra}">${HERZ}</span>`;
-const wochenKey = d => `${d.getFullYear()}-W${kw(d)}`;
-// ältere Einträge ohne gespeicherten Start: Montag der Woche aus dem Schlüssel „2026-W47“
-function wocheAusKey(k) {
-  const [j, w] = k.split('-W').map(Number);
-  const jan4 = new Date(j, 0, 4), mo = wocheStart(jan4);
-  mo.setDate(mo.getDate() + (w - 1) * 7);
-  return mo.getTime();
-}
+// ── applyTranslations: aktualisiert alle statischen DOM-Texte ──
+function applyTranslations() {
+  document.documentElement.lang = currentLang;
 
-// Piktogramm, sonst eigenes Zeichen
-// Piktogramm; ältere Momente können noch ein eigenes Zeichen haben; „kein Piktogramm“ zeigt nichts
-const hatSymbol = m => !!((m.icon && PIKTO[m.icon]) || (m.icon !== 'kein' && m.symbol));
-const symbolHTML = (m, strich) => (m.icon && PIKTO[m.icon]) ? pikto(m.icon, 'pikto', strich) : (m.icon !== 'kein' && m.symbol) ? `<span class="zeichen">${esc(m.symbol)}</span>` : '';
+  // Lang-Toggle-Button
+  const btnLang = document.getElementById('btn-lang');
+  if (btnLang) btnLang.textContent = currentLang === 'de' ? 'EN' : 'DE';
 
-// Startpaket für neue Nutzer: nur eine Starthilfe. Bestehende Daten bleiben bei Updates unberührt.
-// Alle drei Arten sind dabei (erholsam, aktiv für mich, aktiv), keine Richtwerte, keine Bedeutung, kein Tagesmoment.
-const START_MOMENTE = [
-  { id: 'familie',     name: 'Familienzeit',    icon: 'familie',     gruppe: 'family', modus: 'reg',    dauer: 60 },
-  { id: 'zuzweit',     name: 'Zeit zu zweit',   icon: 'zuzweit',     gruppe: 'family', modus: 'reg',    dauer: 60 },
-  { id: 'kinder',      name: 'Mit den Kindern', icon: 'kinder',      gruppe: 'family', modus: 'beides', dauer: 30 },
-  { id: 'haushalt',    name: 'Haushalt',        icon: 'haus',        gruppe: 'family', modus: 'akt',    dauer: 30 },
-  { id: 'spaziergang', name: 'Spaziergang',     icon: 'spaziergang', gruppe: 'metime', modus: 'reg',    dauer: 20 },
-  { id: 'lesen',       name: 'Lesen',           icon: 'lesen',       gruppe: 'metime', modus: 'reg',    dauer: 20 },
-  { id: 'sport',       name: 'Sport',           icon: 'sport',       gruppe: 'metime', modus: 'beides', dauer: 30 },
-  { id: 'nichtstun',   name: 'Nichts tun',      icon: 'nixtun',      gruppe: 'metime', modus: 'reg',    dauer: 10 },
-  { id: 'kaffee',      name: 'Kaffeepause',     icon: 'kaffee',      gruppe: 'social', modus: 'reg',    dauer: 15 },
-  { id: 'freunde',     name: 'Freunde treffen', icon: 'abklatschen', gruppe: 'social', modus: 'beides', dauer: 60 },
-  { id: 'telefonat',   name: 'Telefonat',       icon: 'telefon',   gruppe: 'social', modus: 'reg',    dauer: 20 },
-];
-// frühere Startmomente: nur noch für die Umstellung sehr alter Daten (Piktogramme nachtragen)
-const FRUEHERE_MOMENTE = [
-  { id: 'kaffee',      name: 'Kaffeepause',          symbol: '☕', icon: 'kaffee', gruppe: 'social', modus: 'reg',    dauer: 15 },
-  { id: 'cello',       name: 'Cello',                symbol: '🎻', icon: 'cello', gruppe: 'metime', modus: 'reg',    dauer: 30 },
-  { id: 'sport',       name: 'Sport / Joggen',       symbol: '🏃', icon: 'sport', gruppe: 'metime', modus: 'beides', dauer: 30 },
-  { id: 'meditation',  name: 'Meditation',           symbol: '🧘', icon: 'meditation', gruppe: 'metime', modus: 'reg',    dauer: 10 },
-  { id: 'spaziergang', name: 'Spaziergang',          symbol: '🚶', icon: 'spaziergang', gruppe: 'metime', modus: 'reg',    dauer: 20 },
-  { id: 'lesen',       name: 'Lesen',                symbol: '📖', icon: 'lesen', gruppe: 'metime', modus: 'reg',    dauer: 20 },
-  { id: 'offline',     name: 'Offline',              symbol: '📵', icon: 'offline', gruppe: 'metime', modus: 'reg',    dauer: 60 },
-  { id: 'familie',     name: 'Familienzeit',         symbol: '👨‍👩‍👧', icon: 'familie', gruppe: 'family', modus: 'reg',    dauer: 60 },
-  { id: 'zuzweit',     name: 'Zeit zu zweit',        symbol: '💑', icon: 'zuzweit', gruppe: 'family', modus: 'reg',    dauer: 60 },
-  { id: 'freunde',     name: 'Freunde treffen',      symbol: '🍻', icon: 'freunde', gruppe: 'social', modus: 'beides', dauer: 60 },
-  { id: 'vibe',        name: 'Vibe Coding',          symbol: '💻', icon: 'coding', gruppe: 'metime', modus: 'beides', dauer: 30, genugTag: 120 },
-];
-
-function startZustand() {
-  return {
-    version: 1,
-    stand: 6,            // Datenstand: 6 = Arbeit mit einer Skala (etwas · halb · normal · viel) und Zeitblöcken
-    gruppen: START_GRUPPEN.map(g => ({ ...g })),
-    momente: START_MOMENTE.map(m => ({ ...m })),
-    taps: [],            // { id, mid, ts, min }
-    feierabend: {},      // 'JJJJ-MM-TT' → 'HH:MM'
-    schlaf: {},          // 'JJJJ-MM-TT' → 'erholt' | 'mittel' | 'kurz'
-    essen: {},           // 'JJJJ-MM-TT' → 'frisch' | 'gemischt' | 'gegoennt'
-    trinken: {},         // 'JJJJ-MM-TT' → 'viel' | 'mittel' | 'wenig'
-    arbeit: {},          // früher: freie Tage (etwas | halb | ganz), seit Stand 6 in arbeitStufe
-    arbeitStufe: {},     // 'JJJJ-MM-TT' → 'etwas' | 'halb' | 'normal' | 'viel' (Arbeitstag ohne Wahl = normal, freier Tag ohne Wahl = frei)
-    arbeitZeit: {},      // 'JJJJ-MM-TT' → [{ von: 'HH:MM' | '', bis: 'HH:MM' | '' }] (mehrere Blöcke, alles freiwillig)
-    wochen: {},          // 'JJJJ-Wkw' → { angebote: { mid: { an, mir } }, satz, abgeschlossen }
-    einstellungen: { korridorVon: '17:30', korridorBis: '19:00', balanceStil: 'band', modus: 'einfach', zeige_schlaf: true, zeige_essen: true, zeige_trinken: true, arbeitstage: [1, 2, 3, 4, 5], arbeitGewicht: 3, arbeitInBalance: true, tagWechsel: 4 },
-  };
-}
-
-// ── Speicher (IndexedDB, Notfall: localStorage) ────────
-const DB_NAME = 'memome', STORE = 'kv', KEY = 'zustand';
-let dbP = null;
-function db() {
-  if (!dbP) dbP = new Promise((res, rej) => {
-    const r = indexedDB.open(DB_NAME, 1);
-    r.onupgradeneeded = () => r.result.createObjectStore(STORE);
-    r.onsuccess = () => res(r.result);
-    r.onerror = () => rej(r.error);
+  // Bottom-Nav
+  const navMap = { verwaltung: 'nav_verwaltung', lernen: 'nav_lernen', statistik: 'nav_statistik', sicherung: 'nav_sicherung' };
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    const sp = btn.querySelector('span');
+    if (sp && navMap[btn.dataset.view]) sp.textContent = t(btn.dataset.view === 'sicherung' && appModus === 'einfach' ? 'nav_kurssets' : navMap[btn.dataset.view]);
   });
-  return dbP;
-}
-async function laden() {
-  try {
-    const d = await db();
-    return await new Promise((res, rej) => {
-      const t = d.transaction(STORE).objectStore(STORE).get(KEY);
-      t.onsuccess = () => res(t.result || null);
-      t.onerror = () => rej(t.error);
-    });
-  } catch {
-    try { return JSON.parse(localStorage.getItem('memome-' + KEY)); } catch { return null; }
-  }
-}
-let speicherTimer = null;
-function speichern() {
-  clearTimeout(speicherTimer);
-  speicherTimer = setTimeout(async () => {
-    try {
-      const d = await db();
-      d.transaction(STORE, 'readwrite').objectStore(STORE).put(S, KEY);
-    } catch {
-      try { localStorage.setItem('memome-' + KEY, JSON.stringify(S)); } catch {}
-    }
-  }, 150);
-}
+  const bm = document.getElementById('btn-modus');
+  if (bm) { bm.textContent = t(appModus === 'einfach' ? 'modus_einfach' : 'modus_erweitert'); bm.title = t(appModus === 'einfach' ? 'modus_tip_einfach' : 'modus_tip_erweitert'); }
+  [['willkommen-titel', 'willkommen_titel'], ['willkommen-text', 'willkommen_text'], ['btn-willkommen-laden', 'willkommen_laden'], ['btn-willkommen-start', 'willkommen_start']].forEach(([id, k]) => { const e = document.getElementById(id); if (e) e.textContent = t(k); });
 
-let S = startZustand();
+  // Header
+  const btnInfo = document.getElementById('btn-info');
+  if (btnInfo) btnInfo.title = t('help_title');
 
-// ── Hilfen ─────────────────────────────────────────────
-const $ = s => document.querySelector(s);
-const pad = n => String(n).padStart(2, '0');
-const tagKey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-// Tageswechsel: Ein Tag geht bis 4 Uhr nachts (einstellbar). Kino bis 0:30 gehört noch zum Abend davor.
-const WECHSEL_H = () => S.einstellungen.tagWechsel ?? 4;
-const logTag = (t = Date.now()) => { const d = new Date(+t - WECHSEL_H() * 3600000); d.setHours(0, 0, 0, 0); return d; };
-// Heute kann auch gestern zeigen (Datum antippen)
-let heuteVersatz = 0;
-const ansichtDatum = () => { const d = logTag(); d.setDate(d.getDate() + heuteVersatz); return d; };
-const heuteKey = () => tagKey(ansichtDatum());
-const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-const moment = id => S.momente.find(m => m.id === id);
-const zuMin = hhmm => { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m; };
-const zuHHMM = min => `${pad(Math.floor(min / 60) % 24)}:${pad(Math.round(min % 60))}`;
+  // Info-Modal Inhalt (Hilfe)
+  const infoBody = document.querySelector('#info-modal .modal-body');
+  if (infoBody) infoBody.innerHTML = getHelpHtml();
+  const infoH2 = document.querySelector('#info-modal .modal-header h2');
+  if (infoH2) infoH2.textContent = t('help_title');
 
-function fmtDauer(min) {
-  if (min < 60) return `${min} min`;
-  const h = Math.floor(min / 60), r = min % 60;
-  if (r === 0) return `${h} h`;
-  if (r === 30) return `${h}½ h`;
-  return `${h} h ${r}`;
-}
-
-// Tagesmomente (Dauer in Tagen, z. B. Urlaub): eine Eigenschaft des Tages, keine Dauer im Tag.
-// Sie zählen nicht in die Balance, erscheinen in „Über den Tag“ als Schleier mit leisem Nachklang.
-const EINHEIT = { min: ['min', 1], std: ['Std', 60], tag: ['Tage', 1440] };
-const istTagesmoment = m => m?.einheit === 'tag';
-const tageText = n => n === 1 ? '1 Tag' : `${n} Tage`;
-const dauerText = m => istTagesmoment(m) ? tageText(Math.max(1, Math.round((m.dauer || 1440) / 1440))) : fmtDauer(m.dauer);
-const tagMit = (mid, d) => { const a = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() + WECHSEL_H() * 3600000, b = a + 86400000; return S.taps.some(t => t.mid === mid && t.ts >= a && t.ts < b); };
-// der wievielte Tag in Folge (für „Tag 3“ auf der Kachel)
-function tagInFolge(mid, d) {
-  let n = 0; const x = new Date(d);
-  while (tagMit(mid, x) && n < 400) { n++; x.setDate(x.getDate() - 1); }
-  return n;
-}
-const tagesmomentAn = d => S.momente.some(m => istTagesmoment(m) && tagMit(m.id, d));
-
-function wocheStart(d) {
-  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
-  return x;
-}
-function kw(d) {
-  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  const tag = t.getUTCDay() || 7;
-  t.setUTCDate(t.getUTCDate() + 4 - tag);
-  const j = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
-  return Math.ceil(((t - j) / 86400000 + 1) / 7);
-}
-
-// Einstieg: der früheste Tag mit irgendeinem Eintrag (oder das gespeicherte Startdatum). Davor gibt es keine Wochen.
-function einstiegTag() {
-  let t = S.seit ? new Date(S.seit + 'T12:00').getTime() : Date.now();
-  for (const x of S.taps) if (x.ts < t) t = x.ts;
-  for (const art of ['feierabend', 'schlaf', 'essen', 'trinken', 'arbeit', 'arbeitStufe', 'arbeitZeit'])
-    for (const k of Object.keys(S[art] || {})) { const d = new Date(k + 'T12:00').getTime(); if (d < t) t = d; }
-  return new Date(t - WECHSEL_H() * 3600000);
-}
-const minWocheVersatz = () => Math.min(0, Math.round((wocheStart(einstiegTag()).getTime() - wocheStart(new Date()).getTime()) / (7 * 86400000)));
-
-function tapsZwischen(von, bis) {
-  const h = WECHSEL_H() * 3600000, a = von.getTime() + h, b = bis.getTime() + h;   // Tage laufen bis zum Tageswechsel
-  return S.taps.filter(t => t.ts >= a && t.ts < b && moment(t.mid));
-}
-// Runden: gezählt werden Zeitabschnitte, nicht Tipps. Ein Tipp gehört zur vorigen Runde desselben Moments,
-// wenn er innerhalb seiner Dauer danach kommt (die Zeiten überlappen), mindestens aber innerhalb von 3 Minuten.
-// Die Dauer zählt voll: dreimal 15 min hintereinander = eine Runde mit 45 min. Gespeichert bleiben die einzelnen Tipps.
-function runden(taps) {
-  const letzte = {}, aus = [];
-  [...taps].sort((a, b) => a.ts - b.ts).forEach(t => {
-    const r = letzte[t.mid], fenster = Math.max(t.min || 0, 3) * 60000;
-    if (r && t.ts - r.ts <= fenster) { r.ts = t.ts; r.min += t.min || 0; r.tipps++; return; }
-    aus.push(letzte[t.mid] = { mid: t.mid, ts: t.ts, min: t.min || 0, tipps: 1 });
+  // Karte-Edit-Modal Labels
+  const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  const setPH  = (id, v) => { const el = document.getElementById(id); if (el) el.placeholder = v; };
+  setTxt('karte-edit-chip-foto', t('chip_foto'));
+  ['karte-edit-chip-hinweis', 'chip-hinweis'].forEach(id => { const e = document.getElementById(id); if (e) e.innerHTML = t('chip_hinweis'); });
+  setTxt('karte-edit-chip-text', t('chip_text'));
+  setTxt('btn-karte-edit-save',  t('speichern'));
+  document.querySelector('label[for="karte-edit-gruppe"]')?.childNodes[0] && (() => {
+    const el = document.querySelector('label[for="karte-edit-gruppe"]');
+    if (el) el.childNodes[0].textContent = t('gruppe_label');
+  })();
+  document.querySelector('label[for="karte-edit-vorderseite"]') && (() => {
+    const el = document.querySelector('label[for="karte-edit-vorderseite"]');
+    if (el) el.childNodes[0].textContent = t('text_vorderseite');
+  })();
+  setPH('karte-edit-notiz', t('notiz_ph'));
+  setPH('karte-edit-merke', t('merke_ph'));
+  document.getElementById('karte-edit-en-summary').innerHTML = t('en_summary');
+  [['l-name-en','l_name_en'],['l-vorderseite-en','l_vorderseite_en'],['l-notiz-en','l_notiz_en'],['l-merke-en','l_merke_en'],
+   ['namen-de-l','namen_de'],['namen-en-l','namen_en'],['namen-zweisprachig-l','namen_zweisprachig'],['btn-namen-save','speichern_btn']]
+    .forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.textContent = t(k); });
+  setPH('input-merke', t('merke_ph'));
+  ['karte-edit-merke', 'input-merke'].forEach(id => {
+    const l = document.querySelector(`label[for="${id}"]`);
+    if (l) l.innerHTML = `${t('merke_label')} <span class="label-optional">${t('merke_optional')}</span>`;
   });
-  return aus;
-}
-function tapsHeute() {
-  const von = ansichtDatum();
-  const bis = new Date(von); bis.setDate(bis.getDate() + 1);
-  return tapsZwischen(von, bis);
-}
 
-// Arbeit in der Balance: gefühlt (etwas · halb · normal · viel), gedämpft gewichtet (Regler in den Einstellungen).
-// Die Uhrzeiten zählen nie mit, sie sind nur das Bild. Arbeitstag ohne Wahl = normal (heute erst, wenn etwas eingetragen ist),
-// freier Tag ohne Wahl = frei; mit Zeiten, aber ohne Wahl = etwas.
-const ARBEIT_STUFE = { etwas: 1 / 3, halb: 1 / 2, normal: 1, viel: 4 / 3 };
-const STUFEN = ['etwas', 'halb', 'normal', 'viel'];
-// Arbeitszeiten als Blöcke je Tag; Feierabend = Ende des letzten Blocks (für Korridor und Rahmen)
-const arbeitBloecke = k => (S.arbeitZeit || {})[k] || (S.feierabend[k] ? [{ von: '', bis: S.feierabend[k] }] : []);
-const zeitH = z => { const h = zuMin(z) / 60; return h < WECHSEL_H() ? h + 24 : h; };   // nach Mitternacht: 24, 25 …
-function arbeitSetzen(k, bl) {
-  bl = bl.filter(b => b.von || b.bis).map(b => ({ von: b.von || '', bis: b.bis || '' }))
-    .sort((a, b) => zeitH(a.von || a.bis) - zeitH(b.von || b.bis));
-  S.arbeitZeit ||= {};
-  if (bl.length) S.arbeitZeit[k] = bl; else delete S.arbeitZeit[k];
-  const letzt = bl[bl.length - 1];
-  if (letzt && letzt.bis) S.feierabend[k] = letzt.bis; else delete S.feierabend[k];
-}
-const freierTag = d => !(istArbeitstag(d) && !tagesmomentAn(d));
-const arbeitMitzaehlen = () => S.einstellungen.arbeitInBalance !== false;
-const stundenText = h => `${String(h).replace('.', ',')} ${h === 1 ? 'Stunde' : 'Stunden'}`;
-const gewichtText = n => { const r = f => stundenText(Math.round(n * f * 2) / 2); return `Ein normaler Arbeitstag zählt wie ${stundenText(n)} Aktivität, ein halber wie ${r(1 / 2)}, etwas Arbeit wie ${r(1 / 3)}, viel Arbeit wie ${r(4 / 3)}. Mehr Einfluss heißt: Arbeit wiegt in der Balance schwerer.`; };
-function arbeitMin(d) {
-  const heute = logTag();
-  if (d > heute) return 0;
-  const k = tagKey(d), N = (S.einstellungen.arbeitGewicht ?? 3) * 60;
-  const st = (S.arbeitStufe || {})[k], hat = arbeitBloecke(k).length > 0;
-  if (!freierTag(d)) {
-    if (k === tagKey(heute) && !st && !hat) return 0;
-    return N * (ARBEIT_STUFE[st] ?? 1);
+  // Gruppe-Verschieben-Modal
+  const gvH2 = document.querySelector('#gruppe-verschieben-modal .modal-header h2');
+  if (gvH2) gvH2.textContent = t('gruppe_verschieben');
+
+  // Export-Modal
+  document.querySelector('#export-modal .modal-header h2')?.childNodes[0] &&
+    (document.querySelector('#export-modal .modal-header h2').textContent = t('gruppen_exportieren'));
+  document.querySelector('#export-modal .modal-hint')?.childNodes[0] &&
+    (document.querySelector('#export-modal .modal-hint').textContent = t('welche_gruppen'));
+  setTxt('btn-export-alle',  t('alle'));
+  setTxt('btn-export-keine', t('keine'));
+  setTxt('btn-export-start', t('exportieren_start'));
+  setTxt('export-ohne-bilder-txt', t('export_ohne_bilder'));
+  const iosHint = document.getElementById('export-ios-hinweis');
+  if (iosHint) iosHint.innerHTML = t('ios_hinweis');
+  const pdfHint = document.getElementById('export-pdf-hinweis');
+  if (pdfHint) pdfHint.innerHTML = t('pdf_hinweis');
+
+  // Import-Modal
+  document.querySelector('#import-modal .modal-header h2') &&
+    (document.querySelector('#import-modal .modal-header h2').textContent = t('importieren'));
+  document.querySelector('#import-modal .modal-hint') &&
+    (document.querySelector('#import-modal .modal-hint').textContent = t('gefundene_gruppen'));
+  setTxt('btn-import-start', t('importieren_start'));
+  const [addBtn, repBtn] = document.querySelectorAll('.import-modus-btn');
+  if (addBtn) {
+    addBtn.querySelector('.modus-label').textContent = t('hinzufuegen_label');
+    addBtn.querySelector('.modus-desc').textContent  = t('hinzufuegen_desc');
   }
-  if (st) return N * (ARBEIT_STUFE[st] ?? 1);
-  return hat ? N * ARBEIT_STUFE.etwas : 0;
-}
-function balance(taps, tage) {
-  let akt = 0, reg = 0;
-  const arbeit = tage && arbeitMitzaehlen() ? tage.reduce((n, d) => n + arbeitMin(d), 0) : 0;
-  akt += arbeit;
-  for (const t of taps) {
-    const m = moment(t.mid); if (!m || istTagesmoment(m)) continue;   // Tagesmomente zählen nicht in die Balance
-    const w = t.min || 10; // Momente ohne Dauer zählen leicht mit
-    if (m.modus === 'akt') akt += w;
-    else if (m.modus === 'reg') reg += w;
-    else { akt += w / 2; reg += w / 2; }
+  if (repBtn) {
+    repBtn.querySelector('.modus-label').textContent = t('ersetzen_label');
+    repBtn.querySelector('.modus-desc').textContent  = t('ersetzen_desc');
   }
-  const sum = akt + reg;
-  let wort = 'Noch offen';
-  if (sum > 0) {
-    const r = reg / sum;
-    wort = r > 0.62 ? 'eher regenerativ' : r < 0.38 ? 'eher aktiv' : 'ausgeglichen';
+
+  // Verwaltung – statische Elemente
+  document.querySelector('#view-verwaltung .card-header h2')?.childNodes[0] &&
+    (document.querySelector('#view-verwaltung .card-header h2').textContent = t('sammlungen'));
+  setPH('input-karten-suche', t('karten_suchen'));
+  setPH('input-neue-sammlung', t('neue_sammlung'));
+  const sortSel = document.getElementById('select-karten-sort');
+  if (sortSel) {
+    const [om, oaz, oza] = sortSel.options;
+    if (om)  om.textContent  = t('manuell');
+    if (oaz) oaz.textContent = t('sort_az');
+    if (oza) oza.textContent = t('sort_za');
   }
-  return { akt, reg, sum, wort, arbeit };
-}
 
-// ── Balance-Darstellung ────────────────────────────────
-function balanceHTML(b, stil, titel) {
-  const kopf = `<div class="balance-kopf"><span class="label">${esc(titel)}</span>
-    <span class="balance-wort${b.sum ? '' : ' leer'}">${esc(b.wort)}</span></div>`;
-  // nur noch das Band: die Waage kippt und wirkt wie eine Wertung
-  const a = b.sum ? b.akt : 1, r = b.sum ? b.reg : 1;
-  const leer = b.sum ? '' : ' style="opacity:.35"';
-  return kopf + `<div class="band" role="img" aria-label="Balance: ${esc(b.wort)}"${leer}>
-      <div class="band-akt" style="flex-grow:${a}"></div><div class="band-reg" style="flex-grow:${r}"></div>
-      <div class="band-mitte"></div></div>
-    <div class="band-legende"><span class="akt">Aktivität</span><span class="reg">Regeneration</span></div>`;
-}
+  // Karte-Hinzufügen-Header
+  const khH2 = document.querySelector('#karte-hinzufuegen-header h2');
+  if (khH2) khH2.textContent = t('karte_hinzufuegen');
+  document.querySelector('label[for="select-gruppe"]') &&
+    (document.querySelector('label[for="select-gruppe"]').textContent = t('gruppe_label'));
+  const labelName = document.getElementById('label-input-name');
+  if (labelName) labelName.textContent = t('name_label');
+  setPH('input-name', t('name_ph'));
+  document.querySelector('label[for="input-vorderseite"]') &&
+    (document.querySelector('label[for="input-vorderseite"]').childNodes[0].textContent = t('karten_inhalt'));
+  setTxt('chip-foto', t('chip_foto'));
+  setTxt('chip-text', t('chip_text'));
+  setPH('input-vorderseite', t('text_ph'));
+  setPH('input-notiz', t('notiz_ph'));
+  setTxt('btn-karte-speichern', t('karte_speichern'));
 
-
-// ── HEUTE ──────────────────────────────────────────────
-function renderHeute() {
-  const tagD = ansichtDatum();
-  $('#heute-datum').textContent = tagD.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
-  $('#heute-datum').setAttribute('aria-label', heuteVersatz ? 'Gestern. Antippen: zurück zu heute' : 'Heute. Antippen: gestern ansehen');
-  $('#heute-sub').innerHTML = heuteVersatz ? '<button type="button" class="link-heute" id="zu-heute">Gestern · zurück zu heute ›</button>' : 'Kann, nicht muss.';
-  document.documentElement.classList.toggle('heute-gestern', !!heuteVersatz);
-  if ($('#zu-heute')) $('#zu-heute').onclick = () => { heuteVersatz = 0; renderHeute(); };
-  const taps = tapsHeute();
-  $('#balance-heute').innerHTML = balanceHTML(balance(taps, [tagD]), S.einstellungen.balanceStil, heuteVersatz ? 'Balance gestern' : 'Balance heute');
-
-  // Sonderkacheln
-  const k = heuteKey();
-  const spalte = art => {
-    const w = (S[art] ||= {})[k];
-    const ton = { schlaf: 'reg ton', arbeit: 'akt ton' }[art] || 'neutral';
-    return `<div class="kachel rahmen spalte ${ton}${w ? ' gefuellt' : ''}" data-sonder="${art}">
-      <span class="kachel-name">${WAHL[art].name}</span>
-      <div class="wahl" role="group" aria-label="${WAHL[art].name}, gefühlt">
-        ${WAHL[art].werte.map(([v, t]) => `<button type="button" data-wahl="${art}" data-wert="${v}" class="${w === v ? 'an' : ''}" aria-pressed="${w === v}">${t}</button>`).join('')}
-      </div></div>`;
-  };
-  const arten = Object.keys(WAHL).filter(a => !WAHL[a].frei && wahlAn(a));
-  const arbeitstag = istArbeitstag(tagD) && !tagesmomentAn(tagD);   // Urlaub & Co.: Arbeit wie an freien Tagen
-  const sonder = $('#sonder-kacheln');
-  sonder.style.setProperty('--spalten', arten.length + 1);
-  // Spalte „Arbeit“: Tippen = Start, nochmal = Ende, danach wieder Start (mehrere Blöcke). Halten = Arbeitsfenster.
-  const bl = arbeitBloecke(k), letzt = bl[bl.length - 1], offen = !!(letzt && letzt.von && !letzt.bis);
-  const st = (S.arbeitStufe || {})[k];
-  const stufeZeile = st && !(arbeitstag && st === 'normal') ? `<span class="spalte-leise">${st}</span>` : '';
-  const arbeitWert = !bl.length ? `<span class="spalte-leise">${arbeitstag ? 'Start tippen' : 'frei'}</span>${stufeZeile}`
-    : offen ? `<span class="arbeit-zeiten"><span class="spalte-leise">seit</span><span class="kachel-zahl arbeit-zeit">${letzt.von}</span><span class="spalte-leise">Ende tippen</span></span>`
-    : `<span class="arbeit-zeiten">${bl[0].von ? `<span class="kachel-zahl arbeit-zeit">${bl[0].von}</span><span class="spalte-leise">bis</span>` : ''}<span class="kachel-zahl arbeit-zeit">${letzt.bis}</span>${stufeZeile}</span>`;
-  const arbeitLabel = !bl.length ? 'Start tippen' : offen ? `seit ${letzt.von}, Ende tippen` : `${bl[0].von ? bl[0].von + ' bis ' : 'Ende '}${letzt.bis}`;
-  const arbeitSpalte = `
-    <button class="kachel rahmen spalte akt ton${bl.length || st ? ' gefuellt' : ''}${offen ? ' laeuft' : ''}" data-sonder="feierabend" type="button" aria-label="Arbeit, ${arbeitLabel}">
-      <span class="kachel-name">Arbeit</span>
-      <span class="kachel-wert">${arbeitWert}</span>
-      ${ringSVG()}
-    </button>`;
-  // Reihenfolge: Schlaf (die Nacht davor), dann der laufende Tag: Arbeit, Essen, Trinken
-  const nachArbeit = arten.filter(a => a !== 'schlaf');
-  sonder.innerHTML = (arten.includes('schlaf') ? spalte('schlaf') : '') + arbeitSpalte + nachArbeit.map(spalte).join('');
-
-  // Momente
-  const proMoment = {};
-  for (const t of runden(taps)) { const p = proMoment[t.mid] ||= { n: 0, min: 0 }; p.n++; p.min += t.min; }
-  const kachel = m => {
-    const p = proMoment[m.id];
-    let wert = '', zusatz = '';
-    if (p && istTagesmoment(m)) {
-      wert = `<span class="kachel-zahl">Tag ${tagInFolge(m.id, tagD)}</span>`;
-    } else if (p) {
-      wert = m.dauer > 0
-        ? `<span class="kachel-zahl">${fmtDauer(p.min)}</span><span class="kachel-dauer">${p.n}×</span>`
-        : `<span class="kachel-zahl">${p.n}×</span>`;
-      if (m.genugTag && p.min >= m.genugTag) zusatz = '<span class="kachel-genug">genug für heute</span>';
-    }
-    return `<button class="kachel ${m.modus}${p ? ' gefuellt' : ''}${hatSymbol(m) ? '' : ' ohne-pikto'}" data-mid="${esc(m.id)}" type="button" aria-label="${esc(m.name)}${p ? ', heute ' + p.n + ' mal' : ''}">
-      <span class="kachel-symbol" aria-hidden="true">${symbolHTML(m, 1.4)}</span>
-      <span class="kachel-wert">${wert}</span>
-      <span><span class="kachel-name">${esc(m.name)}${m.angebot ? herzHTML(false, ' kachel-herz') : ''}</span>${zusatz ? '<br>' + zusatz : ''}</span>
-      ${ringSVG()}
-    </button>`;
-  };
-  $('#start-hinweis').classList.toggle('hidden', !istStartpaket());
-  $('#moment-kacheln').innerHTML = [...Object.keys(GRUPPEN), ''].map(g => {
-    const liste = S.momente.filter(m => g ? m.gruppe === g : !GRUPPEN[m.gruppe]);
-    if (!liste.length) return '';
-    const titel = g ? GRUPPEN[g] : 'Ohne Gruppe';
-    return `<section class="gruppe-block" aria-label="${esc(titel)}">
-      <div class="label gruppe-label">${esc(titel)}</div>
-      <div class="kachel-raster">${liste.map(kachel).join('')}</div></section>`;
-  }).join('');
-}
-// Starthilfe-Satz: nur solange Gruppen und Momente noch genau das Startpaket sind
-const istStartpaket = () => JSON.stringify(S.gruppen.map(g => [g.id, g.name])) === JSON.stringify(START_GRUPPEN.map(g => [g.id, g.name]))
-  && JSON.stringify(S.momente.map(m => [m.id, m.name, m.gruppe, m.modus, m.dauer, m.icon])) === JSON.stringify(START_MOMENTE.map(m => [m.id, m.name, m.gruppe, m.modus, m.dauer, m.icon]));
-const ringSVG = () => `<svg class="kachel-ring" viewBox="0 0 64 64" aria-hidden="true"><circle class="spur" cx="32" cy="32" r="28"/><circle class="fuell" cx="32" cy="32" r="28"/></svg>`;
-
-function puls(el) { el.classList.remove('puls'); void el.offsetWidth; el.classList.add('puls'); }
-
-function zaehlen(mid) {
-  const m = moment(mid); if (!m) return;
-  if (heuteVersatz) return momentZeitSheet(mid, -heuteVersatz);   // gestern: nachtragen statt „jetzt“ zählen
-  // Tagesmoment (z. B. Urlaub): Tippen schaltet den Tag an und wieder aus
-  if (istTagesmoment(m)) {
-    const heute = new Set(tapsHeute().filter(t => t.mid === mid).map(t => t.id));
-    if (heute.size) {
-      const vorher = [...S.taps];
-      S.taps = S.taps.filter(t => !heute.has(t.id));
-      speichern(); renderHeute();
-      toast(`${m.name}: heute aus`, () => { S.taps = vorher; speichern(); renderHeute(); toast('Wiederhergestellt'); });
-      return;
-    }
+  // Lernen-Auswahl
+  document.querySelector('#lernen-auswahl-header h2') &&
+    (document.querySelector('#lernen-auswahl-header h2').textContent = t('gruppen_auswaehlen'));
+  setTxt('btn-alle-waehlen',   t('alle'));
+  setTxt('btn-keine-waehlen',  t('keine'));
+  setTxt('btn-schwaeche-waehlen', t('schwaechste'));
+  const [mFoto, mName] = document.querySelectorAll('.lernmodus-btn');
+  if (mFoto) {
+    mFoto.querySelector('.modus-label').textContent = t('normal');
+    mFoto.querySelector('.modus-desc').textContent  = t('normal_desc');
   }
-  const neu = { id: uid(), mid, ts: Date.now(), min: m.dauer || 0 };
-  S.taps.push(neu);
-  speichern(); renderHeute();
-  // kurz „Rückgängig“ anbieten, falls daneben getippt
-  toast(m.name, () => { S.taps = S.taps.filter(t => t.id !== neu.id); speichern(); renderHeute(); toast('Zurückgenommen'); });
-  const el = document.querySelector(`.kachel[data-mid="${CSS.escape(mid)}"]`);
-  if (el) puls(el);
-  if (navigator.vibrate) navigator.vibrate(8);
-}
-
-function zuruecknehmen(mid) {
-  const heute = new Set(tapsHeute().filter(t => t.mid === mid).map(t => t.id));
-  if (!heute.size) return false;
-  let idx = -1;
-  for (let i = S.taps.length - 1; i >= 0; i--) if (heute.has(S.taps[i].id)) { idx = i; break; }
-  const [weg] = S.taps.splice(idx, 1);
-  speichern(); renderHeute();
-  const m = moment(mid);
-  toast(`${m.name}: zurückgenommen`, () => { S.taps.splice(idx, 0, weg); speichern(); renderHeute(); toast('Wiederhergestellt'); });
-  return true;
-}
-
-function arbeitTippen() {
-  const d = new Date(), k = heuteKey(), z = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  const vorher = arbeitBloecke(k).map(b => ({ ...b })), bl = vorher.map(b => ({ ...b }));
-  const letzt = bl[bl.length - 1], offen = !!(letzt && letzt.von && !letzt.bis);
-  if (offen) letzt.bis = z; else bl.push({ von: z, bis: '' });
-  arbeitSetzen(k, bl); speichern(); renderHeute();
-  puls(document.querySelector('[data-sonder="feierabend"]'));
-  toast(offen ? `Arbeit Ende ${z}` : `Arbeit Start ${z}`, () => { arbeitSetzen(k, vorher); speichern(); renderHeute(); });
-}
-
-// Arbeitsfenster (langer Druck): Zeiten als Blöcke ändern oder nachtragen, dazu gefühlt, wie der Tag war
-function arbeitSheet() {
-  const tage = [];
-  for (let i = 0; i < 7; i++) {
-    const d = logTag(); d.setDate(d.getDate() - i);
-    tage.push([tagKey(d), i === 0 ? 'heute' : i === 1 ? 'gestern' : d.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'numeric' })]);
+  if (mName) {
+    mName.querySelector('.modus-label').textContent = t('umgekehrt');
+    mName.querySelector('.modus-desc').textContent  = t('umgekehrt_desc');
   }
-  sheet('Arbeit', `
-    <p class="card-text">Start und Ende sind freiwillig. Mehrere Blöcke gehen, etwa 9–12 und 15–18. Nur das Ende? Start leer lassen.</p>
-    <div class="form-group"><label for="ar-tag">Tag</label>
-      <select id="ar-tag">${tage.map(([k, t]) => `<option value="${k}">${t}</option>`).join('')}</select></div>
-    <div class="form-group"><label>Zeiten</label><div id="ar-bloecke" class="block-liste"></div>
-      <button class="btn-klein" id="ar-plus" type="button">+ Block</button></div>
-    <div class="form-group"><label>Der Tag war</label><div class="seg klein" id="ar-stufe"></div>
-      <p class="form-hinweis" id="ar-hinweis"></p></div>
-    <div class="btn-reihe">
-      <button class="btn-primary" id="ar-ok" type="button">Übernehmen</button>
-      <button class="btn-leise" id="ar-weg" type="button">Alles für diesen Tag entfernen</button>
-    </div>`);
-  const tagSel = $('#ar-tag'); tagSel.value = heuteKey();
-  let bl = [], stufe = '';
-  const datum = () => { const [j, mo, t] = tagSel.value.split('-').map(Number); return new Date(j, mo - 1, t); };
-  const zeichnen = () => {
-    const frei = freierTag(datum());
-    $('#ar-bloecke').innerHTML = bl.map((b, i) => `<div class="block-zeile">
-      <input type="time" data-i="${i}" data-f="von" value="${b.von}" aria-label="Start">
-      <span class="block-bis">–</span>
-      <input type="time" data-i="${i}" data-f="bis" value="${b.bis}" aria-label="Ende">
-      <button type="button" class="eintrag-weg" data-weg="${i}" aria-label="Block entfernen">✕</button></div>`).join('');
-    document.querySelectorAll('#ar-bloecke input').forEach(inp => inp.oninput = () => { bl[+inp.dataset.i][inp.dataset.f] = inp.value; });
-    document.querySelectorAll('#ar-bloecke [data-weg]').forEach(b => b.onclick = () => { bl.splice(+b.dataset.weg, 1); if (!bl.length) bl.push({ von: '', bis: '' }); zeichnen(); });
-    const opts = frei ? ['', ...STUFEN] : STUFEN, an = stufe || (frei ? '' : 'normal');
-    $('#ar-stufe').innerHTML = opts.map(w => `<button type="button" data-wert="${w}" class="${w === an ? 'an' : ''}">${w || 'frei'}</button>`).join('');
-    document.querySelectorAll('#ar-stufe button').forEach(b => b.onclick = () => { stufe = b.dataset.wert; zeichnen(); });
-    $('#ar-hinweis').textContent = frei ? 'Gefühlt, keine Stunden. Freier Tag: ohne Wahl frei.' : 'Gefühlt, keine Stunden. Ohne Wahl gilt normal.';
-  };
-  const laden = () => {
-    const k = tagSel.value;
-    bl = arbeitBloecke(k).map(b => ({ ...b })); if (!bl.length) bl.push({ von: '', bis: '' });
-    stufe = (S.arbeitStufe || {})[k] || '';
-    $('#ar-weg').classList.toggle('hidden', !arbeitBloecke(k).length && !stufe);
-    zeichnen();
-  };
-  tagSel.onchange = laden; laden();
-  $('#ar-plus').onclick = () => { bl.push({ von: '', bis: '' }); zeichnen(); };
-  $('#ar-ok').onclick = () => {
-    const k = tagSel.value, s2 = (S.arbeitStufe ||= {});
-    arbeitSetzen(k, bl);
-    if (!stufe || (stufe === 'normal' && !freierTag(datum()))) delete s2[k]; else s2[k] = stufe;
-    speichern(); sheetZu(); renderAlles(); toast('Arbeit gespeichert');
-  };
-  $('#ar-weg').onclick = () => {
-    const k = tagSel.value; arbeitSetzen(k, []); delete (S.arbeitStufe || {})[k];
-    speichern(); sheetZu(); renderAlles(); toast('Eintrag entfernt');
-  };
-}
+  const lernStartBtn = document.getElementById('btn-lernen-start');
+  if (lernStartBtn && lernStartBtn.disabled) lernStartBtn.textContent = t('lernen_starten');
 
-// Langer Druck auf einen Moment: mehr zu diesem Moment. Nachtragen (Ende, Dauer, heute/gestern),
-// die Einträge des Tages ändern oder entfernen, den letzten zurücknehmen. Keine versteckte Wischgeste.
-function momentZeitSheet(mid, startTag = 0) {
-  const m = moment(mid); if (!m) return;
-  const tagesm = istTagesmoment(m);
-  const fak = EINHEIT[m.einheit === 'std' ? 'std' : 'min'][1], einh = fak === 60 ? 'Std' : 'min';
-  const jetzt = new Date(), hhmm = d => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  let tag = startTag, bearbeite = null;   // 0 = heute, 1 = gestern
-  const tagBeginn = () => { const d = logTag(); d.setDate(d.getDate() - tag); return d; };
-  const eintraege = () => { const a = tagBeginn(), b = new Date(a); b.setDate(b.getDate() + 1); return tapsZwischen(a, b).filter(t => t.mid === mid).sort((x, y) => x.ts - y.ts); };
-  sheet(m.name, `
-    <div class="form-group"><label>Tag</label><div class="seg klein" id="nz-tag"><button type="button" data-wert="0" class="${tag ? '' : 'an'}">heute</button><button type="button" data-wert="1" class="${tag ? 'an' : ''}">gestern</button></div></div>
-    ${tagesm ? '' : `<div class="form-group"><label>Nachtragen · Ende</label>
-      <div class="chip-reihe" id="nz-chips">${[[0, 'jetzt'], [30, 'vor 30 min'], [60, 'vor 1 h'], [120, 'vor 2 h']].map(([v, t]) => `<button type="button" class="btn-klein${v ? '' : ' an'}" data-vor="${v}">${t}</button>`).join('')}</div>
-      <div class="form-reihe" style="margin-top:0.55rem">
-        <div class="form-group"><label for="nz-zeit">Uhrzeit</label><input type="time" id="nz-zeit" value="${hhmm(jetzt)}"></div>
-        <div class="form-group"><label for="nz-dauer">Dauer (${einh})</label><input type="number" id="nz-dauer" min="0" step="any" inputmode="decimal" value="${+((m.dauer || 0) / fak).toFixed(2)}"></div>
-      </div></div>`}
-    <div class="btn-reihe"><button class="btn-primary" id="nz-ok" type="button">${tagesm ? 'Diesen Tag eintragen' : 'Nachtragen'}</button></div>
-    <div class="label" id="nz-titel" style="margin-top:1.1rem">Heute bisher</div>
-    <div class="eintrag-liste" id="nz-liste"></div>
-    <button class="btn-leise" id="nz-zurueck" type="button">Letzten zurücknehmen</button>`);
-  const formZuruecksetzen = () => {
-    bearbeite = null; $('#nz-ok').textContent = tagesm ? 'Diesen Tag eintragen' : 'Nachtragen';
-    if (!tagesm) { $('#nz-zeit').value = hhmm(new Date()); $('#nz-dauer').value = +((m.dauer || 0) / fak).toFixed(2); document.querySelectorAll('#nz-chips [data-vor]').forEach(x => x.classList.toggle('an', x.dataset.vor === '0')); }
-  };
-  const liste = () => {
-    const e = eintraege();
-    $('#nz-titel').textContent = tag ? 'Gestern' : 'Heute bisher';
-    $('#nz-liste').innerHTML = e.length ? e.map(t => {
-      const von = new Date(t.ts - (t.min || 0) * 60000), bis = new Date(t.ts);
-      const zeit = tagesm ? 'ganzer Tag' : `${t.min ? hhmm(von) + '–' : ''}${hhmm(bis)}${t.min ? ' · ' + fmtDauer(t.min) : ''}`;
-      return `<div class="eintrag${bearbeite === t.id ? ' an' : ''}"><button type="button" class="eintrag-zeit" data-aendern="${t.id}"${tagesm ? ' disabled' : ''}>${zeit}</button>
-        <button type="button" class="eintrag-weg" data-weg="${t.id}" aria-label="Eintrag ${zeit} entfernen">✕</button></div>`;
-    }).join('') : '<p class="form-hinweis">Noch nichts.</p>';
-    $('#nz-zurueck').classList.toggle('hidden', !e.length);
-    document.querySelectorAll('#nz-liste [data-aendern]').forEach(b => b.onclick = () => {
-      const t = S.taps.find(x => x.id === b.dataset.aendern); if (!t) return;
-      bearbeite = t.id; $('#nz-zeit').value = hhmm(new Date(t.ts)); $('#nz-dauer').value = +((t.min || 0) / fak).toFixed(2);
-      $('#nz-ok').textContent = 'Änderung speichern'; document.querySelectorAll('#nz-chips [data-vor]').forEach(x => x.classList.remove('an')); liste();
-    });
-    document.querySelectorAll('#nz-liste [data-weg]').forEach(b => b.onclick = () => entfernen(b.dataset.weg));
-  };
-  const entfernen = id => {
-    const i = S.taps.findIndex(t => t.id === id); if (i < 0) return;
-    const [weg] = S.taps.splice(i, 1); speichern(); renderHeute(); if (bearbeite === id) formZuruecksetzen(); liste();
-    toast(`${m.name}: Eintrag entfernt`, () => { S.taps.splice(i, 0, weg); speichern(); renderHeute(); if ($('#nz-liste')) liste(); toast('Wiederhergestellt'); });
-  };
-  document.querySelectorAll('#nz-tag button').forEach(b => b.onclick = () => {
-    tag = +b.dataset.wert; document.querySelectorAll('#nz-tag button').forEach(x => x.classList.toggle('an', x === b));
-    formZuruecksetzen(); liste();
+  // Flashcard
+  setTxt('btn-beenden',  t('beenden'));
+  setTxt('btn-mischen',  t('gemischt'));
+  const hintSpan = document.querySelector('#lern-hint-pill span');
+  if (hintSpan) hintSpan.textContent = t('tippen_aufdecken');
+  const aufdeckBtn = document.getElementById('btn-aufdecken');
+  if (aufdeckBtn && aufdeckBtn.style.visibility !== 'hidden') {
+    // Keep current context-label unless hidden
+  }
+
+  // Lernen-Ende
+  setTxt('btn-neue-uebung',       t('neue_uebung'));
+  setTxt('btn-nachgeschaut-ueben', t('nachgeschaut_ueben'));
+  setTxt('btn-ende-auswahl',      t('andere_gruppen'));
+  document.querySelector('#lernen-ende h2') &&
+    (document.querySelector('#lernen-ende h2').textContent = t('uebung_beendet'));
+  document.querySelector('.stat-label.stat-gewusst-lbl') &&
+    (document.querySelector('.stat-label.stat-gewusst-lbl').textContent = t('gewusst_lbl'));
+  document.querySelector('.stat-label.stat-nicht-lbl') &&
+    (document.querySelector('.stat-label.stat-nicht-lbl').textContent = t('nachgeschaut_lbl'));
+  document.querySelectorAll('.stat-label').forEach((el, i) => {
+    if (i === 0) el.textContent = t('gewusst_lbl');
+    if (i === 1) el.textContent = t('nachgeschaut_lbl');
   });
-  // Chips: sichtbar wählen und die Uhrzeit kurz aufleuchten lassen, damit klar ist, was passiert
-  const chipsAn = b => document.querySelectorAll('#nz-chips [data-vor]').forEach(x => x.classList.toggle('an', x === b));
-  document.querySelectorAll('#nz-chips [data-vor]').forEach(b => b.onclick = () => {
-    const z = $('#nz-zeit'); z.value = hhmm(new Date(Date.now() - b.dataset.vor * 60000)); chipsAn(b);
-    z.classList.remove('blitz'); void z.offsetWidth; z.classList.add('blitz');
-    $('#nz-ok').textContent = `${bearbeite ? 'Änderung speichern' : 'Nachtragen'} · ${z.value}`;
+
+  // Statistik
+  document.querySelectorAll('#view-statistik .card-header h2').forEach((el, i) => {
+    if (i === 0) el.textContent = t('uebersicht');
+    if (i === 1) el.textContent = t('schwerste_karten');
+    if (i === 2) el.textContent = t('letzte_sitzungen');
   });
-  if (!tagesm) $('#nz-zeit').addEventListener('input', () => { chipsAn(null); $('#nz-ok').textContent = `${bearbeite ? 'Änderung speichern' : 'Nachtragen'} · ${$('#nz-zeit').value}`; });
-  $('#nz-ok').onclick = () => {
-    let ts, min;
-    if (tagesm) {
-      if (eintraege().length) { toast(`${m.name} ist an diesem Tag schon eingetragen`); return; }
-      const d = tagBeginn(); d.setHours(12); ts = d.getTime(); min = m.dauer || 1440;
-    } else {
-      const [h, mi] = ($('#nz-zeit').value || hhmm(new Date())).split(':').map(Number);
-      const d = tagBeginn(); d.setHours(h, mi, 0, 0);
-      if (h < WECHSEL_H()) d.setDate(d.getDate() + 1);   // 0:30 gehört noch zu diesem Abend
-      ts = d.getTime();
-      min = Math.max(0, Math.round((parseFloat(String($('#nz-dauer').value).replace(',', '.')) || 0) * fak));
-    }
-    if (bearbeite) {
-      const t = S.taps.find(x => x.id === bearbeite); const alt = { ...t };
-      Object.assign(t, { ts, min }); speichern(); renderHeute(); sheetZu();
-      toast(`${m.name}: geändert`, () => { Object.assign(t, alt); speichern(); renderHeute(); toast('Wiederhergestellt'); });
-      return;
-    }
-    const neu = { id: uid(), mid, ts, min };
-    S.taps.push(neu); speichern(); renderHeute(); sheetZu();
-    toast(`${m.name} nachgetragen${tagesm ? '' : ' · ' + hhmm(new Date(ts))}`, () => { S.taps = S.taps.filter(t => t.id !== neu.id); speichern(); renderHeute(); toast('Zurückgenommen'); });
-  };
-  $('#nz-zurueck').onclick = () => { const e = eintraege(); if (e.length) entfernen(e.reduce((a, b) => (a.ts > b.ts ? a : b)).id); };
-  liste();
+  document.querySelectorAll('.stat-overview-label').forEach((el, i) => {
+    if (i === 0) el.textContent = t('sitzungen');
+    if (i === 1) el.textContent = t('trefferquote');
+    if (i === 2) el.textContent = t('abfragen');
+  });
+  setTxt('keine-schwierig-hinweis', t('keine_daten'));
+  document.querySelectorAll('#stat-zeitraum button').forEach(b => { b.textContent = t(b.dataset.tage === '0' ? 'stat_alle' : 'stat_30'); });
+  const schwBtn = document.getElementById('btn-schwaeche-ueben');
+  if (schwBtn) schwBtn.textContent = t('schwaechste_ueben');
+  document.getElementById('keine-verlauf-hinweis') &&
+    (document.getElementById('keine-verlauf-hinweis').textContent = t('keine_sitzungen'));
+  document.querySelector('#view-statistik .sicherung-info strong') &&
+    (document.querySelector('#view-statistik .sicherung-info strong').textContent = t('statistik_reset'));
+  document.querySelector('#view-statistik .sicherung-info p') &&
+    (document.querySelector('#view-statistik .sicherung-info p').textContent = t('statistik_reset_desc'));
+  setTxt('btn-statistik-loeschen', t('loeschen'));
+
+  // Sicherung
+  document.querySelectorAll('#view-sicherung .sicherung-info').forEach((el, i) => {
+    if (i === 0) { el.querySelector('strong').textContent = t('importieren_datei'); el.querySelector('p').textContent = t('importieren_desc'); }
+    if (i === 1) { el.querySelector('strong').textContent = t('exportieren'); el.querySelector('p').textContent = t('exportieren_desc'); }
+    if (i === 2) { el.querySelector('strong').textContent = t('fotos_komprimieren'); el.querySelector('p').textContent = t('fotos_komprimieren_desc'); }
+    if (i === 3) { el.querySelector('strong').textContent = t('ki_briefing'); el.querySelector('p').textContent = t('ki_briefing_desc'); }
+    if (i === 4) { el.querySelector('strong').textContent = t('ki_raten'); el.querySelector('p').textContent = t('ki_raten_desc'); }
+  });
+  document.querySelector('#view-sicherung .info-card strong') &&
+    (document.querySelector('#view-sicherung .info-card strong').textContent = t('datenspeicher_title'));
+  document.querySelector('#view-sicherung .info-card p') &&
+    (document.querySelector('#view-sicherung .info-card p').textContent = t('datenspeicher_text'));
+  setTxt('btn-export', t('exportieren'));
+  setTxt('btn-import-trigger', t('importieren'));
+  setTxt('btn-fotos-komprimieren', t('komprimieren'));
+  setTxt('btn-ki-briefing', t('ki_briefing_btn'));
+  setTxt('btn-ki-raten', t('ki_briefing_btn'));
+  const li = document.getElementById('link-impressum');
+  if (li) { li.textContent = currentLang === 'en' ? 'Legal notice & privacy' : 'Impressum & Datenschutz'; li.href = 'impressum.html' + (currentLang === 'en' ? '#en' : '#de'); }
+  setTxt('tutorial-titel', t('tutorial_titel'));
+  setTxt('tutorial-desc', t('tutorial_desc'));
+  setTxt('btn-tutorial-neu', t('tutorial_neu'));
+  setTxt('kursset-titel', t('kursset_titel'));
+  setTxt('kursset-desc', t('kursset_desc'));
+  setTxt('btn-kursset-alle', t('kursset_alle'));
+  setTxt('btn-kursset-aufraeumen', t('kursset_aufraeumen'));
+  { const bt = document.querySelector('#btn-spiel .bsk-text'); if (bt) bt.textContent = spT().btnText; }
+  setTxt('kursset-hinweis-link', t('kursset_anzeigen'));
+
+  // Karte-Detail
+  const swipeHint = document.getElementById('karte-detail-swipe-hint');
+  if (swipeHint) swipeHint.textContent = t('swipe_hint');
+
+  // Dynamische Listen neu rendern
+  renderVerwaltung();
+  renderLernAuswahl();
 }
 
-// Tippen und langer Druck
-const DRUCK_MS = 1100;   // Ring: 0,2 s warten + 0,8 s füllen, dann kurz voll stehen lassen;   // langer Druck: Moment-Fenster (Nachtragen, ändern, zurücknehmen) bzw. Feierabend anpassen
-let druck = null;
-function druckStart(e) {
-  const el = e.target.closest('.kachel[data-mid], .kachel[data-sonder="feierabend"]');
-  if (!el || (e.button !== undefined && e.button !== 0)) return;
-  const mid = el.dataset.mid;
-  const kannZurueck = true;   // langer Druck öffnet immer das Fenster, auch ohne Eintrag (zum Nachtragen)
-  druck = { el, mid, x: e.clientX, y: e.clientY, lang: false };
-  if (kannZurueck) {
-    el.classList.add('drueckt');
-    druck.timer = setTimeout(() => {
-      druck.lang = true; el.classList.remove('drueckt');
-      if (navigator.vibrate) navigator.vibrate(15);
-      if (mid) momentZeitSheet(mid); else arbeitSheet();
-    }, DRUCK_MS);
+// ── Help-Modal HTML generieren ─────────────────────────────
+function getHelpHtml() {
+  const sections = currentLang === 'en' ? [
+    { title: '🚀 Getting started', rows: [
+      ['🌐', '<strong>Browser</strong> — iPhone and iPad: Safari · Android: Chrome or Firefox · Computer: Safari, Firefox, Chrome or Edge'],
+      ['📲', '<strong>Add to Home Screen first</strong> — iPhone/iPad: Share → "Add to Home Screen" · Android (Chrome): ⋮ menu at the top right → at the bottom "Install and create shortcut" (Firefox: menu → "Install") · If Android shows "Unsafe app blocked" (Play Protect), it is a general notice about the app package Chrome builds, not about MemoFix: tap "Install anyway" · Without this, the browser can delete your cards after about 7 days without use'],
+      ['📚', '<strong>Import course set</strong> — BACKUP → "Import course set" → tap "Import" (internet required) · 🔒 = password-protected set: enter the password from your instructor, it is remembered on this device · your own cards stay untouched'],
+      ['🚦', '<strong>Course set status</strong> — red: not loaded yet · green: up to date · orange: update available (tap "Update" or "Update all") · learning progress and favorites are kept · cards you changed yourself or that were removed from the set: you are asked first · offline the last known status stays visible'],
+      ['💾', '<strong>Back up regularly</strong> — Cards live only on this device (no sync between devices) · BACKUP → Export · "Clear browser data" deletes everything'],
+      ['🔄', '<strong>After an update</strong> — close the app completely and open it again, otherwise you may still see the old version'],
+    ]},
+    { title: '🎴 Learning mode', rows: [
+      ['🖼️', '<strong>Photo card: Image → Term</strong> — See the image, recall the term · Tap the card → it flips → term appears'],
+      ['📖', '<strong>Term card: Term → Info</strong> — See the term, recall the info/definition · Tap to flip'],
+      ['🔄', '<strong>Reversed mode</strong> — Mode "Term → Image/Text": visualise the answer, then reveal image/definition'],
+      ['🔍', '<strong>"Show term"</strong> — Reveal answer without tapping, counts as looked-up (✗)'],
+      ['✓✗', '<strong>Correct rating</strong> — Tap ✓ or ✗ to change your rating'],
+      ['↺',  '<strong>Practise looked-up</strong> — After the session, repeat only the cards you looked up'],
+      ['🎯', '<strong>Weakest cards</strong> — Starts with the cards you looked up most often · based on your current selection'],
+      ['↔️', '<strong>Arrows / Swipe</strong> — Browse cards without rating · left/right swipe does the same'],
+      ['💬', '<strong>Note</strong> — Appears when revealed as extra info'],
+      ['⏱',  '<strong>Auto-timer</strong> — Choose 3 · 5 · 8 · 12 s: card flips automatically, then moves on · timer runs without scoring'],
+      ['🔁', '<strong>Autorepeat</strong> — After the last card the round restarts automatically'],
+      ['⭐', '<strong>Favourites</strong> — Tap the star to mark a card as favourite · export as Favourites group under BACKUP'],
+      ['🤏', '<strong>Zoom photos</strong> — Pinch with two fingers to zoom into a photo (also photos on the back of term cards) · drag with two fingers to pan · double-tap to reset'],
+      ['⛶', '<strong>Fullscreen 16:9</strong> — Button next to "Start learning": runs your selection full-screen on a 16:9 stage with large type, no menus · ideal for projectors and oral exams · tap = reveal / next, swipe = back · ✕ ends it · real fullscreen works on iPad, not on iPhone (there the bars are hidden instead — best as home-screen app, rotate to landscape)'],
+      ['🤿', `<strong>${SPIEL_NAME}</strong> — Learn together, playfully. Not a quiz duel, but a conversation game. In Dice-Mode the dice roll you through the set. · green button under "Start learning": the same stage with a score column · the group reveals a card, then you tap <em>Who knew it?</em> · +1 point (a switch gives −1 if needed, never below 0) · only the progress is remembered on this device, no names or points · 🎲 Dice-Mode calls someone at random · ⏱ optional countdown · 🎯 guessing mode: the group sees four answers per card and votes by show of hands (off / this card only / always) · for your own cards: Backup → "AI briefing for guessing questions" · EN/DE in the game switches the card language, e.g. for guests · ? in the game shows the short rules`],
+      ['🗣️', '<strong>Discuss with Claude</strong> — Send the current card, or your whole selection, to Claude for a deeper conversation about the topic · copies to clipboard and opens claude.ai in a new tab'],
+    ]},
+    { title: '⚙️ Manage', rows: [
+      ['📂', '<strong>3 levels:</strong> Collection → Group → Card — e.g. "University" → "Biology Ch. 3" → individual cards'],
+      ['1️⃣', '<strong>Create collection</strong> — Top-level category for related groups · sort with ▲▼ · 📁 move group between collections'],
+      ['2️⃣', '<strong>Create group</strong> — Within a collection · sort within collection with ▲▼'],
+      ['3️⃣', '<strong>Add card</strong> — ＋ on the group header taps into that group · or choose group in the form below, enter name, pick 📷 Photo <em>or</em> 📖 Term'],
+      ['📷', '<strong>Photo card</strong> — Photo as front, name as back · tap photo to replace'],
+      ['🖼️', '<strong>Multiple photos</strong> — Add as many photos as you like to a card (when adding or editing) · shown as a swipeable gallery with dots in learning mode and full view · switches automatically every 3 s until you swipe yourself'],
+      ['📖', '<strong>Term card</strong> — Term on front, info/definition on back · multi-line text shown as bullet list · wrap a line in <strong>**bold**</strong> to make it a section heading · optionally add <strong>photos on the back</strong> (shown below the text) · Use "Term on front, image on back" when the image would give the answer away (e.g. "Decal")'],
+      ['🔍', '<strong>Full view</strong> — Tap card name → image/text shown large · swipe left/right to browse'],
+      ['📋', '<strong>Copy</strong> — Duplicate card into another group (✏️ opens Edit modal)'],
+      ['🎨', '<strong>Collection colour</strong> — Tap the colour dot next to the collection name · appears as left stripe and card background in learning mode'],
+      ['🔗', '<strong>Links</strong> — Add links when editing a card (e.g. Wikipedia, YouTube) · shown as tappable links when revealed'],
+      ['💬', '<strong>Note</strong> — Short extra info per card (max. 3000 chars) · shown when revealed · formatting: <strong>**bold**</strong> · blank line = new paragraph · lines starting with <strong>- </strong> = bullet list · a paragraph starting with <strong>&gt; </strong> = highlighted call-out box'],
+      ['📌', '<strong>Memo (Merke)</strong> — optional field per card (when adding or editing): the key point in one or two sentences · shown as a coloured box under the note when revealed'],
+      ['🇬🇧', '<strong>English cards</strong> — the DE/EN switch also changes card content: edit the English texts under "English" when editing a card, collection or group · missing translations show the German text with a small "DE" label · collections marked "content is already bilingual" stay unchanged'],
+      ['🔄', '<strong>Remembers your state</strong> — Expanded collections/groups and the last-used tab are restored the next time you open the app'],
+    ]},
+    { title: '💾 Storage & Backup', rows: [
+      ['📱', 'Cards are stored <strong>locally in the browser</strong> — no server, no internet needed'],
+      ['📤', '<strong>Export as file</strong> — Save and share individual groups or everything · <strong>iPhone:</strong> Share menu → "Save to Files" · large selections are split automatically into several files (part 1 of 3 …) · the app confirms how many files were saved'],
+      ['🖨', '<strong>Export as PDF</strong> — Under BACKUP choose groups, select "PDF" · opens print view · choose "Save as PDF" in print dialog'],
+      ['📥', '<strong>Import</strong> — Add (keep existing) or Replace all · also imports collection structure'],
+      ['🗜️', '<strong>Compress photos</strong> — Under BACKUP: shrinks large, already-stored photos afterwards · use if exports feel slow or too large'],
+      ['🤖', '<strong>AI briefing</strong> — Under BACKUP: download a ready-made prompt for ChatGPT, Gemini, Claude &amp; co. that explains the MemoFix data format, so an AI can build card sets you import directly'],
+      ['⚠️', '"Clear browser data" (in the browser or phone settings) also deletes all cards — export regularly!'],
+    ]},
+    { title: '🔧 Troubleshooting', rows: [
+      ['🖼️', '<strong>Images missing or export stuck?</strong> — Close and reopen the app · images reload immediately · no data is lost'],
+    ]},
+  ] : [
+    { title: '🚀 Erste Schritte', rows: [
+      ['🌐', '<strong>Browser</strong> — iPhone und iPad: Safari · Android: Chrome oder Firefox · Computer: Safari, Firefox, Chrome oder Edge'],
+      ['📲', '<strong>Zuerst zum Home-Bildschirm hinzufügen</strong> — iPhone/iPad: Teilen → „Zum Home-Bildschirm" · Android (Chrome): ⋮-Menü oben rechts → ganz unten „Installieren und Verknüpfung erstellen" (Firefox: Menü → „Installieren") · Zeigt Android die Warnung „Unsichere App blockiert" (Play Protect), betrifft sie allgemein das von Chrome gebaute App-Paket, nicht MemoFix: „Trotzdem installieren" antippen · Ohne das kann der Browser deine Karten nach etwa 7 Tagen ohne Nutzung löschen'],
+      ['📚', '<strong>Kursset importieren</strong> — SICHERUNG → „Kursset importieren" → „Importieren" antippen (Internet nötig) · 🔒 = passwortgeschütztes Set: Passwort von der Kursleitung eingeben, es wird auf dem Gerät gemerkt · eigene Karten bleiben unberührt'],
+      ['🚦', '<strong>Kursset-Status</strong> — rot: noch nicht geladen · grün: aktuell · orange: Update verfügbar (auf „Aktualisieren" oder „Alle aktualisieren" tippen) · Lernstand und Favoriten bleiben erhalten · selbst geänderte oder im Set entfallene Karten: es wird vorher nachgefragt · offline bleibt der letzte bekannte Status sichtbar'],
+      ['💾', '<strong>Regelmäßig sichern</strong> — Karten liegen nur auf diesem Gerät (kein Abgleich zwischen Geräten) · SICHERUNG → Exportieren · „Browserdaten löschen" entfernt alles'],
+      ['🔄', '<strong>Nach einem Update</strong> — App komplett schließen und neu öffnen, sonst siehst du eventuell noch die alte Version'],
+    ]},
+    { title: '🎴 Lernmodus', rows: [
+      ['🖼️', '<strong>Foto-Karte: Bild → Begriff</strong> — Bild sehen, Begriff erinnern · Karte antippen → dreht sich um → Begriff erscheint'],
+      ['📖', '<strong>Begriff-Karte: Begriff → Info</strong> — Begriff sehen, Info/Definition erinnern · Karte antippen → dreht sich um'],
+      ['🔄', '<strong>Umgekehrt lernen</strong> — Modus „Begriff → Bild/Text": Begriff vorstellen, dann Bild/Definition aufdecken'],
+      ['🔍', '<strong>„Begriff zeigen"</strong> — Antwort aufdecken ohne Tippen, zählt als nachgeschaut (✗)'],
+      ['✓✗', '<strong>Wertung korrigieren</strong> — ✓ oder ✗ antippen, um die Wertung zu ändern'],
+      ['↺',  '<strong>Nachgeschaut üben</strong> — nach der Übung nur die nicht gewussten Karten wiederholen'],
+      ['🎯', '<strong>Schwächste Karten</strong> — startet mit den Karten, die du am häufigsten nachgeschaut hast · bezieht sich auf deine aktuelle Auswahl'],
+      ['↔️', '<strong>Pfeile / Wischen</strong> — Karten ohne Wertung vor- und zurückblättern · links/rechts wischen hat denselben Effekt'],
+      ['💬', '<strong>Notiz</strong> — erscheint beim Aufdecken als Zusatzinfo'],
+      ['⏱',  '<strong>Auto-Timer</strong> — 3 · 5 · 8 · 12 s wählen: Karte dreht sich automatisch um, danach geht es zur nächsten · Timer-Durchläufe ohne Bewertung zählen nicht in die Statistik'],
+      ['🔁', '<strong>Autorepeat</strong> — nach dem letzten Bild startet die Runde automatisch neu'],
+      ['⭐', '<strong>Favoriten</strong> — Stern antippen markiert eine Karte als Favorit · unter SICHERUNG gezielt als Favoriten-Gruppe exportieren'],
+      ['🤏', '<strong>Fotos zoomen</strong> — mit zwei Fingern in ein Foto hineinzoomen (auch bei Fotos auf der Rückseite von Begriff-Karten) · mit zwei Fingern verschieben · Doppeltipp setzt den Zoom zurück'],
+      ['⛶', '<strong>Fullscreen 16:9</strong> — Button neben „Lernen starten": zeigt deine Auswahl im Vollbild auf einer 16:9-Bühne mit großer Schrift, ohne Menüs · ideal für Beamer und Prüfungsgespräche · Tippen = aufdecken / weiter, Wischen = zurück · ✕ beendet · Vollbild geht auf dem iPad, auf dem iPhone nicht (dort werden stattdessen alle Leisten ausgeblendet — am besten als Home-Bildschirm-App, Handy quer halten)'],
+      ['🤿', `<strong>${SPIEL_NAME}</strong> — Lernt gemeinsam spielerisch. Kein Quiz-Duell, sondern ein Gesprächsspiel. Im Dice-Mode würfelt ihr euch durchs Set. · grüner Knopf unter „Lernen starten": dieselbe Bühne mit Punktespalte · die Gruppe deckt eine Karte auf, du tippst <em>Wer hat\'s gewusst?</em> · +1 Punkt (per Schalter auch −1, nie unter 0) · gemerkt wird nur der Fortschritt auf diesem Gerät, keine Namen oder Punkte · 🎲 Dice-Mode ruft zufällig jemanden auf · ⏱ optionaler Countdown · 🎯 Raten-Modus: Die Gruppe sieht pro Karte vier Antworten und stimmt per Handzeichen ab (aus / nur diese Karte / immer) · für eigene Karten: Sicherung → „KI-Briefing für Rate-Fragen“ · EN/DE im Spiel wechselt die Sprache der Karte, z. B. für Gäste · ? im Spiel zeigt die kurzen Regeln`],
+      ['🗣️', '<strong>Mit Claude besprechen</strong> — aktuelle Karte oder die ganze Auswahl an Claude übergeben, um das Thema im Gespräch zu vertiefen · kopiert in die Zwischenablage und öffnet claude.ai in neuem Tab'],
+    ]},
+    { title: '⚙️ Verwaltung', rows: [
+      ['📂', '<strong>3 Ebenen:</strong> Sammlung → Gruppe → Karte — z.B. „Hochschule" → „Biologie Kap. 3" → einzelne Karten'],
+      ['1️⃣', '<strong>Sammlung erstellen</strong> — Oberkategorie für verwandte Gruppen · per ▲▼ sortieren · 📁 Gruppe zwischen Sammlungen verschieben'],
+      ['2️⃣', '<strong>Gruppe erstellen</strong> — innerhalb einer Sammlung · per ▲▼ innerhalb der Sammlung sortieren'],
+      ['3️⃣', '<strong>Karte hinzufügen</strong> — ＋ am Gruppen-Header tippt direkt in diese Gruppe · oder unten im Formular Gruppe wählen, Name eingeben, 📷 Foto <em>oder</em> 📖 Text wählen'],
+      ['📷', '<strong>Foto-Karte</strong> — Foto als Vorderseite, Name als Rückseite · Foto antippen zum Austauschen'],
+      ['🖼️', '<strong>Mehrere Fotos</strong> — beim Anlegen oder Bearbeiten beliebig viele Fotos zu einer Karte hinzufügen · erscheinen im Lernmodus und in der Großansicht als Wisch-Galerie mit Punkte-Anzeige · wechselt automatisch alle 3 s, bis du selbst wischst'],
+      ['📖', '<strong>Begriff-Karte</strong> — Begriff vorne, Info/Definition hinten · mehrzeilige Texte werden als Aufzählung dargestellt · eine Zeile in <strong>**fett**</strong> setzen macht sie zur Zwischenüberschrift · optional <strong>Fotos auf der Rückseite</strong> (erscheinen unter dem Text) · „Begriff vorn, Bild hinten“ wählen, wenn das Bild die Antwort verrät (z. B. „Decal“)'],
+      ['🔍', '<strong>Großansicht</strong> — Kartennamen antippen → Bild/Text wird groß angezeigt · links/rechts wischen zum Durchblättern'],
+      ['📋', '<strong>Kopieren</strong> — Karte in eine andere Gruppe duplizieren (✏️ öffnet Bearbeiten-Modal)'],
+      ['🎨', '<strong>Sammlungsfarbe</strong> — Farbpunkt neben dem Sammlungsnamen antippen · Farbe erscheint als Streifen links und als Kartenhintergrund im Lernmodus'],
+      ['🔗', '<strong>Links</strong> — beim Bearbeiten einer Karte Links hinzufügen (z.&nbsp;B. Wikipedia, YouTube) · erscheinen beim Aufdecken als tippbare Verweise'],
+      ['💬', '<strong>Notiz</strong> — kurze Zusatzinfo pro Karte (max. 3000 Zeichen) · wird beim Aufdecken angezeigt · Formatierung: <strong>**fett**</strong> · Leerzeile = neuer Absatz · Zeilen mit <strong>- </strong> = Aufzählung · Absatz mit <strong>&gt; </strong> = hervorgehobener Kasten (Callout)'],
+      ['📌', '<strong>Merke</strong> — optionales Feld pro Karte (beim Anlegen oder Bearbeiten): die Kernaussage in ein bis zwei Sätzen · erscheint nach dem Aufdecken als farbig hinterlegter Kasten unter der Notiz'],
+      ['🇬🇧', '<strong>Englische Karten</strong> — der DE/EN-Schalter ändert auch den Karteninhalt: englische Texte beim Bearbeiten einer Karte unter „English" eintragen, bei Sammlung und Gruppe als „Name (EN)" · fehlende Übersetzungen zeigen den deutschen Text mit kleinem „DE"-Label · Sammlungen mit „Inhalt ist bereits zweisprachig" bleiben unverändert'],
+      ['🔄', '<strong>Merkt sich deinen Stand</strong> — aufgeklappte Sammlungen/Gruppen und der zuletzt genutzte Bereich sind beim nächsten Öffnen wieder da'],
+    ]},
+    { title: '💾 Datenspeicher & Backup', rows: [
+      ['📱', 'Karten werden <strong>lokal im Browser</strong> gespeichert — kein Server, kein Internet nötig'],
+      ['📤', '<strong>Exportieren als Datei</strong> — einzelne Gruppen oder alles sichern und teilen · <strong>iPhone:</strong> Teilen-Menü → „In Dateien sichern" · große Auswahlen werden automatisch auf mehrere Dateien aufgeteilt (Teil 1 von 3 …) · die App meldet, wie viele Dateien gespeichert wurden'],
+      ['🖨', '<strong>Exportieren als PDF</strong> — unter SICHERUNG Gruppen wählen, Format „PDF" wählen · öffnet Druckansicht mit allen Karten · im Druckdialog „Als PDF sichern" wählen'],
+      ['📥', '<strong>Importieren</strong> — Hinzufügen (bestehende behalten) oder Alles ersetzen · importiert auch Sammlungsstruktur'],
+      ['🗜️', '<strong>Fotos komprimieren</strong> — unter SICHERUNG: verkleinert nachträglich große, bereits gespeicherte Fotos · hilfreich, wenn Exporte langsam oder groß werden'],
+      ['🤖', '<strong>KI-Briefing</strong> — unter SICHERUNG: fertigen Prompt für ChatGPT, Gemini, Claude &amp; Co. herunterladen, der das MemoFix-Datenformat erklärt · so kann eine KI Kartensets bauen, die du direkt importierst'],
+      ['⚠️', '„Browserdaten löschen" (in den Einstellungen von Browser oder Handy) entfernt auch alle Karten — regelmäßig exportieren!'],
+    ]},
+    { title: '🔧 Probleme & Lösungen', rows: [
+      ['🖼️', '<strong>Bilder verschwunden oder Export hängt?</strong> — App schließen und neu öffnen · die Bilder werden sofort wieder geladen · keine Daten gehen verloren'],
+    ]},
+  ];
+
+  const haltung = currentLang === 'en'
+    ? { t: 'Stairs, not the elevator', a: "AI can take a lot off your plate – thinking isn't one of them. Whoever knows nothing has to believe everything, and never gets beyond the middle of the internet.", b: 'MemoFix trains your own knowledge, so you can be a counterpart – not an echo.' }
+    : { t: 'Treppe statt Aufzug', a: 'KI kann vieles abnehmen – das Denken nicht. Wer nichts weiß, muss alles glauben und kommt über die Mitte des Internets nicht hinaus.', b: 'MemoFix trainiert dein eigenes Wissen, damit du ein Gegenüber bist und kein Echo.' };
+  const praeambel = `<aside class="haltung"><h4>${haltung.t}</h4><p>${haltung.a}</p><p><em>${haltung.b}</em></p></aside>`;
+  let secs = sections;
+  if (appModus === 'einfach') {                                   // Einfach: nur das Sichtbare erklären
+    const en = currentLang === 'en';
+    const drop = ['⏱', '🔁', '⛶', '💾'];
+    secs = sections.filter((_, i) => i === 0 || i === 1 || i === 4)
+      .filter(sec => !/Manage|Verwaltung|Backup/.test(sec.title))
+      .map(sec => ({ ...sec, rows: sec.rows.filter(r => !drop.includes(r[0]))
+        .filter(r => !(/Probleme|Troubleshooting/.test(sec.title) && /export/i.test(r[1])))
+        .map(r => [r[0], (r[0] === '⭐' ? r[1].split(' · ')[0] : r[1]).replace(/SICHERUNG/g, 'KURSSETS').replace(/BACKUP/g, 'COURSE SETS')]) }));
+    secs.push({ title: en ? '🔓 More features' : '🔓 Mehr Funktionen', rows: [
+      ['🔧', en ? '<strong>Advanced</strong> — tap <strong>Simple</strong> at the top: your own cards (Manage), export and import, AI briefings, timer, repeat and fullscreen 16:9 · tap again to return to the simple view · your choice is remembered'
+              : '<strong>Erweitert</strong> — oben auf <strong>Einfach</strong> tippen: eigene Karten (Verwaltung), Export und Import, KI-Briefings, Timer, Wiederholen und Vollbild 16:9 · erneut tippen, um zur einfachen Ansicht zurückzukehren · deine Wahl wird gemerkt'],
+    ]});
   }
+  const en = currentLang === 'en';
+  secs = [{ title: en ? '🎬 Intro video' : '🎬 Einführungsvideo', rows: [['▶️', en
+    ? '<a href="#" data-video-open="LMcXbAEjww0" data-videotitel="MemoFix – Introduction" data-videoformat="hochkant">Watch the short video</a>'
+    : '<a href="#" data-video-open="LMcXbAEjww0" data-videotitel="MemoFix – Einführung" data-videoformat="hochkant">Kurzes Video ansehen</a>']] }, ...secs];
+  return praeambel + secs.map((sec, i) => `
+    ${i > 0 ? '<div class="modal-divider"></div>' : ''}
+    <div class="modal-section">
+      <div class="modal-section-title">${sec.title}</div>
+      <div class="anleitung-zeilen">
+        ${sec.rows.map(([icon, text]) => {
+          // Einheitlich: fette Überschrift in eigener Zeile, alles danach (getrennt durch " — " bzw. " · ") als kleine Punkte
+          const m = text.includes('<br>') ? null : text.match(/^(<strong>[^<]*<\/strong>)(?:\s+—\s+|\s+)([\s\S]*)$/);
+          const kopf = m ? m[1] : '';
+          const teile = (m ? m[2] : text).split(/ · (?!\d)/);
+          const punkte = m ? teile : teile.slice(1);
+          const liste = punkte.length ? `<ul class="anleitung-liste">${punkte.map(x => `<li>${x}</li>`).join('')}</ul>` : '';
+          return `
+          <div class="anleitung-zeile">
+            <span class="anleitung-icon">${icon}</span>
+            <div class="anleitung-text">${m ? kopf : teile[0]}${liste}</div>
+          </div>`; }).join('')}
+      </div>
+    </div>`).join('') +
+    `<p class="modal-links">${currentLang === 'en' ? 'More about' : 'Mehr zu'}<br><a href="https://www.designstrategies.org" target="_blank" rel="noopener">${currentLang === 'en' ? 'Digital Design' : 'Digitales Entwerfen'}</a> &amp; <a href="https://www.df-mainz.de" target="_blank" rel="noopener">${currentLang === 'en' ? 'Digital Fabrication' : 'Digitale Fertigung'}</a></p>` +
+    `<p class="modal-meta-device">📱 ${currentLang === 'en' ? 'Optimised for iPhone portrait' : 'Optimiert für iPhone im Hochformat'}</p>
+     <p class="modal-meta">Version 2.0 · Prof. Klaus Teltenkötter 2026 <span id="build-version" class="modal-meta-build"></span></p>
+     <p class="modal-meta"><a href="impressum.html${currentLang === 'en' ? '#en' : '#de'}" target="_blank" rel="noopener">${currentLang === 'en' ? 'Legal notice &amp; privacy' : 'Impressum &amp; Datenschutz'}</a></p>`;
 }
-function druckAbbruch() { if (!druck) return; clearTimeout(druck.timer); druck.el.classList.remove('drueckt'); druck = null; }
-function druckEnde(e) {
-  if (!druck) return;
-  const d = druck; clearTimeout(d.timer); d.el.classList.remove('drueckt'); druck = null;
-  if (d.lang) return;
-  if (d.mid) zaehlen(d.mid);
-  else if (heuteVersatz) arbeitSheet();
-  else arbeitTippen();
-}
-function druckBewegt(e) { if (druck && Math.hypot(e.clientX - druck.x, e.clientY - druck.y) > 12) druckAbbruch(); }
 
-// ── WOCHE ──────────────────────────────────────────────
-let wocheVersatz = 0;
-const SCHLOSS = '<svg class="schloss" viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="10.5" width="13" height="9.5" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>';
-// Blättern mit kurzem Gleiten: die alte Woche schiebt sich hinaus, die neue kommt von der anderen Seite
-function wocheGehe(r, schon = 0) {
-  const ziel = wocheVersatz + r, inh = $('#woche-inhalt');
-  if (ziel > 0 || ziel < minWocheVersatz()) { inh.style.transition = 'transform .25s ease'; inh.style.transform = ''; inh.style.opacity = ''; return; }
-  const w = innerWidth;
-  inh.style.transition = 'transform .18s ease-in, opacity .18s ease-in';
-  inh.style.transform = `translateX(${r < 0 ? w * 0.6 : -w * 0.6}px)`; inh.style.opacity = '0';
-  setTimeout(() => {
-    wocheVersatz = ziel; renderWoche();
-    inh.style.transition = 'none'; inh.style.transform = `translateX(${r < 0 ? -w * 0.3 : w * 0.3}px)`;
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      inh.style.transition = 'transform .24s ease-out, opacity .24s ease-out'; inh.style.transform = ''; inh.style.opacity = '';
-    }));
-  }, schon ? 120 : 170);
-}
-// Wischen nach links/rechts im Verlauf. Nicht auf der Nachtkarte (eigene Gesten) und nur bei klar waagrechter Bewegung.
-function wocheWischen() {
-  const v = $('#view-woche'), inh = $('#woche-inhalt'); let w = null;
-  v.addEventListener('touchstart', e => {
-    w = null;
-    if (e.touches.length !== 1 || e.target.closest('#tag-karte, input, textarea, select')) return;
-    w = { x: e.touches[0].clientX, y: e.touches[0].clientY, dx: 0, an: false };
-  }, { passive: true });
-  v.addEventListener('touchmove', e => {
-    if (!w) return;
-    const dx = e.touches[0].clientX - w.x, dy = e.touches[0].clientY - w.y;
-    if (!w.an) {
-      if (Math.abs(dy) > 10 && Math.abs(dy) >= Math.abs(dx)) { w = null; return; }   // senkrecht: normales Scrollen
-      if (Math.abs(dx) < 14 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-      w.an = true;
-    }
-    const geht = dx > 0 ? wocheVersatz > minWocheVersatz() : wocheVersatz < 0;
-    w.dx = geht ? dx : dx * 0.2;   // am Rand nur leicht nachgeben
-    inh.style.transition = 'none'; inh.style.transform = `translateX(${w.dx}px)`;
-    inh.style.opacity = geht ? String(1 - Math.min(Math.abs(dx) / 700, 0.35)) : '';
-  }, { passive: true });
-  const ende = () => {
-    if (!w || !w.an) { w = null; return; }
-    const dx = w.dx; w = null;
-    if (Math.abs(dx) > 70) wocheGehe(dx > 0 ? -1 : 1, true);
-    else { inh.style.transition = 'transform .25s ease, opacity .25s ease'; inh.style.transform = ''; inh.style.opacity = ''; }
-  };
-  v.addEventListener('touchend', ende); v.addEventListener('touchcancel', ende);
-}
-function renderWoche() {
-  wocheVersatz = Math.max(minWocheVersatz(), Math.min(0, wocheVersatz));
-  document.body.classList.toggle('archiv', ansicht === 'woche' && wocheVersatz < 0);   // vergangene Woche: Archiv-Look
-  const gesperrt = wocheVersatz <= -2;   // nur die letzte Woche bleibt änderbar, ältere sind abgeschlossen
-  const band = $('#archiv-band');
-  if (band) {
-    band.classList.toggle('hidden', wocheVersatz >= 0);
-    band.innerHTML = gesperrt ? `${SCHLOSS}<span>Archiv · abgeschlossen</span>` : '<span>Archiv · letzte Woche, noch änderbar</span>';
-  }
-  const wochenende = [0, 6].includes(new Date().getDay());
-  $('#woche-heute').classList.toggle('hidden', wocheVersatz === 0);
-  $('#woche-zurueck').disabled = wocheVersatz <= minWocheVersatz();
-  const start = wocheStart(new Date()); start.setDate(start.getDate() + wocheVersatz * 7);
-  const ende = new Date(start); ende.setDate(ende.getDate() + 7);
-  const letzter = new Date(ende); letzter.setDate(letzter.getDate() - 1);
-  $('#woche-kw').textContent = `KW ${kw(start)}`;
-  const f = { day: 'numeric', month: 'long' };
-  const anf = start.getMonth() === letzter.getMonth() ? `${start.getDate()}.` : start.toLocaleDateString('de-DE', f);
-  $('#woche-spanne').textContent = `${anf} – ${letzter.toLocaleDateString('de-DE', f)}${wocheVersatz === 0 ? ' · diese Woche' : wocheVersatz === -1 ? ' · letzte Woche' : ''}`;
-  $('#woche-vor').disabled = wocheVersatz >= 0;
+// ============================================================
+// DATABASE (IndexedDB)
+// ============================================================
 
-  const taps = tapsZwischen(start, ende);
-  const tage = []; for (let i = 0; i < 7; i++) { const d = new Date(start); d.setDate(d.getDate() + i); tage.push(d); }
-  const b = balance(taps, tage);
-  const wk = wochenKey(start);
-  const notiz = (S.wochen ||= {})[wk] || {};
-  const abende = tage.map(d => ({ d, z: S.feierabend[tagKey(d)] })).filter(x => x.z && !freierTag(x.d));   // freie Tage stehen unten als Notiz
-  const gefuehlt = Object.keys(WAHL).some(art => tage.some(d => (S[art] || {})[tagKey(d)]));
+const DB_NAME = 'lernkarten';
+const DB_VER  = 3;
+let db;
 
-  const teile = [];
-  const gesamtMin = taps.reduce((s, t) => s + (istTagesmoment(moment(t.mid)) ? 0 : t.min || 0), 0);
-  teile.push(`<div class="card">${balanceHTML(b, S.einstellungen.balanceStil, 'Balance der Woche')}
-    <div class="seg klein arbeit-schalter" role="group" aria-label="Arbeit in der Balance">
-      <button type="button" data-arbeit="1" class="${arbeitMitzaehlen() ? 'an' : ''}">mit Arbeit</button><button type="button" data-arbeit="0" class="${arbeitMitzaehlen() ? '' : 'an'}">ohne Arbeit</button></div></div>`);
-
-  if (!taps.length && !abende.length && !gefuehlt) {
-    teile.push(`<div class="card"><p class="leer-text">In dieser Woche ist noch nichts gesammelt. Das ist in Ordnung.</p></div>`);
-  }
-
-  // Über den Tag: wann die Momente lagen (Leuchtpunkte, Größe = Dauer, Strich = Feierabend)
-  if (taps.length) teile.push(`<div class="card"><div class="card-header"><h2>Über den Tag</h2><button type="button" class="btn-klein rechts btn-voll" id="tag-voll-auf" aria-label="Über den Tag im Vollbild">⤢</button></div>
-      <div class="tag-filter" role="group" aria-label="Momente zeigen">
-        ${[['erholsam', 'erholsam', 'reg'], ['fuermich', 'für mich', 'mich'], ['aktiv', 'aktiv', 'akt']].map(([k, t, c]) => `<button type="button" class="btn-klein filter-${c}${heatFilter[k] ? ' an' : ''}" data-filter="${k}" aria-pressed="${heatFilter[k]}">${t}</button>`).join('')}
-        <button type="button" class="btn-klein filter-alle${alleAn() ? ' an' : ''}" data-filter="alle" aria-pressed="${alleAn()}">Alle</button></div>
-      <div id="tag-karte">${tagKarte(taps, tage)}</div>
-      <p class="tag-legende">Länge = Dauer · Schleier = Arbeit · Strich = Ende</p>
-      <p class="tag-legende leise">Mehr sehen: antippen · zwei Finger · lange drücken</p></div>`);
-
-
-  if (taps.length) {
-    const pm = {};
-    for (const t of runden(taps)) { const p = pm[t.mid] ||= { n: 0, min: 0 }; p.n++; p.min += t.min; }
-    // gleiche Ordnung wie auf Heute: Gruppen in ihrer Reihenfolge, darin die Momente in ihrer Reihenfolge
-    const zeile = m => {
-      const p = pm[m.id];
-      const rgb = m.modus === 'akt' ? 'var(--akt-rgb)' : 'var(--reg-rgb)';
-      let band = '';
-      if (m.etwa) {
-        const zEnde = m.genugWoche && m.genugWoche > m.etwa ? m.genugWoche : m.etwa;
-        const max = Math.max(p.n, zEnde) + 1.5;
-        const pos = v => Math.min(100, (v / max) * 100);
-        const zAnf = Math.max(0, m.etwa - 0.5);
-        band = `<div class="richtband" style="--m-rgb:${rgb}" aria-hidden="true">
-            <div class="richtband-zone" style="left:${pos(zAnf)}%;width:${pos(zEnde + 0.5) - pos(zAnf)}%"></div>
-            <div class="richtband-punkt" style="left:${pos(p.n)}%"></div></div>
-          <div class="richtband-text">Richtwert etwa ${m.etwa} × pro Woche</div>`;
+function dbInit() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onerror = () => rej(req.error);
+    req.onsuccess = () => { db = req.result; res(); };
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      const tx = e.target.transaction;
+      if (!d.objectStoreNames.contains('gruppen'))
+        d.createObjectStore('gruppen', { keyPath: 'id' });
+      if (!d.objectStoreNames.contains('studenten')) {
+        const s = d.createObjectStore('studenten', { keyPath: 'id' });
+        s.createIndex('gruppeId', 'gruppeId');
       }
-      return `<div class="summe">
-        <button type="button" class="summe-symbol${licht.has(m.id) ? ' licht' : ''}" data-licht="${esc(m.id)}" aria-pressed="${licht.has(m.id)}" aria-label="${esc(m.name)} in „Über den Tag“ hervorheben">${symbolHTML(m) || '<span class="summe-punkt"></span>'}</button>
-        <span class="summe-name">${esc(m.name)}${m.angebot ? herzHTML(['angekommen', 'getragen'].includes(notiz.angebote?.[m.id]?.an), ' summe-herz') : ''}</span>
-        <span class="summe-wert">${istTagesmoment(m) ? `<strong>${tage.filter(d => tagMit(m.id, d)).length}</strong> ${tage.filter(d => tagMit(m.id, d)).length === 1 ? 'Tag' : 'Tage'}` : `<strong>${p.n} ×</strong>${p.min ? ' · ' + fmtDauer(p.min) : ''}`}</span>
-        ${band}</div>`;
-    };
-    // je Gruppe: aktiver und regenerativer Anteil (beides halb/halb)
-    const pg = {};
-    for (const t of taps) {
-      const m = moment(t.mid), w = istTagesmoment(m) ? 0 : t.min || 10, g = GRUPPEN[m.gruppe] ? m.gruppe : '';
-      const e = pg[g] ||= { akt: 0, reg: 0, min: 0 };
-      if (istTagesmoment(m)) continue;   // sichtbar in der Liste, aber ohne Gewicht im Balken
-      if (m.modus === 'akt') e.akt += w; else if (m.modus === 'reg') e.reg += w; else { e.akt += w / 2; e.reg += w / 2; }
-      e.min += t.min || 0;
-    }
-    const maxG = Math.max(1, ...Object.values(pg).map(e => e.akt + e.reg));
-    // Gruppen in der eingestellten Reihenfolge, geschlossen; darin die Momente in ihrer Reihenfolge
-    const gz = [...Object.keys(GRUPPEN), ''].filter(g => pg[g]).map(g => {
-      const e = pg[g], breite = e.akt + e.reg ? Math.max(6, (e.akt + e.reg) / maxG * 100) : 0;
-      const liste = S.momente.filter(m => pm[m.id] && (g ? m.gruppe === g : !GRUPPEN[m.gruppe]));
-      return `<details class="wgruppe"><summary class="gruppe-zeile">
-        <span class="gruppe-name">${esc(g ? GRUPPEN[g] : 'Ohne Gruppe')}<span class="gruppe-anzahl">${liste.length === 1 ? '1 Moment' : liste.length + ' Momente'}</span></span>
-        <span class="gruppe-spur"><span class="gruppe-fuell" style="width:${breite}%" role="img" aria-label="${e.akt > e.reg ? 'eher aktiv' : e.reg > e.akt ? 'eher regenerativ' : 'ausgeglichen'}">
-          <span class="teil-akt" style="flex-grow:${e.akt}"></span><span class="teil-reg" style="flex-grow:${e.reg}"></span></span></span>
-        <span class="gruppe-wert">${e.min ? fmtDauer(e.min) : ''}</span><span class="auf" aria-hidden="true">›</span></summary>
-        <div class="wgruppe-momente">${liste.map(zeile).join('')}</div></details>`;
-    }).join('');
-    teile.push(`<div class="card"><div class="card-header"><h2>Momente<span class="h2-sub">${runden(taps).length} Momente${gesamtMin ? ` · ${fmtDauer(gesamtMin)}` : ''}</span></h2><button class="btn-klein rechts btn-alle" type="button" aria-expanded="false" aria-label="Alle Zeilen öffnen"><span class="dreieck" aria-hidden="true">▸</span> Alle</button></div><div class="gruppen">${gz}</div>
-      <div class="band-legende"><span class="akt">aktiv</span><span class="reg">regenerativ</span></div></div>`);
-  }
-
-  // Rahmen des Tages: je eine schmale Grafik direkt in der Zeile, ohne Aufklappen
-  // Reihenfolge wie auf Heute: Schlaf, dann Arbeit (Feierabend, an freien Tagen als Notiz), Essen, Trinken
-  const rahmen = [];
-  const gefuehltZeile = art => {
-    const werte = tage.map(d => (S[art] || {})[tagKey(d)]).filter(Boolean);
-    if (!werte.length) return;
-    const pos = w => { const i = WAHL[art].werte.findIndex(x => x[0] === w); return i < 0 ? 0.5 : 1 - i / 2; };
-    const mitte = werte.reduce((n, w) => n + pos(w), 0) / werte.length;
-    const wort = WAHL[art].werte[mitte >= 0.75 ? 0 : mitte <= 0.25 ? 2 : 1][1];
-    rahmen.push(`<div class="rahmen-zeile"><span class="rahmen-name">${WAHL[art].name}</span>${skala(art, werte, pos, mitte, wort)}<span class="rahmen-kurz">${werte.length > 1 ? 'eher ' : ''}${wort}</span></div>`);
-  };
-  gefuehltZeile('schlaf');
-  if (abende.length) {
-    const kurz = abende.length > 1 ? `meist ${median(abende.map(a => zuMin(a.z)))}` : abende[0].z;
-    rahmen.push(`<div class="rahmen-zeile"><span class="rahmen-name">Feierabend</span>${abendMini(abende)}<span class="rahmen-kurz">${kurz}</span></div>`);
-  }
-  // Arbeit an freien Tagen: nur eine kleine Notiz, keine Summe
-  const FREI_TEXT = { etwas: 'etwas gearbeitet', halb: 'halber Tag', normal: 'ganzer Tag', viel: 'viel gearbeitet' };
-  const freiArbeit = tage.filter(freierTag).map(d => { const k = tagKey(d); return { d, w: (S.arbeitStufe || {})[k] || (arbeitBloecke(k).length ? 'etwas' : '') }; })
-    .filter(x => x.w).map(({ d, w }) => `<span class="nowrap">${TAGE_KURZ[d.getDay()]} · ${FREI_TEXT[w] || w}</span>`);
-  if (freiArbeit.length) rahmen.push(`<div class="rahmen-zeile"><span class="rahmen-name">Arbeit am freien Tag</span><span class="rahmen-notiz breit">${freiArbeit.join(', ')}</span></div>`);
-  gefuehltZeile('essen');
-  gefuehltZeile('trinken');
-  if (rahmen.length) teile.push(`<div class="card"><div class="card-header"><h2>Rahmen des Tages</h2></div><div class="rahmen-liste">${rahmen.join('')}</div></div>`);
-
-  // Woche abschließen: der eine Ort zum Nachdenken. Angebote nur, wenn es diese Woche welche gab.
-  const angebote = S.momente.filter(m => m.angebot && taps.some(t => t.mid === m.id));
-  const seg = (mid, feld, optionen) => `<div class="seg klein" data-mid="${esc(mid)}" data-feld="${feld}">${optionen.map(([w, t]) =>
-    `<button type="button" data-wert="${w}" class="${notiz.angebote?.[mid]?.[feld] === w ? 'an' : ''}"${gesperrt ? ' disabled' : ''}>${t}</button>`).join('')}</div>`;
-  const tagesM = S.momente.find(m => istTagesmoment(m) && tage.some(d => tagMit(m.id, d)));
-  const frage = tagesM ? `Was möchtest du von „${esc(tagesM.name)}“ in die nächsten Tage mitnehmen?` : REFLEXION[kw(start) % REFLEXION.length];
-  // Sichtbar: in dieser Woche nur am Wochenende, in der letzten Woche immer (änderbar), davor nur lesend und nur mit Inhalt
-  const hatNotiz = !!(notiz.satz || notiz.abgeschlossen || Object.values(notiz.angebote || {}).some(a => a && (a.an || a.mir)));
-  const zeigeAbschluss = wocheVersatz === -1 || (wocheVersatz === 0 && wochenende) || (gesperrt && hatNotiz);
-  if (zeigeAbschluss) teile.push(`<div class="card${gesperrt ? ' gesperrt' : ''}"><details class="wgruppe abschluss"><summary class="gruppe-zeile rueck-zeile">
-      <span class="gruppe-name">${gesperrt ? 'Wochenabschluss' : 'Woche abschließen'}</span><span class="rahmen-kurz" id="abschluss-stand">${gesperrt ? SCHLOSS : ''}${notiz.abgeschlossen ? 'abgeschlossen' : ''}</span><span class="auf" aria-hidden="true">›</span></summary>
-    <div class="abschluss-inhalt">
-      ${angebote.length ? `<div class="label">Angebote</div>${angebote.map(m => `<div class="angebot" data-angebot="${esc(m.id)}">
-        <div class="angebot-name">${herzHTML(['angekommen', 'getragen'].includes(notiz.angebote?.[m.id]?.an))} ${esc(m.name)}</div>
-        <div class="angebot-frage">Wie kam es an?</div>${seg(m.id, 'an', [['offen', 'offen'], ['angekommen', 'angekommen'], ['getragen', 'hat getragen']])}
-        <div class="angebot-frage">Hat es mir auch etwas gegeben?</div>${seg(m.id, 'mir', [['wenig', 'wenig'], ['etwas', 'etwas'], ['viel', 'viel']])}
-      </div>`).join('')}` : ''}
-      <div class="label">Eine Frage</div>
-      <p class="reflexion">${gesperrt && notiz.frage ? notiz.frage : frage}</p>
-      ${gesperrt ? (notiz.satz ? `<p class="abschluss-satz-fest">${esc(notiz.satz)}</p>` : '') : `<textarea id="abschluss-satz" rows="3" maxlength="400" placeholder="Wenn du magst, ein Satz. Kann auch leer bleiben.">${esc(notiz.satz || '')}</textarea>
-      <button class="btn-primary" id="btn-abschluss" type="button">${notiz.abgeschlossen ? 'Gespeichert' : 'Woche abschließen'}</button>`}
-    </div></details></div>`);
-
-  // Rückschau: die eigenen Sätze aus „Woche abschließen“, neueste zuerst. Wochen ohne Satz fehlen einfach.
-  const saetze = Object.entries(S.wochen || {}).filter(([, n]) => n.satz).map(([k, n]) => ({ k, n, st: n.start || wocheAusKey(k) })).sort((a, b) => b.st - a.st);
-  if (saetze.length && (wocheVersatz < 0 || wochenende)) teile.push(`<div class="card"><details class="wgruppe rueckschau"><summary class="gruppe-zeile rueck-zeile">
-      <span class="gruppe-name">Rückschau<span class="gruppe-anzahl">${saetze.length === 1 ? 'ein Satz' : saetze.length + ' Sätze'}</span></span><span class="auf" aria-hidden="true">›</span></summary>
-    <div class="rueckschau-liste">${saetze.map(({ k, n, st }) => {
-      const a = new Date(st), e = new Date(st); e.setDate(e.getDate() + 6);
-      const f = { day: 'numeric', month: 'short' };
-      return `<button type="button" class="rueckschau-eintrag${k === wk ? ' diese' : ''}" data-woche="${st}">
-        <span class="rueckschau-kw">KW ${kw(a)} · ${a.toLocaleDateString('de-DE', f)} – ${e.toLocaleDateString('de-DE', f)}</span>
-        <span class="rueckschau-frage">${n.frage || REFLEXION[kw(a) % REFLEXION.length]}</span>
-        <span class="rueckschau-satz">${esc(n.satz)}</span></button>`;
-    }).join('')}</div></details></div>`);
-
-  $('#woche-inhalt').innerHTML = teile.join('');
-  // Eintrag antippen: zu dieser Woche springen
-  document.querySelectorAll('#woche-inhalt [data-woche]').forEach(b => b.onclick = () => {
-    wocheVersatz = Math.round((+b.dataset.woche - wocheStart(new Date()).getTime()) / (7 * 86400000));
-    renderWoche(); window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
-  const vollAuf = () => tagVollbild(taps, tage, $('#woche-kw').textContent + ' · ' + $('#woche-spanne').textContent);
-  if ($('#tag-karte')) { $('#tag-karte')._wolken = tagWolken; tagKarteGesten($('#tag-karte'), { antippen: vollAuf }); }
-  if ($('#tag-voll-auf')) $('#tag-voll-auf').onclick = vollAuf;
-  document.querySelectorAll('#woche-inhalt [data-arbeit]').forEach(b => b.onclick = () => {
-    S.einstellungen.arbeitInBalance = b.dataset.arbeit === '1'; speichern(); renderWoche(); renderHeute();
-  });
-
-  // Über den Tag: erholsam / aktiv ein- und ausblenden (ohne die übrigen Karten neu zu zeichnen)
-  const karteNeu = () => { const s = $('#tag-karte .tag-svg'); if (s) { s.outerHTML = tagKarte(taps, tage); $('#tag-karte')._wolken = tagWolken; $('#tag-karte')._setzen?.(); } };
-  document.querySelectorAll('#woche-inhalt [data-filter]').forEach(btn => btn.onclick = () => {
-    const f = btn.dataset.filter;
-    if (f === 'alle') Object.assign(heatFilter, alleAn() ? HEAT_START : { erholsam: true, fuermich: true, aktiv: true });   // nochmal: zurück zum Anfang
-    else heatFilter[f] = !heatFilter[f];
-    document.querySelectorAll('#woche-inhalt [data-filter]').forEach(b => {
-      const an = b.dataset.filter === 'alle' ? alleAn() : heatFilter[b.dataset.filter];
-      b.classList.toggle('an', an); b.setAttribute('aria-pressed', an);
-    });
-    karteNeu();
-  });
-  // Scheinwerfer: Moment in „Momente“ antippen, seine Wolken leuchten golden, die übrigen werden blass
-  document.querySelectorAll('#woche-inhalt [data-licht]').forEach(el => el.onclick = () => {
-    const id = el.dataset.licht;
-    licht.has(id) ? licht.delete(id) : licht.add(id);
-    document.querySelectorAll(`#woche-inhalt [data-licht="${CSS.escape(id)}"]`).forEach(x => { x.classList.toggle('licht', licht.has(id)); x.setAttribute('aria-pressed', licht.has(id)); });
-    karteNeu();
-  });
-  // Woche abschließen
-  const notizSchreiben = () => (S.wochen[wk] ||= {});
-  document.querySelectorAll('#woche-inhalt .abschluss .seg').forEach(sg => sg.addEventListener('click', e => {
-    const bt = e.target.closest('[data-wert]'); if (!bt) return;
-    const n = notizSchreiben(), a = (n.angebote ||= {})[sg.dataset.mid] ||= {};
-    a[sg.dataset.feld] = a[sg.dataset.feld] === bt.dataset.wert ? undefined : bt.dataset.wert;
-    sg.querySelectorAll('button').forEach(x => x.classList.toggle('an', x.dataset.wert === a[sg.dataset.feld]));
-    const voll = ['angekommen', 'getragen'].includes(a.an);
-    sg.closest('.angebot').querySelector('.herz-wrap').classList.toggle('voll', voll);
-    speichern();
-  }));
-  const satz = $('#abschluss-satz');
-  // der Satz merkt sich seine Frage und die Woche, damit die Rückschau sie später zeigen kann
-  if (satz) satz.oninput = () => { const n = notizSchreiben(); n.satz = satz.value.trim() || undefined; n.frage = frage; n.start = start.getTime(); speichern(); };
-  const btnAb = $('#btn-abschluss');
-  if (btnAb) btnAb.onclick = () => {
-    notizSchreiben().abgeschlossen = Date.now(); speichern();
-    btnAb.textContent = 'Gespeichert'; $('#abschluss-stand').textContent = 'abgeschlossen';
-    btnAb.closest('details').open = false;
-    toast('Woche abgeschlossen. Es ist nichts mehr offen.');
-  };
-  // „▸ Alle“: öffnet bzw. schließt alle Zeilen einer Karte; passt sich an, wenn Zeilen einzeln geöffnet werden
-  document.querySelectorAll('#woche-inhalt .btn-alle').forEach(btn => {
-    const zeilen = [...btn.closest('.card').querySelectorAll('details.wgruppe')];
-    const anzeigen = () => {
-      const alle = zeilen.length > 0 && zeilen.every(d => d.open);
-      btn.classList.toggle('offen', alle);
-      btn.setAttribute('aria-expanded', alle);
-      btn.setAttribute('aria-label', alle ? 'Alle Zeilen schließen' : 'Alle Zeilen öffnen');
-    };
-    btn.onclick = () => { const auf = !zeilen.every(d => d.open); zeilen.forEach(d => { d.open = auf; }); anzeigen(); };
-    zeilen.forEach(d => d.addEventListener('toggle', anzeigen));
-    anzeigen();
-  });
-}
-
-// ── Über den Tag ──
-const HEAT_START = { erholsam: true, fuermich: true, aktiv: false };
-const heatFilter = { ...HEAT_START };
-const alleAn = () => heatFilter.erholsam && heatFilter.fuermich && heatFilter.aktiv;
-// Scheinwerfer: hervorgehobene Momente (nur bis zum nächsten Wechsel zwischen Heute und Verlauf)
-const licht = new Set();
-// Bedeutung eines Moments: verändert nur das Aussehen (Breite und Leuchten), nie Balance, Anzahl oder Richtwert
-const BEDEUTUNG = { normal: 'normal', mehr: 'mehr', stark: 'stark' };
-const BREITE = { normal: 10, mehr: 12.5, stark: 15 };
-// Bedeutung zum Zeitpunkt eines Eintrags: gewichtAb merkt sich, ab wann welche Bedeutung gilt („ab jetzt“).
-// Ohne Liste gilt die aktuelle Bedeutung für alle Einträge („auch für frühere“).
-function gewichtZu(m, ts) {
-  let g = m.gewicht || 'normal';
-  if (m.gewichtAb?.length) { g = m.gewichtAb[0].g; for (const e of m.gewichtAb) if (e.ab <= ts) g = e.g; }
-  return BEDEUTUNG[g] ? g : 'normal';
-}
-const REFLEXION = ['Was hat dir diese Woche gutgetan?', 'Welche Ruheinsel möchtest du behalten?', 'Was darf nächste Woche etwas weniger sein?', 'Wofür bist du diese Woche dankbar?'];
-// Art eines Moments in der Karte: erholsam, aktiv für mich oder aktiv
-const ART = { reg: 'reg', beides: 'mich', akt: 'akt' };
-const ART_FILTER = { reg: 'erholsam', mich: 'fuermich', akt: 'aktiv' };
-const WOLKE_RGB = { reg: '246,240,228', mich: '134,189,181', akt: '217,163,106' };
-const LICHT_RGB = '240,200,110';
-// opt.H: andere Höhe (Vollbild), opt.achsen === false: Beschriftung außerhalb als HTML (bleibt beim Zoomen am Rand)
-let tagGeo = null;
-function tagKarte(taps, tage, opt = {}) {
-  const ohne = opt.achsen === false;
-  const W = 320, H = opt.H || 300, L = ohne ? 4 : 30, R = ohne ? 4 : 8, T = 10, B = ohne ? 10 : 26;
-  // getippt wird am Ende: die Wolke liegt auf der Mitte des Moments
-  const pts = runden(taps).map(t => { const m = moment(t.mid); return { t, m, art: m && (ART[m.modus] || 'reg'), d: new Date(t.ts - (t.min || 0) * 30000) }; })
-    .filter(p => p.m && !istTagesmoment(p.m) && (heatFilter[ART_FILTER[p.art]] || licht.has(p.m.id)));
-  // nach Mitternacht bis zum Tageswechsel: 24, 25, 26 … in derselben Spalte
-  const stunde = d => { const h = d.getHours() + d.getMinutes() / 60; return h < WECHSEL_H() ? h + 24 : h; };
-  const tagIndex = d => Math.round((logTag(d) - tage[0]) / 86400000);
-  const fa = tage.map((d, i) => ({ i, z: S.feierabend[tagKey(d)] })).filter(x => x.z).map(x => { const h = zuMin(x.z) / 60; return { i: x.i, h: h < WECHSEL_H() ? h + 24 : h }; });
-  // Arbeit: Blöcke mit Start als warmer Schleier (der heute laufende Block bis jetzt)
-  const ab = [];
-  tage.forEach((d, i) => {
-    const k = tagKey(d), bl = (S.arbeitZeit || {})[k] || [];
-    bl.forEach((b, j) => {
-      if (!b.von) return;
-      let h0 = zeitH(b.von), h1 = b.bis ? zeitH(b.bis) : (k === tagKey(logTag()) ? stunde(new Date()) : null);
-      if (h1 == null) return;
-      if (h1 < h0) [h0, h1] = [h1, h0];
-      ab.push({ i, h0, h1, ende: !!b.bis && j < bl.length - 1 });
-    });
-  });
-  const alle = [...pts.map(p => stunde(p.d)), ...fa.map(f => f.h), ...ab.flatMap(a => [a.h0, a.h1])];
-  const hMin = Math.min(7, Math.floor(Math.min(...alle, 24)) - 1), hMax = Math.max(23, Math.ceil(Math.max(...alle, 0)) + 1);   // ab 24 = nach Mitternacht
-  const spalte = (W - L - R) / 7;
-  const x = i => L + (i + 0.5) * spalte, y = h => T + (h - hMin) / (hMax - hMin) * (H - T - B);
-  const proStunde = (H - T - B) / (hMax - hMin);
-  const tagNamen = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-  tagGeo = { x, y, hMin, hMax, proStunde, W, H };
-  let achsen = ohne ? '' : tagNamen.map((n, i) => `<text x="${x(i).toFixed(1)}" y="${H - 8}" text-anchor="middle" class="tag-achse">${n}</text>`).join('');
-  if (!ohne) for (let h = Math.ceil(hMin / 4) * 4; h <= hMax; h += 4) achsen += `<text x="${L - 8}" y="${(y(h) + 3).toFixed(1)}" text-anchor="end" class="tag-achse">${h === 24 ? 24 : h % 24}</text>`;
-  // Tagesmomente als Schleier über der ganzen Spalte, danach ein leiser Nachklang über drei Tage
-  const NACH = [1, 0.55, 0.3, 0.12];
-  const schleier = tage.map((d, i) => {
-    let st = 0, art = 'reg';
-    if (d > new Date()) return '';   // kein Nachklang in die Zukunft
-    S.momente.filter(istTagesmoment).forEach(m => {
-      for (let k = 0; k < NACH.length; k++) {
-        const v = new Date(d); v.setDate(v.getDate() - k);
-        if (tagMit(m.id, v)) { if (NACH[k] > st) { st = NACH[k]; art = ART[m.modus] || 'reg'; } break; }
-      }
-    });
-    if (!st) return '';
-    return `<rect x="${(x(i) - spalte * 0.32).toFixed(1)}" y="${T}" width="${(spalte * 0.64).toFixed(1)}" height="${H - T - B}" rx="14" fill="url(#schleier-${art})" opacity="${(st * 0.09).toFixed(3)}" filter="url(#schleier-weich)" class="tag-schleier"/>`;
-  }).join('');
-  const arbeitSchleier = ab.map(a => `<rect x="${(x(a.i) - spalte * 0.34).toFixed(1)}" y="${y(a.h0).toFixed(1)}" width="${(spalte * 0.68).toFixed(1)}" height="${Math.max(2, y(a.h1) - y(a.h0)).toFixed(1)}" rx="5" class="tag-arbeit" filter="url(#arbeit-weich)"/>`).join('')
-    + ab.map(a => `<line x1="${(x(a.i) - spalte * 0.32).toFixed(1)}" x2="${(x(a.i) + spalte * 0.32).toFixed(1)}" y1="${y(a.h0).toFixed(1)}" y2="${y(a.h0).toFixed(1)}" class="tag-arbeitbeginn"/>`
-      + (a.ende ? `<line x1="${(x(a.i) - spalte * 0.32).toFixed(1)}" x2="${(x(a.i) + spalte * 0.32).toFixed(1)}" y1="${y(a.h1).toFixed(1)}" y2="${y(a.h1).toFixed(1)}" class="tag-arbeitpause"/>` : '')).join('');
-  const striche = fa.map(f => `<line x1="${(x(f.i) - spalte * 0.32).toFixed(1)}" x2="${(x(f.i) + spalte * 0.32).toFixed(1)}" y1="${y(f.h).toFixed(1)}" y2="${y(f.h).toFixed(1)}" class="tag-feierabend"/>`).join('');
-  // gleiche Breite für alle, die Länge folgt der Dauer: lange Momente überdecken kurze nicht mehr
-  const RANG = { akt: 0, mich: 1, reg: 2 };
-  const glow = pts.map(p => {
-    const i = Math.min(6, Math.max(0, tagIndex(p.d))), halb = (p.t.min || 0) / 120 * proStunde;
-    const von = new Date(p.t.ts - (p.t.min || 0) * 60000), bis = new Date(p.t.ts);
-    const zeit = `${tagNamen[i]} ${pad(von.getHours())}:${pad(von.getMinutes())}${p.t.min ? `–${pad(bis.getHours())}:${pad(bis.getMinutes())}` : ''}`;
-    const gew = gewichtZu(p.m, p.t.ts);
-    return { cx: x(i) + ((p.t.ts / 60000) % 7 - 3) * 0.9, cy: y(stunde(p.d)), rx: BREITE[gew], ry: halb + 8, gew, art: p.art, licht: licht.has(p.m.id), name: p.m.name, zeit };
-  }).sort((a, b) => (a.licht - b.licht) || (RANG[a.art] - RANG[b.art]));   // aktiv unten, erholsam oben, Scheinwerfer ganz oben
-  // Länge = Dauer, Breite und Leuchten = Bedeutung. Bedeutende Momente bekommen einen feinen Hof, wie kleine Leuchttürme.
-  const blass = licht.size > 0;
-  const wolke = g => {
-    const f = g.licht ? 'licht' : g.art, op = blass && !g.licht ? ' opacity="0.28"' : '';
-    const hof = g.gew === 'normal' ? '' : `<ellipse cx="${g.cx.toFixed(1)}" cy="${g.cy.toFixed(1)}" rx="${Math.min(19, g.rx * 1.5).toFixed(1)}" ry="${(g.ry + 7).toFixed(1)}" fill="url(#wolke-${f})" opacity="${g.gew === 'stark' ? 0.5 : 0.3}"/>`;
-    const kern = `<ellipse cx="${g.cx.toFixed(1)}" cy="${g.cy.toFixed(1)}" rx="${g.rx}" ry="${g.ry.toFixed(1)}" fill="url(#wolke-${f})"/>`;
-    return `<g${op}>${hof}${kern}${g.gew === 'stark' ? kern : ''}</g>`;
-  };
-  const schein = glow.map(wolke).join('');
-  tagWolken = glow;
-  const kerne = glow.map(g => `<circle cx="${g.cx.toFixed(1)}" cy="${g.cy.toFixed(1)}" r="${g.gew === 'stark' ? 2 : g.gew === 'mehr' ? 1.6 : 1.3}" class="tag-kern ${g.licht ? 'licht' : g.art}"${blass && !g.licht ? ' opacity="0.3"' : ''}/>`).join('');
-  const verlauf = (art, rgb) => `<radialGradient id="wolke-${art}"><stop offset="0" stop-color="rgb(${rgb})" stop-opacity="${art === 'mich' || art === 'licht' ? 0.8 : 0.55}"/><stop offset="0.45" stop-color="rgb(${rgb})" stop-opacity="${art === 'mich' || art === 'licht' ? 0.38 : 0.25}"/><stop offset="1" stop-color="rgb(${rgb})" stop-opacity="0"/></radialGradient>`;
-  return `<svg class="tag-svg" viewBox="0 0 ${W} ${H}" data-w="${W}" data-h="${H}" role="img" aria-label="Wann die Momente dieser Woche lagen, ${pts.length} Momente">
-    <defs>${Object.entries(WOLKE_RGB).map(([a, r]) => verlauf(a, r)).join('')}${verlauf('licht', LICHT_RGB)}<filter id="schleier-weich" x="-30%" y="-10%" width="160%" height="120%"><feGaussianBlur stdDeviation="5"/></filter><filter id="arbeit-weich" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2"/></filter>${Object.entries(WOLKE_RGB).map(([a, r]) => `<linearGradient id="schleier-${a}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgb(${r})" stop-opacity="0"/><stop offset="0.18" stop-color="rgb(${r})" stop-opacity="1"/><stop offset="0.82" stop-color="rgb(${r})" stop-opacity="1"/><stop offset="1" stop-color="rgb(${r})" stop-opacity="0"/></linearGradient>`).join('')}</defs>
-    ${schleier}${arbeitSchleier}${achsen}${striche}${schein}${kerne}</svg>`;
-}
-
-// Hineinzoomen mit zwei Fingern: die Karte wird als Vektor neu gezeichnet (bleibt scharf),
-// Namen erscheinen als kleine Schilder. In der Karte federt sie beim Loslassen zurück,
-// im Vollbild bleibt der Zoom stehen (ein Finger verschiebt, Doppeltipp setzt zurück, nach unten wischen schließt).
-// Langer Druck auf eine Wolke: Name und Uhrzeit, deutlich über dem Finger.
-let tagWolken = [];
-function tagKarteGesten(box, opt = {}) {
-  if (!box) return;
-  const voll = !!opt.voll;
-  const svg = () => box.querySelector('.tag-svg');
-  const vbW = () => +(svg()?.dataset.w || 320), vbH = () => +(svg()?.dataset.h || 300);
-  const wolken = () => box._wolken || tagWolken;
-  let z = 1, tx = 0, ty = 0, feder = 0, gezoomt = false;
-  const ebene = document.createElement('div');
-  ebene.className = 'tag-namen'; ebene.setAttribute('aria-hidden', 'true');
-  box.appendChild(ebene);
-  // Maßstab: Bildschirmpixel je viewBox-Einheit bei z = 1
-  const mass = () => box.clientWidth / vbW();
-  const begrenzen = () => {   // im Vollbild nicht aus dem Bild schieben
-    if (!voll) return;
-    const B = box.clientWidth, H = box.clientHeight;
-    tx = Math.min(0, Math.max(B - B * z, tx)); ty = Math.min(0, Math.max(H - H * z, ty));
-  };
-  const setzen = () => {
-    const s = svg(); if (!s) return;
-    begrenzen();
-    const k = mass() * z;
-    s.setAttribute('viewBox', `${(-tx / k).toFixed(2)} ${(-ty / k).toFixed(2)} ${(vbW() / z).toFixed(2)} ${(vbH() / z).toFixed(2)}`);
-    namenZeigen(k);
-    if (opt.achsen) opt.achsen(k, tx, ty);
-  };
-  box._setzen = setzen;
-  // Namen nur, wenn die Wolke groß genug ist und kein anderer Name im Weg steht
-  const namenZeigen = k => {
-    if (!voll && z < 1.35) { ebene.innerHTML = ''; return; }
-    const sichtbar = voll ? 1 : Math.min(1, (z - 1.35) / 0.4);
-    const belegt = [], teile = [];
-    const B = box.clientWidth, H = box.clientHeight;
-    [...wolken()].sort((a, b) => b.ry - a.ry).forEach(w => {
-      if (w.ry * k < 20) return;
-      const x = w.cx * k + tx, y = w.cy * k + ty;
-      const halb = w.name.length * 3.9 + 9, r = [x - halb, y - 12, x + halb, y + 12];
-      if (r[0] < 2 || r[2] > B - 2 || r[1] < 2 || r[3] > H - 2) return;   // nichts Angeschnittenes
-      if (belegt.some(o => r[0] < o[2] && r[2] > o[0] && r[1] < o[3] && r[3] > o[1])) return;
-      belegt.push(r);
-      teile.push(`<span style="left:${x.toFixed(1)}px;top:${y.toFixed(1)}px;opacity:${sichtbar.toFixed(2)}">${esc(w.name)}</span>`);
-    });
-    ebene.innerHTML = teile.join('');
-  };
-  // weich zurück, mit einem kleinen Nachfedern
-  const zurueck = () => {
-    cancelAnimationFrame(feder);
-    const a = { z, tx, ty }, t0 = performance.now();
-    const dauer = matchMedia('(prefers-reduced-motion: reduce)').matches ? 150 : 480;
-    const ease = t => { const c = voll ? 0 : 1.25; return 1 + (c + 1) * (t - 1) ** 3 + c * (t - 1) ** 2; };
-    const schritt = now => {
-      const t = Math.min(1, (now - t0) / dauer), e = ease(t);
-      z = a.z + (1 - a.z) * e; tx = a.tx * (1 - e); ty = a.ty * (1 - e);
-      if (t >= 1) { z = 1; tx = 0; ty = 0; }
-      setzen();
-      if (t < 1) feder = requestAnimationFrame(schritt);
-    };
-    feder = requestAnimationFrame(schritt);
-  };
-
-  // Finger
-  let start = null, schieben = null, letzterTipp = 0;
-  const mitte = (a, b) => { const r = box.getBoundingClientRect(); return [(a.clientX + b.clientX) / 2 - r.left, (a.clientY + b.clientY) / 2 - r.top]; };
-  const abstand = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-  box.addEventListener('touchstart', e => {
-    if (e.touches.length === 2) {
-      tippEnde(); cancelAnimationFrame(feder); schieben = null; gezoomt = true;
-      const [a, b] = e.touches, m = mitte(a, b);
-      start = { d: abstand(a, b), m: [(m[0] - tx) / z, (m[1] - ty) / z], z };
-    } else if (voll && e.touches.length === 1) {
-      const t = e.touches[0];
-      schieben = { x: t.clientX, y: t.clientY, tx, ty, z0: z, bewegt: false };
-    }
-  }, { passive: true });
-  box.addEventListener('touchmove', e => {
-    if (start && e.touches.length === 2) {
-      e.preventDefault();
-      const [a, b] = e.touches, m = mitte(a, b);
-      z = Math.min(5, Math.max(1, start.z * abstand(a, b) / start.d));
-      tx = m[0] - start.m[0] * z; ty = m[1] - start.m[1] * z;
-      setzen(); return;
-    }
-    if (schieben && e.touches.length === 1) {
-      e.preventDefault();
-      const t = e.touches[0], dx = t.clientX - schieben.x, dy = t.clientY - schieben.y;
-      if (Math.hypot(dx, dy) > 8) { schieben.bewegt = true; tippEnde(); }
-      if (z > 1) { tx = schieben.tx + dx; ty = schieben.ty + dy; setzen(); }
-      else if (dy > 0) box.style.transform = `translateY(${dy * 0.5}px)`;   // nach unten ziehen zum Schließen
-    }
-  }, { passive: false });
-  const loslassen = e => {
-    if (start && e.touches.length < 2) {
-      start = null;
-      if (!voll) zurueck();
-      return;
-    }
-    if (schieben && e.touches.length === 0) {
-      const t = e.changedTouches[0], dy = t.clientY - schieben.y, dx = t.clientX - schieben.x;
-      box.style.transform = '';
-      if (voll && schieben.z0 === 1 && z === 1 && dy > 90 && Math.abs(dx) < 70 && opt.schliessen) { opt.schliessen(); return; }
-      if (!schieben.bewegt) {   // Doppeltipp: zurück zur ganzen Woche
-        const jetzt = Date.now();
-        if (jetzt - letzterTipp < 320 && z > 1) zurueck();
-        letzterTipp = jetzt;
-      }
-      schieben = null;
-    }
-  };
-  box.addEventListener('touchend', loslassen);
-  box.addEventListener('touchcancel', loslassen);
-  // iOS: das Seiten-Zoomen nicht mitnehmen
-  ['gesturestart', 'gesturechange'].forEach(n => box.addEventListener(n, e => e.preventDefault()));
-  // Trackpad am Rechner (Zwei-Finger-Zoom kommt als wheel mit ctrlKey)
-  let radZeit;
-  box.addEventListener('wheel', e => {
-    if (!e.ctrlKey && !(voll && z > 1)) return;
-    e.preventDefault(); cancelAnimationFrame(feder);
-    if (!e.ctrlKey) { tx -= e.deltaX; ty -= e.deltaY; setzen(); return; }   // Vollbild: zwei Finger schieben
-    const r = box.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
-    const neu = Math.min(5, Math.max(1, z * Math.exp(-e.deltaY / 80)));
-    tx = mx - (mx - tx) * neu / z; ty = my - (my - ty) * neu / z; z = neu; gezoomt = true;
-    setzen();
-    clearTimeout(radZeit); if (!voll) radZeit = setTimeout(zurueck, 350);
-  }, { passive: false });
-  if (voll) box.addEventListener('dblclick', () => zurueck());
-
-  // Langer Druck
-  let tippTimer, tippStart, lang = false;
-  const tipp = document.createElement('div');
-  tipp.className = 'tag-tipp'; tipp.setAttribute('role', 'status');
-  box.appendChild(tipp);
-  function tippEnde() { clearTimeout(tippTimer); tippTimer = null; tipp.classList.remove('an'); }
-  box.addEventListener('pointerdown', e => {
-    if (!e.isPrimary || start) return;
-    tippStart = [e.clientX, e.clientY]; lang = false; gezoomt = false;
-    clearTimeout(tippTimer);
-    tippTimer = setTimeout(() => {
-      const s = svg(); if (!s) return;
-      const r = s.getBoundingClientRect(), vb = s.viewBox.baseVal;
-      const px = vb.x + (tippStart[0] - r.left) / r.width * vb.width, py = vb.y + (tippStart[1] - r.top) / r.height * vb.height;
-      let best = null, wert = 2.2;
-      wolken().forEach(w => { const v = ((px - w.cx) / w.rx) ** 2 + ((py - w.cy) / w.ry) ** 2; if (v < wert) { wert = v; best = w; } });
-      if (!best) return;
-      lang = true;
-      tipp.innerHTML = `<strong>${esc(best.name)}</strong><span>${best.zeit}</span>`;
-      const br = box.getBoundingClientRect();
-      // Mitte über der Wolke, aber immer gut 70 px über dem Finger
-      const lx = r.left - br.left + (best.cx - vb.x) / vb.width * r.width;
-      const oben = r.top - br.top + (best.cy - best.ry * 0.7 - vb.y) / vb.height * r.height;
-      const ly = Math.min(oben, tippStart[1] - br.top - 70);
-      tipp.style.left = `${Math.min(br.width - 80, Math.max(80, lx))}px`;
-      tipp.style.top = `${voll ? Math.max(40, ly) : ly}px`;
-      tipp.classList.add('an');
-      if (navigator.vibrate) navigator.vibrate(8);
-    }, 450);
-  });
-  box.addEventListener('pointermove', e => {
-    if (tippTimer && !tipp.classList.contains('an') && Math.hypot(e.clientX - tippStart[0], e.clientY - tippStart[1]) > 8) tippEnde();
-  });
-  ['pointerup', 'pointercancel', 'pointerleave'].forEach(n => box.addEventListener(n, tippEnde));
-  box.addEventListener('contextmenu', e => e.preventDefault());
-  // Karte antippen (kein langer Druck, kein Zoomen, nicht verschoben): Vollbild
-  if (opt.antippen) box.addEventListener('click', e => {
-    if (lang || gezoomt || start) return;
-    if (tippStart && Math.hypot(e.clientX - tippStart[0], e.clientY - tippStart[1]) > 8) return;
-    opt.antippen();
-  });
-  setzen();
-}
-
-// Über den Tag im Vollbild: volle Höhe, Zoom bleibt stehen, Tage und Uhrzeiten bleiben am Rand
-function tagVollbild(taps, tage, titel) {
-  const v = document.createElement('div');
-  v.id = 'tag-voll'; v.setAttribute('role', 'dialog'); v.setAttribute('aria-modal', 'true'); v.setAttribute('aria-label', 'Über den Tag, Vollbild');
-  const filterKnoepfe = () => `${[['erholsam', 'erholsam', 'reg'], ['fuermich', 'für mich', 'mich'], ['aktiv', 'aktiv', 'akt']].map(([k, t, c]) => `<button type="button" class="btn-klein filter-${c}${heatFilter[k] ? ' an' : ''}" data-vfilter="${k}" aria-pressed="${heatFilter[k]}">${t}</button>`).join('')}
-    <button type="button" class="btn-klein filter-alle${alleAn() ? ' an' : ''}" data-vfilter="alle" aria-pressed="${alleAn()}">Alle</button>`;
-  v.innerHTML = `<div class="voll-kopf"><div><h2>Über den Tag</h2><div class="voll-sub">${esc(titel)}</div></div>
-      <button class="btn-modal-close" id="voll-zu" type="button" aria-label="Schließen">✕</button></div>
-    <div class="tag-filter" role="group" aria-label="Momente zeigen">${filterKnoepfe()}</div>
-    <div class="voll-flaeche"><div class="voll-y" aria-hidden="true"></div><div class="voll-karte"></div><div></div><div class="voll-x" aria-hidden="true"></div></div>
-    <p class="tag-legende">Zwei Finger: zoomen · ein Finger: schieben · Doppeltipp: zurück · nach unten wischen: schließen</p>`;
-  document.body.appendChild(v);
-  document.documentElement.classList.add('voll-offen');
-  const box = v.querySelector('.voll-karte'), yAchse = v.querySelector('.voll-y'), xAchse = v.querySelector('.voll-x');
-  const zeichnen = () => {
-    const H = Math.round(320 * box.clientHeight / Math.max(1, box.clientWidth));
-    box.innerHTML = tagKarte(taps, tage, { H, achsen: false });
-    box._wolken = tagWolken;
-    const geo = tagGeo;
-    tagKarteGesten(box, {
-      voll: true, schliessen: zu,
-      achsen: (k, tx, ty) => {
-        const proH = geo.proStunde * k, schritt = proH > 44 ? 1 : proH > 22 ? 2 : 4, Hh = box.clientHeight, Bw = box.clientWidth;
-        let ys = '';
-        for (let h = Math.ceil(geo.hMin / schritt) * schritt; h <= geo.hMax; h += schritt) {
-          const py = geo.y(h) * k + ty; if (py < 6 || py > Hh - 6) continue;
-          ys += `<span style="top:${py.toFixed(1)}px">${h === 24 ? 24 : h % 24}</span>`;
+      if (!d.objectStoreNames.contains('sitzungen'))
+        d.createObjectStore('sitzungen', { keyPath: 'id' });
+      if (!d.objectStoreNames.contains('sammlungen')) {
+        d.createObjectStore('sammlungen', { keyPath: 'id' });
+        // Migration: bestehende Gruppen einer Standard-Sammlung zuweisen
+        if (e.oldVersion >= 1) {
+          const defaultId = 'sammlung-allgemein';
+          tx.objectStore('sammlungen').put({
+            id: defaultId, name: 'Allgemein', erstellt: new Date().toISOString()
+          });
+          tx.objectStore('gruppen').getAll().onsuccess = ev => {
+            ev.target.result.forEach(g => {
+              if (!g.sammlungId) {
+                g.sammlungId = defaultId;
+                tx.objectStore('gruppen').put(g);
+              }
+            });
+          };
         }
-        yAchse.innerHTML = ys;
-        xAchse.innerHTML = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((n, i) => {
-          const px = geo.x(i) * k + tx; return px < 8 || px > Bw - 8 ? '' : `<span style="left:${px.toFixed(1)}px">${n}</span>`;
-        }).join('');
-      },
-    });
-  };
-  function zu() {
-    v.remove(); document.documentElement.classList.remove('voll-offen');
-    document.removeEventListener('keydown', taste);
-    renderWoche();   // Filter und Scheinwerfer auch in der Karte übernehmen
-  }
-  const taste = e => { if (e.key === 'Escape') zu(); };
-  document.addEventListener('keydown', taste);
-  v.querySelector('#voll-zu').onclick = zu;
-  v.querySelector('.tag-filter').onclick = e => {
-    const b = e.target.closest('[data-vfilter]'); if (!b) return;
-    const f = b.dataset.vfilter;
-    if (f === 'alle') Object.assign(heatFilter, alleAn() ? HEAT_START : { erholsam: true, fuermich: true, aktiv: true });
-    else heatFilter[f] = !heatFilter[f];
-    v.querySelector('.tag-filter').innerHTML = filterKnoepfe();
-    zeichnen();
-  };
-  requestAnimationFrame(zeichnen);
-}
-
-// Feierabend als schmale Zeitachse: Korridor als weiches Band, ein Punkt pro Abend, nur die Endstunden beschriftet
-function abendMini(abende) {
-  const kv = zuMin(S.einstellungen.korridorVon), kb = zuMin(S.einstellungen.korridorBis);
-  const zeiten = abende.map(a => zuMin(a.z));
-  const von = Math.floor((Math.min(kv, ...zeiten) - 15) / 60) * 60, bis = Math.ceil((Math.max(kb, ...zeiten) + 15) / 60) * 60;
-  const W = 150, x0 = 10, x1 = W - 10, y = 11;
-  const x = m => x0 + (m - von) / (bis - von) * (x1 - x0);
-  const punkte = zeiten.map(m => `<circle cx="${x(m).toFixed(1)}" cy="${y}" r="4.2" class="mini-punkt"/>`).join('');
-  return `<svg class="mini" viewBox="0 0 ${W} 32" role="img" aria-label="Feierabende im Verhältnis zum Korridor ${S.einstellungen.korridorVon} bis ${S.einstellungen.korridorBis}">
-    <line x1="${x0}" y1="${y}" x2="${x1}" y2="${y}" class="mini-achse"/>
-    <rect x="${x(kv).toFixed(1)}" y="${y - 7}" width="${(x(kb) - x(kv)).toFixed(1)}" height="14" rx="7" class="mini-band"/>
-    ${punkte}
-    <text x="${x0}" y="30" class="mini-text">${pad(von / 60 % 24)}</text><text x="${x1}" y="28" text-anchor="end" class="mini-text">${pad(bis / 60 % 24)}</text></svg>`;
-}
-// Gefühlte Werte als Skala (z. B. kurz bis erholt): ein blasser Punkt je Tag, ein Ring für die Mitte der Woche
-function skala(art, werte, pos, mitte, wort) {
-  const W = 150, x0 = 10, x1 = W - 10, y = 11;
-  const x = v => x0 + v * (x1 - x0);
-  // gleiche Werte liegen nebeneinander, mittig um ihren Platz
-  const anzahl = {}, zaehler = {};
-  werte.forEach(w => { anzahl[w] = (anzahl[w] || 0) + 1; });
-  const punkte = werte.map(w => {
-    const k = zaehler[w] = (zaehler[w] || 0) + 1;
-    const dx = (k - 1 - (anzahl[w] - 1) / 2) * 7;
-    return `<circle cx="${(x(pos(w)) + dx).toFixed(1)}" cy="${y}" r="3.2" class="mini-nacht"/>`;
-  }).join('');
-  const [oben, , unten] = WAHL[art].werte.map(v => v[1]);
-  return `<svg class="mini" viewBox="0 0 ${W} 32" role="img" aria-label="${WAHL[art].name} der Woche, eher ${wort}">
-    <line x1="${x0}" y1="${y}" x2="${x1}" y2="${y}" class="mini-achse"/>
-    <line x1="${x(0.5)}" y1="${y - 3}" x2="${x(0.5)}" y2="${y + 3}" class="mini-achse"/>
-    ${punkte}
-    <circle cx="${x(mitte).toFixed(1)}" cy="${y}" r="6.5" class="mini-mitte"/>
-    <text x="${x0}" y="30" class="mini-text">${unten}</text><text x="${x1}" y="28" text-anchor="end" class="mini-text">${oben}</text></svg>`;
-}
-
-function median(arr) {
-  const s = [...arr].sort((a, b) => a - b), m = Math.floor(s.length / 2);
-  const v = s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
-  return zuHHMM(Math.round(v / 5) * 5);
-}
-
-function abendSVG(abende) {
-  const kv = zuMin(S.einstellungen.korridorVon), kb = zuMin(S.einstellungen.korridorBis);
-  const zeiten = abende.map(a => zuMin(a.z));
-  let von = Math.floor((Math.min(kv, ...zeiten) - 30) / 60) * 60;
-  let bis = Math.ceil((Math.max(kb, ...zeiten) + 30) / 60) * 60;
-  const W = 320, x0 = 12, x1 = W - 12, y = 46;
-  const x = m => x0 + (m - von) / (bis - von) * (x1 - x0);
-  let ticks = '';
-  const schritt = (bis - von) > 360 ? 120 : 60;
-  for (let m = von; m <= bis; m += schritt) ticks += `<line x1="${x(m)}" y1="${y - 3}" x2="${x(m)}" y2="${y + 3}" stroke="rgba(255,255,255,.18)"/><text x="${x(m)}" y="${y + 18}" text-anchor="middle">${pad(m / 60 % 24)}</text>`;
-  const sortiert = abende.map(a => ({ ...a, m: zuMin(a.z) })).sort((p, q) => p.m - q.m);
-  let letzteX = -99, oben = true;
-  const punkte = sortiert.map(a => {
-    const px = x(a.m);
-    if (px - letzteX < 22) oben = !oben; else oben = true;
-    letzteX = px;
-    const tag = a.d.toLocaleDateString('de-DE', { weekday: 'short' }).replace('.', '');
-    return `<circle cx="${px}" cy="${y}" r="5" style="fill:rgb(var(--abend-rgb))" stroke="#0d0d11" stroke-width="2"><title>${tag} ${a.z}</title></circle>
-      <text class="tag-label" x="${px}" y="${oben ? y - 12 : y + 30}" text-anchor="middle">${tag}</text>`;
-  }).join('');
-  return `<svg class="abend-svg" viewBox="0 0 ${W} 100" role="img" aria-label="Feierabende auf einer Zeitachse">
-    <rect x="${x(kv)}" y="${y - 9}" width="${x(kb) - x(kv)}" height="18" rx="9" fill="rgba(169,180,222,.14)"/>
-    <text x="${(x(kv) + x(kb)) / 2}" y="${y + 50}" text-anchor="middle" style="font-size:9px">Korridor ${S.einstellungen.korridorVon}–${S.einstellungen.korridorBis}</text>
-    <line x1="${x0}" y1="${y}" x2="${x1}" y2="${y}" stroke="rgba(255,255,255,.14)" stroke-width="1.5" stroke-linecap="round"/>
-    ${ticks}${punkte}</svg>`;
-}
-
-// ── VERWALTUNG ─────────────────────────────────────────
-const offeneGruppen = new Set();   // in den Einstellungen geöffnete Gruppen (beim Öffnen der Einstellungen wieder alle zu)
-function renderVerwaltung() {
-  // Gruppen als Überschriften, darunter ihre Momente. Gleiche Reihenfolge wie auf Heute und in der Woche.
-  const sort = sortiermodus;
-  $('#btn-sort').textContent = sort ? 'Fertig' : 'Reihenfolge ändern';
-  $('#btn-sort').classList.toggle('an', sort);
-  $('#sort-hinweis').classList.toggle('hidden', !sort);
-  const info = m => [MODI[m.modus], m.dauer ? dauerText(m) : '', m.etwa ? `etwa ${m.etwa} × pro Woche` : '', m.gewicht ? `Bedeutung ${m.gewicht}` : ''].filter(Boolean).join(' · ');
-  const zeile = (m, i, liste) => sort
-    ? `<div class="moment-zeile sortieren">
-      <span class="sym" aria-hidden="true">${symbolHTML(m)}</span>
-      <span class="nm">${esc(m.name)}<span class="info" style="display:block">${info(m)}</span></span>
-      ${pfeile('m', m.id, i, liste.length, m.name)}</div>`
-    : `<button class="moment-zeile" type="button" data-edit="${esc(m.id)}">
-      <span class="sym" aria-hidden="true">${symbolHTML(m)}</span>
-      <span class="nm">${esc(m.name)}<span class="info" style="display:block">${info(m)}</span></span>
-      <span class="modus-punkt ${m.modus}" aria-hidden="true"></span></button>`;
-  $('#gm-liste').innerHTML = [...S.gruppen.map(g => g.id), ''].map((g, gi) => {
-    const liste = S.momente.filter(m => g ? m.gruppe === g : !GRUPPEN[m.gruppe]);
-    if (!g && !liste.length) return '';
-    const name = g ? GRUPPEN[g] : 'Ohne Gruppe';
-    // Gruppen sind zu Beginn geschlossen: eine Zeile mit Pfeil und Anzahl, ✎ zum Umbenennen
-    const auf = offeneGruppen.has(g || '_ohne');
-    const anzahl = liste.length === 1 ? '1 Moment' : `${liste.length} Momente`;
-    const kopf = `<div class="gm-kopf${auf ? ' auf' : ''}">
-      <button class="gm-gruppe" type="button" data-gauf="${esc(g || '_ohne')}" aria-expanded="${auf}"><span class="gm-dreieck" aria-hidden="true">›</span><span class="nm">${esc(name)}</span><span class="gm-anzahl">${anzahl}</span></button>
-      ${!g ? '' : sort ? pfeile('g', g, gi, S.gruppen.length, name) : `<button class="gm-stift" type="button" data-gruppe="${esc(g)}" aria-label="Gruppe ${esc(name)} umbenennen oder entfernen">✎</button>`}</div>`;
-    const inhalt = auf ? `<div class="gm-inhalt">${liste.map(zeile).join('')}${!sort && g ? `<button class="moment-zeile gm-neu" type="button" data-neu-moment="${esc(g)}"><span class="sym" aria-hidden="true"><span class="plus-kreis">+</span></span><span class="nm">Moment hinzufügen</span></button>` : ''}</div>` : '';
-    return `<div class="gm-block">${kopf}${inhalt}</div>`;
-  }).join('');
-  for (const art of Object.keys(WAHL).filter(a => !WAHL[a].frei)) $('#zeige-' + art).checked = wahlAn(art);
-  const at = S.einstellungen.arbeitstage || [1, 2, 3, 4, 5];
-  $('#arbeitstage').innerHTML = [1, 2, 3, 4, 5, 6, 0].map(t => `<button type="button" class="btn-klein${at.includes(t) ? ' an' : ''}" data-tag="${t}" aria-pressed="${at.includes(t)}">${TAGE_KURZ[t]}</button>`).join('');
-  $('#arbeit-gewicht').value = S.einstellungen.arbeitGewicht ?? 3;
-  $('#arbeit-gewicht-text').textContent = gewichtText(S.einstellungen.arbeitGewicht ?? 3);
-  $('#tag-wechsel').value = String(WECHSEL_H());
-  $('#korridor-von').value = S.einstellungen.korridorVon;
-  $('#korridor-bis').value = S.einstellungen.korridorBis;
-
-}
-
-function momentSheet(id, gruppeVorwahl) {
-  const neu = !id;
-  const m = neu ? { id: uid(), name: '', symbol: '', icon: 'kein', gruppe: gruppeVorwahl || S.gruppen[0]?.id, modus: 'reg', dauer: 30 } : { ...moment(id) };
-  const segM = Object.entries(MODI).map(([k, t]) => `<button type="button" data-wert="${k}" class="${m.modus === k ? 'an' : ''}">${t}</button>`).join('');
-  sheet(neu ? 'Neuer Moment' : m.name, `
-    <div class="form-group"><label for="m-name">Name</label><input type="text" id="m-name" value="${esc(m.name)}" placeholder="z. B. Gartenzeit" maxlength="40"></div>
-    <div class="form-group"><label>Piktogramm</label>
-      <div class="symbol-wahl" id="m-pikto">${Object.keys(PIKTO).filter(k => !PIKTO_VERSTECKT.includes(k) || m.icon === k).map(k => `<button type="button" data-icon="${k}" class="${m.icon === k ? 'an' : ''}" aria-label="Piktogramm ${k}" aria-pressed="${m.icon === k}">${pikto(k)}</button>`).join('')}
-        <button type="button" data-icon="kein" class="kein${hatSymbol(m) ? '' : ' an'}" aria-pressed="${!hatSymbol(m)}">kein Piktogramm</button></div>
-      <p class="form-hinweis">Ohne Piktogramm steht der Name größer auf der Kachel.</p></div>
-    <div class="form-group"><label>Modus</label><div class="seg modus-seg" id="m-modus">${segM}</div>
-      <p class="form-hinweis">Warm für Aktivierung, kühl für Regeneration.</p></div>
-    <div class="form-group"><label>Bedeutung</label><div class="seg" id="m-gewicht">${Object.entries(BEDEUTUNG).map(([k, t]) => `<button type="button" data-wert="${k}" class="${(m.gewicht || 'normal') === k ? 'an' : ''}">${t}</button>`).join('')}</div>
-      <p class="form-hinweis">Bedeutende Momente leuchten im Verlauf breiter und heller, wie kleine Leuchttürme, auch wenn sie kurz waren. Zählt nicht in die Balance.</p></div>
-    <div class="form-group"><label class="schalter-zeile" for="m-angebot"><input type="checkbox" id="m-angebot"${m.angebot ? ' checked' : ''}><span>Angebot für andere</span></label>
-      <p class="form-hinweis">Zeigt ein kleines Herz. Beim Wochenabschluss kannst du festhalten, wie es ankam.</p></div>
-    <div class="form-reihe">
-      <div class="form-group"><label for="m-gruppe">Gruppe</label><select id="m-gruppe">${Object.entries(GRUPPEN).map(([k, t]) => `<option value="${k}"${m.gruppe === k ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></div>
-      <div class="form-group"><label for="m-dauer">Dauer</label><input type="number" id="m-dauer" min="0" max="9999" step="any" inputmode="decimal" value="${+((m.dauer || 0) / EINHEIT[m.einheit || 'min'][1]).toFixed(2)}">
-        <div class="seg klein einheit-seg" id="m-einheit">${Object.entries(EINHEIT).map(([k, [t]]) => `<button type="button" data-wert="${k}" class="${(m.einheit || 'min') === k ? 'an' : ''}">${t}</button>`).join('')}</div></div>
-    </div>
-    <div class="form-reihe">
-      <div class="form-group"><label for="m-etwa">Richtwert / Woche</label><input type="number" id="m-etwa" min="0" max="50" value="${m.etwa || ''}" placeholder="frei">
-        <p class="form-hinweis">Etwa so oft. Kein Soll.</p></div>
-      <div class="form-group"><label for="m-genug">Genug ab (min / Tag)</label><input type="number" id="m-genug" min="0" max="900" step="15" value="${m.genugTag || ''}" placeholder="frei">
-        <p class="form-hinweis">Zeigt leise „genug für heute“.</p></div>
-    </div>
-    <div class="btn-reihe">
-      <button class="btn-primary" id="m-ok" type="button">${neu ? 'Moment anlegen' : 'Speichern'}</button>
-      ${neu ? '' : '<button class="btn-leise" id="m-weg" type="button">Moment entfernen …</button>'}
-    </div>`);
-  let modus = m.modus;
-  document.querySelectorAll('#m-modus button').forEach(b => b.onclick = () => {
-    modus = b.dataset.wert; document.querySelectorAll('#m-modus button').forEach(x => x.classList.toggle('an', x === b));
-  });
-  let einheit = m.einheit || 'min';
-  document.querySelectorAll('#m-einheit button').forEach(b => b.onclick = () => {
-    // umrechnen, wenn es aufgeht (1440 min → 1 Tag); sonst bleibt die Zahl (30 min → 30 Std wäre Unsinn → 0,5 Std)
-    const feld = $('#m-dauer'), alt = parseFloat(String(feld.value).replace(',', '.')) || 0;
-    const neu = alt * EINHEIT[einheit][1] / EINHEIT[b.dataset.wert][1];
-    if (alt && neu >= 0.25) feld.value = +neu.toFixed(2);
-    einheit = b.dataset.wert; document.querySelectorAll('#m-einheit button').forEach(x => x.classList.toggle('an', x === b));
-  });
-  let gewicht = m.gewicht || 'normal';
-  document.querySelectorAll('#m-gewicht button').forEach(b => b.onclick = () => {
-    gewicht = b.dataset.wert; document.querySelectorAll('#m-gewicht button').forEach(x => x.classList.toggle('an', x === b));
-  });
-  let icon = m.icon;
-  document.querySelectorAll('#m-pikto button').forEach(b => b.onclick = () => {
-    icon = b.dataset.icon;
-    document.querySelectorAll('#m-pikto button').forEach(x => { x.classList.toggle('an', x === b); x.setAttribute('aria-pressed', x === b); });
-  });
-  $('#m-ok').onclick = () => {
-    const name = $('#m-name').value.trim();
-    if (!name) { $('#m-name').focus(); $('#m-name').placeholder = 'Bitte einen Namen eingeben'; return; }
-    const zahl = v => { const n = parseInt(v, 10); return n > 0 ? n : undefined; };
-    delete m.unter;
-    Object.assign(m, { name, icon: icon || 'kein', symbol: icon && icon !== 'kein' ? '' : m.symbol, modus, gruppe: $('#m-gruppe').value,
-      dauer: Math.round((parseFloat(String($('#m-dauer').value).replace(',', '.')) || 0) * EINHEIT[einheit][1]), einheit: einheit === 'min' ? undefined : einheit, etwa: zahl($('#m-etwa').value), genugTag: zahl($('#m-genug').value),
-      angebot: $('#m-angebot').checked || undefined });
-    const vorher = m.gewicht || 'normal';
-    const fertig = rueckwirkend => {
-      if (gewicht !== vorher) {
-        if (rueckwirkend) delete m.gewichtAb;
-        else m.gewichtAb = [...(m.gewichtAb?.length ? m.gewichtAb : [{ ab: 0, g: vorher }]), { ab: Date.now(), g: gewicht }];
       }
-      m.gewicht = gewicht === 'normal' ? undefined : gewicht;
-      if (neu) S.momente.push(m); else S.momente[S.momente.findIndex(x => x.id === m.id)] = m;
-      speichern(); sheetZu(); renderAlles(); toast(neu ? `${name} angelegt` : 'Gespeichert');
     };
-    // nur fragen, wenn sich die Bedeutung ändert und es schon Einträge gibt
-    if (neu || gewicht === vorher || !S.taps.some(t => t.mid === m.id)) return fertig(true);
-    sheet('Bedeutung', `<p class="card-text">„${esc(name)}“ hat jetzt die Bedeutung <strong>${gewicht}</strong>. Ab wann soll das gelten?</p>
-      <div class="btn-reihe"><button class="btn-primary" id="gew-jetzt" type="button">Ab jetzt</button><button class="btn-leise" id="gew-alle" type="button">Auch für frühere Einträge</button></div>`);
-    $('#gew-jetzt').onclick = () => fertig(false);
-    $('#gew-alle').onclick = () => fertig(true);
-  };
-  if (!neu) $('#m-weg').onclick = () => {
-    const n = S.taps.filter(t => t.mid === m.id).length;
-    sheet('Moment entfernen', `<p class="card-text">„${esc(m.name)}“ verschwindet von den Kacheln${n ? `, und die ${n} gezählten Einträge werden gelöscht` : ''}. Das lässt sich nicht rückgängig machen.</p>
-      <div class="btn-reihe"><button class="btn-primary" id="weg-ja" type="button">Entfernen</button><button class="btn-leise" id="weg-nein" type="button">Behalten</button></div>`);
-    $('#weg-ja').onclick = () => { S.momente = S.momente.filter(x => x.id !== m.id); S.taps = S.taps.filter(t => t.mid !== m.id); speichern(); sheetZu(); renderAlles(); toast('Moment entfernt'); };
-    $('#weg-nein').onclick = () => momentSheet(m.id);
-  };
-}
-
-// ── GRUPPEN ───────────────────────────────────────────
-// ── REIHENFOLGE ────────────────────────────────────────
-let sortiermodus = false;
-function pfeile(art, id, i, n, name) {
-  return `<span class="sort-pfeile">
-    <button type="button" data-${art}-hoch="${esc(id)}" ${i === 0 ? 'disabled' : ''} aria-label="${esc(name)} nach oben">↑</button>
-    <button type="button" data-${art}-runter="${esc(id)}" ${i === n - 1 ? 'disabled' : ''} aria-label="${esc(name)} nach unten">↓</button></span>`;
-}
-// Tauscht ein Element mit seinem Nachbarn innerhalb derselben Teilliste (z. B. Momente einer Gruppe)
-function verschieben(arr, id, richtung, gleicheListe) {
-  const idx = arr.map((x, k) => k).filter(k => gleicheListe(arr[k]));
-  const pos = idx.findIndex(k => arr[k].id === id), ziel = pos + richtung;
-  if (pos < 0 || ziel < 0 || ziel >= idx.length) return;
-  const a = idx[pos], b = idx[ziel];
-  [arr[a], arr[b]] = [arr[b], arr[a]];
-  gruppenAktualisieren(); speichern(); renderVerwaltung();
-  const fokus = document.querySelector(`[data-${arr === S.momente ? 'm' : 'g'}-${richtung < 0 ? 'hoch' : 'runter'}="${CSS.escape(id)}"]`);
-  if (fokus && !fokus.disabled) fokus.focus();
-}
-
-function gruppeSheet(id) {
-  const neu = !id;
-  const g = neu ? { id: uid(), name: '' } : S.gruppen.find(x => x.id === id);
-  const i = S.gruppen.indexOf(g);
-  sheet(neu ? 'Neue Gruppe' : g.name, `
-    <div class="form-group"><label for="g-name">Name</label><input type="text" id="g-name" value="${esc(g.name)}" placeholder="z. B. Ehrenamt" maxlength="30"></div>
-    <div class="btn-reihe">
-      <button class="btn-primary" id="g-ok" type="button">${neu ? 'Gruppe anlegen' : 'Speichern'}</button>
-      ${neu ? '' : '<button class="btn-leise" id="g-weg" type="button">Gruppe entfernen …</button>'}
-    </div>`);
-  $('#g-ok').onclick = () => {
-    const name = $('#g-name').value.trim();
-    if (!name) { $('#g-name').focus(); $('#g-name').placeholder = 'Bitte einen Namen eingeben'; return; }
-    g.name = name; if (neu) S.gruppen.push(g);
-    gespeichertNeu(); sheetZu(); toast(neu ? `${name} angelegt` : 'Gespeichert');
-  };
-  if (neu) return;
-  $('#g-weg').onclick = () => {
-    const andere = S.gruppen.filter(x => x.id !== g.id);
-    if (!andere.length) { toast('Mindestens eine Gruppe bleibt'); return; }
-    const n = S.momente.filter(m => m.gruppe === g.id).length;
-    sheet('Gruppe entfernen', `<p class="card-text">„${esc(g.name)}“ wird entfernt. Gezählte Einträge bleiben erhalten.</p>
-      ${n ? `<div class="form-group"><label for="g-ziel">${n === 1 ? 'Der Moment kommt nach' : `Die ${n} Momente kommen nach`}</label>
-        <select id="g-ziel">${andere.map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('')}</select></div>` : ''}
-      <div class="btn-reihe"><button class="btn-primary" id="gw-ja" type="button">Entfernen</button><button class="btn-leise" id="gw-nein" type="button">Behalten</button></div>`);
-    $('#gw-ja').onclick = () => {
-      const ziel = n ? $('#g-ziel').value : null;
-      for (const m of S.momente) if (m.gruppe === g.id) m.gruppe = ziel;
-      S.gruppen = andere;
-      gespeichertNeu(); sheetZu(); toast('Gruppe entfernt');
-    };
-    $('#gw-nein').onclick = () => gruppeSheet(g.id);
-  };
-}
-
-function gespeichertNeu() { gruppenAktualisieren(); speichern(); renderAlles(); }
-
-// ── Sheet, Toast, Navigation ───────────────────────────
-function sheet(titel, html) { $('#sheet-titel').textContent = titel; $('#sheet-body').innerHTML = html; $('#sheet').classList.remove('hidden'); }
-function sheetZu() { $('#sheet').classList.add('hidden'); }
-
-let toastTimer = null;
-function toast(text, rueckgaengig) {
-  $('#toast-text').textContent = text;
-  const btn = $('#toast-btn');
-  btn.classList.toggle('hidden', !rueckgaengig);
-  btn.onclick = rueckgaengig ? () => { rueckgaengig(); } : null;
-  $('#toast').classList.remove('hidden');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => $('#toast').classList.add('hidden'), rueckgaengig ? 5000 : 2200);
-}
-
-let ansicht = 'heute', vorAnsicht = 'heute';
-function zeige(v) {
-  if (v === 'verwaltung' && ansicht !== 'verwaltung') { vorAnsicht = ansicht; offeneGruppen.clear(); }
-  if (v !== 'verwaltung') sortiermodus = false;
-  if (v !== ansicht) { licht.clear(); heuteVersatz = 0; }   // Wechsel zwischen Heute und Verlauf: Scheinwerfer aus, Gruppen zu
-  ansicht = v;
-  document.documentElement.classList.toggle('snap-heute', v === 'heute');
-  if (v !== 'woche') document.body.classList.remove('archiv');   // Heute: schnelles Wischen hält an jeder Gruppe
-  ['heute', 'woche', 'verwaltung'].forEach(n => $('#view-' + n).classList.toggle('hidden', n !== v));
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === v));
-  renderAlles();
-  window.scrollTo(0, 0);
-}
-function renderAlles() {
-  const inEinst = ansicht === 'verwaltung';
-  $('#btn-einstellungen').classList.toggle('an', inEinst);
-  $('#btn-einstellungen').setAttribute('aria-pressed', inEinst);
-  if (ansicht === 'heute') renderHeute();
-  if (ansicht === 'woche') renderWoche();
-  if (ansicht === 'verwaltung') renderVerwaltung();
-}
-
-// ── Start ──────────────────────────────────────────────
-function verbinden() {
-  const raster = $('#moment-kacheln'), sonder = $('#sonder-kacheln');
-  for (const r of [raster, sonder]) {
-    r.addEventListener('pointerdown', druckStart);
-    r.addEventListener('pointerup', druckEnde);
-    r.addEventListener('pointercancel', druckAbbruch);
-    r.addEventListener('pointerleave', druckAbbruch, true);
-    r.addEventListener('pointermove', druckBewegt);
-    r.addEventListener('contextmenu', e => e.preventDefault());
-    r.addEventListener('keydown', e => {
-      const el = e.target.closest('.kachel[data-mid], .kachel[data-sonder="feierabend"]');
-      if (!el || (e.key !== 'Enter' && e.key !== ' ')) return;
-      e.preventDefault();
-      if (el.dataset.mid) { if (e.shiftKey) zuruecknehmen(el.dataset.mid); else zaehlen(el.dataset.mid); }
-      else if (heuteVersatz) arbeitSheet(); else arbeitTippen();
-    });
-  }
-  sonder.addEventListener('click', e => {
-    const b = e.target.closest('[data-wahl]'); if (!b) return;
-    const k = heuteKey(), art = b.dataset.wahl, w = b.dataset.wert, m = (S[art] ||= {});
-    if (m[k] === w) delete m[k]; else m[k] = w;
-    speichern(); renderHeute();
   });
+}
 
-  document.querySelectorAll('.nav-item').forEach(b => b.addEventListener('click', () => zeige(b.dataset.view)));
-  // Einstellungen: Zahnrad oben rechts öffnet und schließt, „‹ Zurück“ führt zur vorigen Ansicht
-  $('#btn-einstellungen').onclick = () => zeige(ansicht === 'verwaltung' ? vorAnsicht : 'verwaltung');
-  $('#btn-zurueck').onclick = () => zeige(vorAnsicht);
-  document.querySelectorAll('#hilfe .hz-i').forEach(el => { el.innerHTML = hzIcon(el.dataset.i); });
-  $('#btn-info').onclick = () => $('#hilfe').classList.remove('hidden');
-  $('#hilfe-zu').onclick = () => $('#hilfe').classList.add('hidden');
-  $('#sheet-zu').onclick = sheetZu;
-  for (const id of ['#sheet', '#hilfe']) $(id).addEventListener('click', e => { if (e.target === $(id)) $(id).classList.add('hidden'); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') { sheetZu(); $('#hilfe').classList.add('hidden'); } });
+function dbGetAll(store) {
+  return new Promise((res, rej) => {
+    const req = db.transaction(store, 'readonly').objectStore(store).getAll();
+    req.onsuccess = () => res(req.result);
+    req.onerror  = () => rej(req.error);
+  });
+}
 
-  $('#woche-zurueck').onclick = () => wocheGehe(-1);
-  $('#woche-vor').onclick = () => wocheGehe(1);
-  $('#woche-heute').onclick = () => { wocheVersatz = 0; renderWoche(); };
-  wocheWischen();
+function dbGet(store, id) {
+  return new Promise((res, rej) => {
+    const req = db.transaction(store, 'readonly').objectStore(store).get(id);
+    req.onsuccess = () => res(req.result);
+    req.onerror  = () => rej(req.error);
+  });
+}
 
-  $('#gm-liste').addEventListener('click', e => {
-    const mh = e.target.closest('[data-m-hoch],[data-m-runter]');
-    if (mh) {
-      const id = mh.dataset.mHoch || mh.dataset.mRunter, m = moment(id);
-      const g = GRUPPEN[m.gruppe] ? m.gruppe : null;
-      verschieben(S.momente, id, mh.dataset.mHoch ? -1 : 1, x => g ? x.gruppe === g : !GRUPPEN[x.gruppe]);
+function dbPut(store, item) {
+  return new Promise((res, rej) => {
+    const req = db.transaction(store, 'readwrite').objectStore(store).put(item);
+    req.onsuccess = () => res();
+    req.onerror  = () => rej(req.error);
+  });
+}
+
+function dbDelete(store, id) {
+  return new Promise((res, rej) => {
+    const req = db.transaction(store, 'readwrite').objectStore(store).delete(id);
+    req.onsuccess = () => res();
+    req.onerror  = () => rej(req.error);
+  });
+}
+
+function dbClear(store) {
+  return new Promise((res, rej) => {
+    const req = db.transaction(store, 'readwrite').objectStore(store).clear();
+    req.onsuccess = () => res();
+    req.onerror  = () => rej(req.error);
+  });
+}
+
+// ============================================================
+// FARBPALETTE FÜR SAMMLUNGEN
+// ============================================================
+
+const FARB_PALETTE = [
+  '#b4b4b4', // grau        (neutral)
+  '#c47878', // rot          (  0°)
+  '#d0c455', // gelb         ( 55°)
+  '#84c460', // grün         (105°)
+  '#55c4a0', // teal         (160°)
+  '#5898c4', // blau         (210°)
+  '#7860c4', // violett      (255°)
+  '#c460b0', // pink         (315°)
+];
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function naechsteFarbe() {
+  const used = new Set(sammlungen.map(s => s.farbe).filter(Boolean));
+  return FARB_PALETTE.find(f => !used.has(f)) || FARB_PALETTE[sammlungen.length % FARB_PALETTE.length];
+}
+
+function sammlungFarbe(sam, idx = 0) {
+  return sam.farbe || FARB_PALETTE[idx % FARB_PALETTE.length];
+}
+
+function sammlungStyle(farbe) {
+  return `--sam-farbe:${farbe};--sam-farbe-tint:${hexToRgba(farbe, 0.13)}`;
+}
+
+// ============================================================
+// LINK HELPERS
+// ============================================================
+
+function parseLinks(val) {
+  if (!val) return [];
+  return val.split('\n')
+    .map(l => l.trim())
+    .filter(l => /^https?:\/\/.+/.test(l));
+}
+
+function linksHtml(arr) {
+  if (!arr?.length) return '';
+  return arr.map(url => {
+    const label = url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '').substring(0, 40);
+    return `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="link-btn">🔗 ${esc(label)}</a>`;
+  }).join('');
+}
+
+function showLinks(elId, arr) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const html = linksHtml(arr);
+  if (html) { el.innerHTML = html; el.classList.remove('hidden'); }
+  else        el.classList.add('hidden');
+}
+
+// ============================================================
+// VIDEO HELPERS
+// ============================================================
+
+function extrahiereYoutubeId(input) {
+  if (!input) return null;
+  input = input.trim();
+  // Plain 11-char ID (letters, digits, -, _)
+  if (/^[A-Za-z0-9_-]{11}$/.test(input)) return input;
+  // Full URL forms
+  try {
+    const url = new URL(input);
+    // youtu.be/VIDEO_ID
+    if (url.hostname === 'youtu.be') {
+      const id = url.pathname.slice(1).split(/[?&]/)[0];
+      if (/^[A-Za-z0-9_-]{11}$/.test(id)) return id;
+    }
+    // youtube.com/watch?v=VIDEO_ID  or  /embed/VIDEO_ID  or  /shorts/VIDEO_ID
+    const vParam = url.searchParams.get('v');
+    if (vParam && /^[A-Za-z0-9_-]{11}$/.test(vParam)) return vParam;
+    const pathParts = url.pathname.split('/').filter(Boolean);
+    const embedIdx = pathParts.indexOf('embed');
+    const shortsIdx = pathParts.indexOf('shorts');
+    const idx = embedIdx >= 0 ? embedIdx : shortsIdx >= 0 ? shortsIdx : -1;
+    if (idx >= 0 && pathParts[idx + 1] && /^[A-Za-z0-9_-]{11}$/.test(pathParts[idx + 1]))
+      return pathParts[idx + 1];
+  } catch (_) {}
+  return null;
+}
+
+async function ladeVideoTitel(videoId) {
+  const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  // nur YouTube selbst (oEmbed, CORS-fähig) – kein Drittanbieter
+  try {
+    const r = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(watchUrl)}&format=json`);
+    if (r.ok) {
+      const data = await r.json();
+      if (data.title) return data.title;
+    }
+  } catch (_) {}
+  return null;
+}
+
+function showVideo(elId, s) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (!s?.videoId) { el.classList.add('hidden'); el.innerHTML = ''; return; }
+  if (s.videoTitel) {
+    // Embedding erlaubt → Inline-Player
+    el.innerHTML = `<button class="video-play-btn" data-videoid="${esc(s.videoId)}" data-videotitel="${esc(s.videoTitel)}"${s.videoFormat ? ` data-videoformat="${esc(s.videoFormat)}"` : ''}><span class="video-play-btn-icon">▶</span><span class="video-play-btn-label">${esc(s.videoTitel)}</span></button>`;
+  } else {
+    // Embedding gesperrt → Link zu YouTube
+    const ytUrl = `https://www.youtube.com/watch?v=${esc(s.videoId)}`;
+    el.innerHTML = `<a href="${ytUrl}" target="_blank" rel="noopener noreferrer" class="video-play-btn video-play-btn-ext"><span class="video-play-btn-icon">▶</span><span class="video-play-btn-label">${t('auf_youtube')}</span></a>`;
+  }
+  el.classList.remove('hidden');
+}
+
+// ── Scroll-Indikatoren für Text-Karten ───────────────────
+function updateScrollIndikatoren() {
+  const scroller = document.getElementById('lernkarte-text-vorderseite');
+  const topInd   = document.getElementById('scroll-ind-top');
+  const botInd   = document.getElementById('scroll-ind-bottom');
+  if (!scroller || !topInd || !botInd) return;
+  const st = scroller.scrollTop;
+  const sh = scroller.scrollHeight;
+  const ch = scroller.clientHeight;
+  topInd.classList.toggle('hidden', st < 5);
+  botInd.classList.toggle('hidden', st + ch >= sh - 5);
+}
+
+function resetScrollIndikatoren() {
+  const scroller = document.getElementById('lernkarte-text-vorderseite');
+  if (scroller) scroller.scrollTop = 0;
+  // Nach einem Reflow-Tick aktualisieren, damit scrollHeight korrekt ist
+  requestAnimationFrame(() => updateScrollIndikatoren());
+}
+
+// Scroll-Event auf dem scrollbaren Text-Bereich
+document.getElementById('lernkarte-text-vorderseite')
+  .addEventListener('scroll', updateScrollIndikatoren, { passive: true });
+
+function oeffneVideoOverlay(videoId, titel, format) {
+  // Frischen iframe erstellen — iOS Safari friert alte iframes ein
+  const wrap = document.getElementById('video-iframe-wrap');
+  const oldIframe = document.getElementById('video-iframe');
+  if (oldIframe) oldIframe.remove();
+
+  const overlay = document.getElementById('video-overlay');
+  wrap.classList.toggle('hochkant', format === 'hochkant');
+  overlay.classList.remove('hidden');
+  document.getElementById('video-overlay-title').textContent = titel || '';
+  document.body.style.overflow = 'hidden';
+
+  // Kurze Verzögerung: Overlay erst sichtbar → dann iframe einsetzen
+  // Verhindert schwarze Fläche auf iOS Safari bei schnellem Öffnen
+  setTimeout(() => {
+    const iframe = document.createElement('iframe');
+    iframe.id          = 'video-iframe';
+    iframe.src         = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0`;
+    iframe.allow       = 'autoplay; encrypted-media; picture-in-picture';
+    iframe.allowFullscreen = true;
+    iframe.setAttribute('frameborder', '0');
+    iframe.title       = 'YouTube Video';
+    wrap.appendChild(iframe);
+  }, 80);
+}
+
+function schliesseVideoOverlay() {
+  const iframe = document.getElementById('video-iframe');
+  if (iframe) iframe.remove();
+  // Neuen leeren Placeholder zurücksetzen
+  const wrap = document.getElementById('video-iframe-wrap');
+  const placeholder = document.createElement('iframe');
+  placeholder.id    = 'video-iframe';
+  placeholder.src   = '';
+  placeholder.setAttribute('frameborder', '0');
+  wrap.appendChild(placeholder);
+
+  document.getElementById('video-overlay').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+// ============================================================
+// STATE
+// ============================================================
+
+let gruppen    = [];
+let studenten  = [];
+let sammlungen = [];
+
+const urlCache = new Map();
+function getFotoUrl(s) {
+  if (!s.foto) return '';
+  const key = s.id + '#0';
+  if (!urlCache.has(key)) urlCache.set(key, URL.createObjectURL(s.foto));
+  return urlCache.get(key);
+}
+// Alle Bilder einer Karte (für Slideshow) — Fallback auf einzelnes foto-Feld
+function getFotoUrls(s) {
+  const list = (s.fotos && s.fotos.length) ? s.fotos : (s.foto ? [s.foto] : []);
+  return list.map((blob, i) => {
+    const key = s.id + '#' + i;
+    if (!urlCache.has(key)) urlCache.set(key, URL.createObjectURL(blob));
+    return urlCache.get(key);
+  });
+}
+function revokeUrl(id) {
+  [...urlCache.keys()].filter(k => k.startsWith(id + '#')).forEach(k => {
+    URL.revokeObjectURL(urlCache.get(k));
+    urlCache.delete(k);
+  });
+}
+
+// Automatischer Foto-Wechsel (alle 3s) für Slideshows mit mehreren Bildern.
+// Stoppt dauerhaft, sobald der Nutzer selbst wischt; pausiert während des Zoomens.
+const fotoAutoAdvance = new Map(); // slidesEl -> { timer, onUserTouch }
+const FOTO_AUTO_ADVANCE_MS = 3000;
+
+function stopFotoAutoAdvance(slidesEl) {
+  const state = fotoAutoAdvance.get(slidesEl);
+  if (!state) return;
+  clearInterval(state.timer);
+  slidesEl.removeEventListener('touchstart', state.onUserTouch);
+  fotoAutoAdvance.delete(slidesEl);
+}
+
+function startFotoAutoAdvance(slidesEl, zoomWrapEl, count) {
+  stopFotoAutoAdvance(slidesEl);
+  if (count <= 1) return;
+  const onUserTouch = () => stopFotoAutoAdvance(slidesEl);
+  slidesEl.addEventListener('touchstart', onUserTouch, { once: true, passive: true });
+  const timer = setInterval(() => {
+    if (zoomWrapEl && zoomWrapEl.classList.contains('zoomed')) return; // während Zoom pausieren
+    const w    = slidesEl.clientWidth || 1;
+    const cur  = Math.round(slidesEl.scrollLeft / w);
+    const next = (cur + 1) % count;
+    slidesEl.scrollTo({ left: next * w, behavior: 'smooth' });
+  }, FOTO_AUTO_ADVANCE_MS);
+  fotoAutoAdvance.set(slidesEl, { timer, onUserTouch });
+}
+
+// Zeigt ein Einzelbild (#imgId) oder — bei mehreren Fotos — eine Wisch-Slideshow
+// (#imgId-slideshow / -slides / -dots müssen im HTML vorhanden sein)
+function renderFotoSlideshow(imgId, wrapId, s) {
+  const urls      = getFotoUrls(s);
+  const img       = document.getElementById(imgId);
+  const wrap      = document.getElementById(wrapId);
+  const slideshow = document.getElementById(imgId + '-slideshow');
+  const slidesEl  = document.getElementById(imgId + '-slides');
+  const dotsEl    = document.getElementById(imgId + '-dots');
+  const multi     = urls.length > 1;
+  if (wrap) wrap.classList.toggle('has-slideshow', multi);
+  if (multi && slideshow) {
+    img.classList.add('hidden');
+    slideshow.classList.remove('hidden');
+    slidesEl.innerHTML = urls.map(u => `<div class="foto-slide"><img src="${u}" alt=""></div>`).join('');
+    dotsEl.innerHTML = urls.map((_, i) => `<span class="foto-dot${i === 0 ? ' active' : ''}"></span>`).join('');
+    slidesEl.scrollLeft = 0;
+    slidesEl.onscroll = () => {
+      const idx = Math.round(slidesEl.scrollLeft / (slidesEl.clientWidth || 1));
+      [...dotsEl.children].forEach((d, i) => d.classList.toggle('active', i === idx));
+    };
+    startFotoAutoAdvance(slidesEl, slideshow, urls.length);
+  } else {
+    if (slideshow) slideshow.classList.add('hidden');
+    img.classList.remove('hidden');
+    img.src = urls[0] || '';
+    stopFotoAutoAdvance(slidesEl);
+  }
+}
+
+// Optionale Fotos auf der Rückseite von Begriff-Karten (neben dem Info-Text).
+// prefix + '-slides' / '-dots' müssen im HTML vorhanden sein.
+function renderTextFotos(prefix, s) {
+  const wrap   = document.getElementById(prefix);
+  const slides = document.getElementById(prefix + '-slides');
+  const dots   = document.getElementById(prefix + '-dots');
+  if (!wrap) return;
+  const urls = getFotoUrls(s);
+  if (!urls.length) {
+    wrap.classList.add('hidden');
+    slides.innerHTML = '';
+    dots.innerHTML = '';
+    slides.onscroll = null;
+    stopFotoAutoAdvance(slides);
+    return;
+  }
+  wrap.classList.remove('hidden');
+  slides.innerHTML = urls.map(u => `<div class="foto-slide"><img src="${u}" alt=""></div>`).join('');
+  slides.scrollLeft = 0;
+  if (urls.length > 1) {
+    dots.innerHTML = urls.map((_, i) => `<span class="foto-dot${i === 0 ? ' active' : ''}"></span>`).join('');
+    slides.onscroll = () => {
+      const idx = Math.round(slides.scrollLeft / (slides.clientWidth || 1));
+      [...dots.children].forEach((d, i) => d.classList.toggle('active', i === idx));
+    };
+    startFotoAutoAdvance(slides, wrap, urls.length);
+  } else {
+    dots.innerHTML = '';
+    slides.onscroll = null;
+    stopFotoAutoAdvance(slides);
+  }
+}
+
+// learning
+let lernKarten         = [];
+let lernIndex          = 0;
+let nameVisible        = false;
+let gewusst            = 0;
+let nichtGewusst       = 0;
+let lernModus          = 'foto'; // 'foto' = Foto→Name, 'name' = Name→Foto
+let aktuelleWertung    = null;   // 'gewusst' | 'nicht' – aktuell angezeigte Karte
+let isAnimating        = false;  // verhindert Doppel-Klick während Flip/Fly-out
+const answeredIds     = new Set();
+const gewusstIds      = new Set();
+const nichtGewusstIds = new Set();
+
+// ── WAKE LOCK (Bildschirm an lassen während Timer-Session) ───
+let wakeLock = null;
+
+async function erwerbeWakeLock() {
+  if (!('wakeLock' in navigator)) return;
+  try {
+    if (wakeLock) return; // bereits aktiv
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', () => { wakeLock = null; });
+  } catch (_) {}
+}
+
+function gebeWakeLockFrei() {
+  if (wakeLock) { wakeLock.release(); wakeLock = null; }
+}
+
+// ── AUTO-TIMER & AUTOREPEAT ──────────────────────────────────
+let timerSekunden  = 0;   // immer mit Timer=aus starten
+let timerHandle    = null;
+let timerGeneration = 0;   // verhindert veraltete transitionend-Callbacks
+const TIMER_BACK   = { 1: 1500, 3: 2000, 5: 3000, 10: 5000 };
+let autoRepeat     = false; // immer mit Repeat=aus starten
+
+function setAutoRepeat(val) {
+  autoRepeat = val;
+  localStorage.setItem('lernAutoRepeat', val ? '1' : '0');
+  document.querySelectorAll('.timer-btn-repeat').forEach(b =>
+    b.classList.toggle('active', val)
+  );
+}
+
+function updateTimerLabelOpacity() {
+  document.querySelectorAll('.lern-timer-label').forEach(el => {
+    el.style.opacity = timerSekunden ? '1' : '0.3';
+  });
+}
+
+function setTimerSekunden(val) {
+  timerSekunden = val;
+  localStorage.setItem('lernTimer', val);
+  document.querySelectorAll('.timer-btn').forEach(b =>
+    b.classList.toggle('active', +b.dataset.sek === val)
+  );
+  updateTimerLabelOpacity();
+}
+
+function timerBarStart(ms) {
+  const wrap = document.getElementById('timer-bar-wrap');
+  const bar  = document.getElementById('timer-bar');
+  if (!bar) return;
+  wrap.classList.remove('hidden');
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    bar.style.transition = `width ${ms}ms linear`;
+    bar.style.width = '0%';
+  }));
+}
+
+function timerBarStop() {
+  const wrap = document.getElementById('timer-bar-wrap');
+  const bar  = document.getElementById('timer-bar');
+  if (bar) { bar.style.transition = 'none'; bar.style.width = '0%'; }
+  if (wrap) wrap.classList.add('hidden');
+}
+
+function stoppeAutoTimer() {
+  timerGeneration++;  // invalidiert alle laufenden Callbacks sofort
+  if (timerHandle) { clearTimeout(timerHandle); timerHandle = null; }
+  timerBarStop();
+}
+
+function starteCountdown(callback) {
+  const el = document.getElementById('lern-countdown');
+  if (!el) { callback(); return; }
+  let count = 3;
+  el.textContent = count;
+  el.classList.remove('hidden');
+  const iv = setInterval(() => {
+    count--;
+    if (count > 0) {
+      el.textContent = count;
+    } else {
+      clearInterval(iv);
+      el.classList.add('hidden');
+      callback();
+    }
+  }, 1000);
+}
+
+function starteAutoTimer() {
+  stoppeAutoTimer();
+  if (!timerSekunden || !lernKarten.length) return;
+  const ms  = timerSekunden * 1000;
+  const gen = timerGeneration;  // aktuelle Generation merken
+  timerBarStart(ms);
+  timerHandle = setTimeout(() => { if (timerGeneration === gen) timerAutoFlip(gen); }, ms);
+}
+
+function timerAutoFlip(gen) {
+  if (timerGeneration !== gen) return;  // veraltet → abbrechen
+  timerHandle = null;
+  const backMs = TIMER_BACK[timerSekunden] || 2000;
+
+  if (!nameVisible && !isAnimating) {
+    isAnimating = true;
+    const card = document.getElementById('lernkarte');
+    card.style.transition = 'transform 0.32s cubic-bezier(0.4, 0, 0.2, 1)';
+    card.style.transform  = 'perspective(1600px) rotateY(90deg)';
+    card.addEventListener('transitionend', function handler() {
+      card.removeEventListener('transitionend', handler);
+      zeigeNameAuto();
+      card.style.transform = 'perspective(1600px) rotateY(0deg)';
+      setTimeout(() => {
+        isAnimating = false;
+        if (timerGeneration !== gen) return;  // wurde zwischenzeitlich gestoppt
+        timerBarStart(backMs);
+        timerHandle = setTimeout(() => { if (timerGeneration === gen) timerAutoWeiter(); }, backMs);
+      }, 320);
+    }, { once: true });
+  } else {
+    // Bereits aufgedeckt – Rückseiten-Timer sofort
+    timerBarStart(backMs);
+    timerHandle = setTimeout(() => { if (timerGeneration === gen) timerAutoWeiter(); }, backMs);
+  }
+}
+
+function timerAutoWeiter() {
+  timerHandle = null;
+  timerBarStop();
+  if (lernIndex < lernKarten.length - 1) {
+    lernIndex++;
+    zeigeKarte(); // startet intern starteAutoTimer()
+  } else {
+    zeigeEnde();
+  }
+}
+
+function zeigeNameAuto() {
+  nameVisible = true;
+  const s = lernKarten[lernIndex];
+  const kartenModus = s.modus || 'foto';
+  if (kartenModus === 'text' && lernModus === 'name') {
+    document.getElementById('lernkarte-text-scroll-wrap').classList.add('hidden');
+    document.getElementById('lern-name-overlay').classList.remove('hidden');
+    const n = document.getElementById('lern-notiz-text');
+    if (hatNotizInhalt(s)) { n.innerHTML = notizHtml(s); n.classList.remove('hidden'); } else n.classList.add('hidden');
+    showLinks('lern-card-links', s.links || []);
+    showVideo('lern-card-video', s);
+  } else if (kartenModus === 'text') {
+    document.getElementById('lern-name-karte').classList.add('hidden');
+    document.getElementById('lern-vorderseite-text').innerHTML = vorderseiteHtml(s);
+    renderTextFotos('lern-text-fotos', s);
+    document.getElementById('lernkarte-text-scroll-wrap').classList.remove('hidden');
+    resetScrollIndikatoren();
+    const nr = document.getElementById('lern-notiz-text-rueck');
+    if (hatNotizInhalt(s)) { nr.innerHTML = notizHtml(s); nr.classList.remove('hidden'); } else nr.classList.add('hidden');
+    showLinks('lern-card-links', s.links || []);
+    showVideo('lern-card-video', s);
+  } else if (lernModus === 'name') {
+    renderFotoSlideshow('lern-foto', 'lernkarte-foto-wrapper', s);
+    document.getElementById('lernkarte-foto-wrapper').classList.remove('hidden');
+    document.getElementById('lern-name-karte').classList.add('hidden');
+    const n = document.getElementById('lern-notiz-text');
+    if (hatNotizInhalt(s)) { n.innerHTML = notizHtml(s); n.classList.remove('hidden'); } else n.classList.add('hidden');
+    showLinks('lern-card-links', s.links || []);
+    showVideo('lern-card-video', s);
+  } else {
+    document.getElementById('lern-name-overlay').classList.remove('hidden');
+    const n = document.getElementById('lern-notiz-text');
+    if (hatNotizInhalt(s)) { n.innerHTML = notizHtml(s); n.classList.remove('hidden'); } else n.classList.add('hidden');
+    showLinks('lern-card-links', s.links || []);
+    showVideo('lern-card-video', s);
+  }
+  document.getElementById('lern-hint-pill').classList.add('hidden');
+  document.getElementById('btn-aufdecken').style.visibility = 'hidden';
+}
+
+// edit modal
+let editModalMode      = 'edit';
+let editModalStudentId = null;
+
+// collapsible groups
+const openGruppen = new Set();
+function saveOpenGruppen() {
+  localStorage.setItem('openGruppen', JSON.stringify([...openGruppen]));
+}
+function ladeOpenGruppen() {
+  try {
+    const saved = localStorage.getItem('openGruppen');
+    if (saved) JSON.parse(saved).forEach(id => openGruppen.add(id));
+  } catch(e) {}
+}
+
+// Gruppen-Reihenfolge
+let gruppenReihenfolge = [];
+function saveGruppenReihenfolge() {
+  localStorage.setItem('gruppenReihenfolge', JSON.stringify(gruppenReihenfolge));
+}
+function ladeGruppenReihenfolge() {
+  try {
+    const saved = localStorage.getItem('gruppenReihenfolge');
+    if (saved) gruppenReihenfolge = JSON.parse(saved);
+  } catch(e) {}
+}
+function getSortierteGruppen() {
+  if (!gruppenReihenfolge.length) return gruppen;
+  const ordered = [];
+  gruppenReihenfolge.forEach(id => {
+    const g = gruppen.find(x => x.id === id);
+    if (g) ordered.push(g);
+  });
+  gruppen.forEach(g => { if (!gruppenReihenfolge.includes(g.id)) ordered.push(g); });
+  return ordered;
+}
+
+// sammlung ordering + open state (Verwaltung)
+let sammlungenReihenfolge = [];
+const openSammlungen = new Set();
+
+// open state for sammlungen in Lernen-Auswahl
+const openLernSammlungen = new Set();
+function saveOpenLernSammlungen() {
+  localStorage.setItem('openLernSammlungen', JSON.stringify([...openLernSammlungen]));
+}
+function ladeOpenLernSammlungen() {
+  try {
+    const s = localStorage.getItem('openLernSammlungen');
+    if (s) JSON.parse(s).forEach(id => openLernSammlungen.add(id));
+    else {
+      // Default: alle offen
+      sammlungen.forEach(s => openLernSammlungen.add(s.id));
+      openLernSammlungen.add('__orphan__');
+    }
+  } catch(e) {}
+}
+function saveSammlungenReihenfolge() {
+  localStorage.setItem('sammlungenReihenfolge', JSON.stringify(sammlungenReihenfolge));
+}
+function ladeSammlungenReihenfolge() {
+  try { const s = localStorage.getItem('sammlungenReihenfolge'); if (s) sammlungenReihenfolge = JSON.parse(s); } catch(e) {}
+}
+function saveOpenSammlungen() {
+  localStorage.setItem('openSammlungen', JSON.stringify([...openSammlungen]));
+}
+function ladeOpenSammlungen() {
+  try { const s = localStorage.getItem('openSammlungen'); if (s) JSON.parse(s).forEach(id => openSammlungen.add(id)); } catch(e) {}
+}
+function getSortierteSammlungen() {
+  if (!sammlungenReihenfolge.length) return [...sammlungen];
+  const ordered = [];
+  sammlungenReihenfolge.forEach(id => { const s = sammlungen.find(x => x.id === id); if (s) ordered.push(s); });
+  sammlungen.forEach(s => { if (!sammlungenReihenfolge.includes(s.id)) ordered.push(s); });
+  return ordered;
+}
+function sammlungKartenAnzahl(sid) {
+  const gids = new Set(gruppen.filter(g => g.sammlungId === sid).map(g => g.id));
+  return studenten.filter(s => gids.has(s.gruppeId)).length;
+}
+function getSortierteGruppenInSammlung(sid) {
+  const inSam = gruppen.filter(g => g.sammlungId === sid);
+  if (!gruppenReihenfolge.length) return inSam;
+  const ordered = [];
+  gruppenReihenfolge.forEach(id => { const g = inSam.find(x => x.id === id); if (g) ordered.push(g); });
+  inSam.forEach(g => { if (!gruppenReihenfolge.includes(g.id)) ordered.push(g); });
+  return ordered;
+}
+// ── Karten-Reihenfolge (pro Gruppe) ──────────────────────────
+function ladeKartenReihenfolge(gruppeId) {
+  try {
+    const s = localStorage.getItem('kartenReihenfolge-' + gruppeId);
+    return s ? JSON.parse(s) : [];
+  } catch(e) { return []; }
+}
+function speichereKartenReihenfolge(gruppeId, ids) {
+  localStorage.setItem('kartenReihenfolge-' + gruppeId, JSON.stringify(ids));
+}
+function getSortierteKartenInGruppe(gruppeId) {
+  const karten = studenten.filter(s => s.gruppeId === gruppeId);
+  // Tutorial: immer in inhaltlicher Reihenfolge (ID 01…08), unabhängig von der Sortierauswahl
+  if (gruppeId.startsWith('tutorial-')) return [...karten].sort((a, b) => a.id < b.id ? -1 : 1);
+  const sort   = document.getElementById('select-karten-sort')?.value || 'manuell';
+
+  const loc = istEn() ? 'en' : 'de';
+  if (sort === 'az') return [...karten].sort((a, b) => kName(a).localeCompare(kName(b), loc));
+  if (sort === 'za') return [...karten].sort((a, b) => kName(b).localeCompare(kName(a), loc));
+
+  // Manuell: gespeicherte Reihenfolge anwenden
+  const reihenfolge = ladeKartenReihenfolge(gruppeId);
+  if (!reihenfolge.length) return karten;
+  const ordered = [];
+  reihenfolge.forEach(id => { const k = karten.find(x => x.id === id); if (k) ordered.push(k); });
+  karten.forEach(k => { if (!reihenfolge.includes(k.id)) ordered.push(k); });
+  return ordered;
+}
+
+// Repariert Gruppen ohne gültige Sammlung (Migration-Fallback)
+async function repairOrphanGruppen() {
+  const orphans = gruppen.filter(g => !g.sammlungId || !sammlungen.find(s => s.id === g.sammlungId));
+  if (!orphans.length) return;
+  // Bestehende "Allgemein"-Sammlung suchen oder neu anlegen
+  let allgemein = sammlungen.find(s => s.name === 'Allgemein');
+  if (!allgemein) {
+    allgemein = { id: 'sammlung-allgemein', name: 'Allgemein', erstellt: new Date().toISOString() };
+    await dbPut('sammlungen', allgemein);
+    sammlungen.push(allgemein);
+  }
+  for (const g of orphans) {
+    g.sammlungId = allgemein.id;
+    await dbPut('gruppen', g);
+  }
+}
+
+async function addGruppeInSammlung(sid, inputEl) {
+  const name = inputEl.value.trim();
+  if (!name) return;
+  const g = { id: Date.now().toString(), name, sammlungId: sid, erstellt: new Date().toISOString() };
+  await dbPut('gruppen', g);
+  gruppen.push(g);
+  inputEl.value = '';
+  renderVerwaltung();
+  toast(tf('toast_gruppe_erstellt', name));
+}
+
+// ── Favorit togglen (geteilt von mehreren UI-Stellen) ────
+async function toggleFavorit(id) {
+  const s = studenten.find(x => x.id === id);
+  if (!s) return;
+  s.favorit = !s.favorit;
+  const neuWert = s.favorit;
+  renderLernAuswahl();                          // optimistisch: sofort anzeigen
+  try {
+    await dbPut('studenten', s);               // direkt speichern (kein dbGet nötig)
+  } catch (err) { console.warn('Favorit DB-Fehler:', err); }
+  // Falls ladeAlles() während des await studenten überschrieben hat: korrigieren
+  const aktuell = studenten.find(x => x.id === id);
+  if (aktuell && aktuell.favorit !== neuWert) {
+    aktuell.favorit = neuWert;
+    renderLernAuswahl();
+  }
+}
+
+// gruppe verschieben
+let gruppeVerschiebenId = null;
+
+// import buffer
+let importDatenBuffer = null;
+
+// feedback
+function zeigeFeedback(typ) {
+  const fb = document.getElementById('lern-feedback');
+  fb.textContent = typ === 'gewusst' ? '✓' : '✗';
+  fb.className = 'lern-feedback ' + (typ === 'gewusst' ? 'gewusst-ok' : 'nicht-ok');
+}
+
+// 3D-Flip: Karte faltet zur Kante (90°), Content-Tausch, zurück (0°)
+function triggerFlip(wertung, afterFlip) {
+  if (isAnimating || nameVisible) return;
+  isAnimating = true;
+  const card = document.getElementById('lernkarte');
+  card.style.transition = 'transform 0.32s cubic-bezier(0.4, 0, 0.2, 1)';
+  card.style.transform  = 'perspective(1600px) rotateY(90deg)';
+  card.addEventListener('transitionend', function handler() {
+    card.removeEventListener('transitionend', handler);
+    zeigeName(wertung);                                   // Content-Tausch am unsichtbaren Punkt
+    card.style.transform = 'perspective(1600px) rotateY(0deg)';
+    setTimeout(() => {
+      isAnimating = false;
+      if (afterFlip) afterFlip();
+    }, 320);      // Rückseite fertig eingedreht
+  }, { once: true });
+}
+
+// ============================================================
+// PHOTO COMPRESSION
+// ============================================================
+
+function compressPhoto(file) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const tmp = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 900;
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else       { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(tmp);
+      c.toBlob(blob => resolve(blob), 'image/jpeg', 0.85);
+    };
+    img.src = tmp;
+  });
+}
+
+// Einmaliger Aufräum-Durchlauf: komprimiert bereits gespeicherte, zu groß
+// geratene Fotos (z.B. über „Bearbeiten" unkomprimiert hinzugefügt) nachträglich
+const FOTO_KOMPRIMIEREN_SCHWELLE = 350 * 1024; // Fotos darunter gelten als bereits klein genug
+
+async function komprimiereBestehendeFotos() {
+  const kandidaten = studenten.filter(s => s.modus !== 'text');
+  if (!kandidaten.length) { toast(t('toast_keine_fotos')); return; }
+
+  const btn = document.getElementById('btn-fotos-komprimieren');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+
+  let geprueft = 0, geaendert = 0, bytesVorher = 0, bytesNachher = 0;
+  for (const s of kandidaten) {
+    geprueft++;
+    btn.textContent = `${geprueft} / ${kandidaten.length}…`;
+    try {
+      const dbRec = await dbGet('studenten', s.id);
+      if (!dbRec) continue;
+      const blobs = (dbRec.fotos && dbRec.fotos.length) ? dbRec.fotos : (dbRec.foto ? [dbRec.foto] : []);
+      if (!blobs.length) continue;
+
+      let hatAenderung = false;
+      const neueBlobs = [];
+      for (const blob of blobs) {
+        bytesVorher += blob.size;
+        if (blob.size > FOTO_KOMPRIMIEREN_SCHWELLE) {
+          const neuesBlob = await compressPhoto(blob);
+          neueBlobs.push(neuesBlob);
+          bytesNachher += neuesBlob.size;
+          hatAenderung = true;
+        } else {
+          neueBlobs.push(blob);
+          bytesNachher += blob.size;
+        }
+      }
+      if (hatAenderung) {
+        dbRec.fotos = neueBlobs;
+        dbRec.foto  = neueBlobs[0];
+        await dbPut('studenten', dbRec);
+        s.fotos = neueBlobs;
+        s.foto  = neueBlobs[0];
+        revokeUrl(s.id);
+        geaendert++;
+      }
+    } catch (err) {
+      console.warn('Komprimieren fehlgeschlagen für', s.name, err);
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = originalText;
+  renderVerwaltung();
+
+  if (geaendert === 0) {
+    toast(t('toast_fotos_bereits_klein'));
+  } else {
+    const gespartMb = ((bytesVorher - bytesNachher) / (1024 * 1024)).toFixed(1);
+    toast(tf('toast_fotos_komprimiert', geaendert, gespartMb));
+  }
+}
+
+document.getElementById('btn-fotos-komprimieren').addEventListener('click', async () => {
+  if (!confirm(t('confirm_fotos_komprimieren'))) return;
+  await komprimiereBestehendeFotos();
+});
+
+// ============================================================
+// DATA HELPERS
+// ============================================================
+
+async function ladeAlles() {
+  [gruppen, studenten, sammlungen] = await Promise.all([
+    dbGetAll('gruppen'), dbGetAll('studenten'), dbGetAll('sammlungen')
+  ]);
+}
+
+function getKartenFuerGid(gid) {
+  if (gid === '__favoriten__') return studenten.filter(s => s.favorit);
+  if (gid.startsWith('__favoriten__:')) {
+    const sid   = gid.slice('__favoriten__:'.length);
+    const gsIds = new Set(gruppen.filter(g => g.sammlungId === sid).map(g => g.id));
+    return studenten.filter(s => s.favorit && gsIds.has(s.gruppeId));
+  }
+  return getSortierteKartenInGruppe(gid);
+}
+
+function gruppeKartenAnzahl(gid) {
+  if (gid === '__favoriten__') return studenten.filter(s => s.favorit).length;
+  if (gid.startsWith('__favoriten__:')) return getKartenFuerGid(gid).length;
+  return studenten.filter(s => s.gruppeId === gid).length;
+}
+
+// ── Zweisprachige Karten (DE/EN) ─────────────────────────────
+const EN_FELDER_KARTE = ['name_en', 'vorderseite_en', 'notiz_en', 'merke_en'];
+function istEn() { return currentLang === 'en'; }
+function sammlungVonKarte(k) {
+  const g = gruppen.find(x => x.id === k.gruppeId);
+  return g ? sammlungen.find(x => x.id === g.sammlungId) : null;
+}
+// Anzeigetext eines Kartenfelds in der gewählten Sprache.
+// fallback=true: englische Fassung fehlt, deutscher Text wird ersatzweise gezeigt.
+// Sammlungen mit zweisprachig_inhalt:true behalten ihren Inhalt in beiden Sprachen.
+function kText(k, feld) {
+  const de = k[feld] || '';
+  if (!istEn()) return { text: de, fallback: false };
+  if (sammlungVonKarte(k)?.zweisprachig_inhalt) return { text: de, fallback: false };
+  const en = k[feld + '_en'];
+  if (en && String(en).trim()) return { text: en, fallback: false };
+  return { text: de, fallback: !!de };
+}
+function kName(k) { return kText(k, 'name').text; }
+function sammlungName(sam) { return (istEn() && sam.name_en) ? sam.name_en : sam.name; }
+function gruppeName(g)     { return (istEn() && g.name_en)   ? g.name_en   : g.name; }
+const DE_BADGE = '<span class="de-badge" title="Deutsch (noch keine englische Fassung)">DE</span>';
+function nameMitBadge(k) { const n = kText(k, 'name'); return esc(n.text) + (n.fallback ? ' ' + DE_BADGE : ''); }
+function hatNotizInhalt(k) { return !!(k.notiz || k.merke || k.notiz_en || k.merke_en); }
+function notizHtml(k) {
+  const n = kText(k, 'notiz'), m = kText(k, 'merke');
+  return renderNotizHtml(n.text, m.text, { fallback: n.fallback || m.fallback });
+}
+function vorderseiteHtml(k) { const v = kText(k, 'vorderseite'); return renderVorderseiteHtml(v.text, v.fallback); }
+// Ergänzt fehlende englische Felder aus einem Import (vorhandene Werte werden nie überschrieben)
+function ergaenzeEnFelder(vorh, neu, felder) {
+  let geaendert = false;
+  const r = { ...vorh };
+  for (const f of felder) {
+    const leer = v => v == null || (typeof v === 'object' ? !Object.keys(v).length : String(v).trim() === '');
+    const hatNeu  = !leer(neu[f]);
+    const hatVorh = !leer(vorh[f]);
+    if (hatNeu && !hatVorh) { r[f] = neu[f]; geaendert = true; }
+  }
+  return geaendert ? r : null;
+}
+// Kopie der Karte mit Anzeigetexten (PDF, Teilen, Bildexport, Prompts)
+function kAnzeige(k) {
+  return { ...k, name: kText(k, 'name').text, vorderseite: kText(k, 'vorderseite').text,
+           notiz: kText(k, 'notiz').text, merke: kText(k, 'merke').text };
+}
+
+function getGefilterteStudenten() {
+  const suche = (document.getElementById('input-karten-suche')?.value || '').toLowerCase().trim();
+  let result = [...studenten];
+  if (suche) result = result.filter(s =>
+    [s.name, s.notiz, s.vorderseite, s.merke, s.name_en, s.notiz_en, s.vorderseite_en, s.merke_en]
+      .some(f => (f || '').toLowerCase().includes(suche))
+  );
+  // Im Suchmodus immer A→Z für übersichtliche Ergebnisse
+  result.sort((a, b) => kName(a).localeCompare(kName(b), istEn() ? 'en' : 'de'));
+  return result;
+}
+
+// Zeitraum der Statistik (Tage; 0 = alles), wird gemerkt
+function statistikTage() {
+  try { const v = localStorage.getItem('statistikTage'); return v === null ? 30 : (parseInt(v, 10) || 0); } catch (_) { return 30; }
+}
+// Je Kartenname: gewusst / nachgeschaut / letzte Abfrage — nur im Zeitraum und nur für Karten, die es noch gibt
+function statistikNamenStats(sitzungen, tage) {
+  const grenze = tage > 0 ? Date.now() - tage * 86400000 : 0;
+  const vorhanden = new Set(studenten.map(k => k.name));
+  const m = new Map();
+  for (const sitz of sitzungen) {
+    const t = new Date(sitz.datum).getTime();
+    if (grenze && !(t >= grenze)) continue;
+    for (const d of (sitz.details || [])) {
+      if (!vorhanden.has(d.name)) continue;
+      if (!m.has(d.name)) m.set(d.name, { gewusst: 0, nachgeschaut: 0, letzte: 0 });
+      const st = m.get(d.name);
+      if (d.status === 'gewusst') st.gewusst++;
+      else if (d.status === 'nachgeschaut') st.nachgeschaut++;
+      else continue;
+      if (t > st.letzte) st.letzte = t;
+    }
+  }
+  return m;
+}
+
+async function getSchwacheKarten(gruppeIds = null) {
+  const sitzungen = await dbGetAll('sitzungen');
+  const nameStats = statistikNamenStats(sitzungen, statistikTage());
+  const allNamen = [...nameStats.entries()]
+    .filter(([, s]) => s.nachgeschaut > 0)
+    .map(([name, s]) => ({ name, fehlerRate: s.nachgeschaut / (s.gewusst + s.nachgeschaut) }))
+    .sort((a, b) => b.fehlerRate - a.fehlerRate);
+  if (!allNamen.length) return [];
+  const anzahl = Math.max(5, Math.ceil(allNamen.length * 0.2));
+  const schwacheNamen = new Set(allNamen.slice(0, anzahl).map(x => x.name));
+  const basis = gruppeIds ? studenten.filter(s => gruppeIds.includes(s.gruppeId)) : studenten;
+  return basis.filter(s => schwacheNamen.has(s.name));
+}
+
+// ============================================================
+// RENDER – VERWALTUNG
+// ============================================================
+
+// Mehrzeiligen Text als Bullet-Liste oder einfachen Absatz rendern
+function renderVorderseiteHtml(text, fallback) {
+  if (!text) return '';
+  const badge = fallback ? ' ' + DE_BADGE : '';
+  const bold = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  const zeilen = text.split('\n').map(z => z.trim()).filter(z => z.length > 0);
+  if (zeilen.length <= 1) return `<p>${bold(text.trim())}${badge}</p>`;
+  const istHeader = z => /^\*\*[^*]+\*\*$/.test(z.trim());
+  const items = zeilen.map((z, i) => {
+    const b = i === 0 ? badge : '';
+    if (istHeader(z)) {
+      const cls = i === 0 ? 'header-zeile header-zeile-first' : 'header-zeile';
+      return `<li class="${cls}">${bold(z)}${b}</li>`;
+    }
+    return `<li>${bold(z)}${b}</li>`;
+  });
+  return `<ul class="lern-vorderseite-liste">${items.join('')}</ul>`;
+}
+
+// Notiz: Markdown-Light (**fett**, Absätze, Zeilenumbruch, "- "-Listen, "> "-Callout). HTML wird zuerst escaped.
+function renderNotizHtml(text, merke, opt) {
+  const inline = z => esc(z).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  const merkeHtml = merke && String(merke).trim()
+    ? `<div class="notiz-callout"><strong>${esc(t('merke_label'))}:</strong> ${String(merke).trim().replace(/\r\n?/g, '\n').split('\n').map(inline).join('<br>')}</div>`
+    : '';
+  if (!text) return merkeHtml + (opt?.fallback ? `<div class="notiz-de">${DE_BADGE}</div>` : '');
+  const absaetze = String(text).replace(/\r\n?/g, '\n').trim().split(/\n{2,}/);
+  return absaetze.map(abs => {
+    if (/^\s*>\s?/.test(abs)) {
+      const inhalt = abs.split('\n').map(z => z.replace(/^\s*>\s?/, '')).map(inline).join('<br>');
+      return `<div class="notiz-callout">${inhalt}</div>`;
+    }
+    const zeilen = abs.split('\n');
+    const bloecke = [];
+    let liste = null, text = null;
+    for (const z of zeilen) {
+      if (/^\s*-\s+/.test(z)) {
+        text = null;
+        if (!liste) { liste = []; bloecke.push({ liste }); }
+        liste.push(z.replace(/^\s*-\s+/, ''));
+      } else {
+        liste = null;
+        if (!text) { text = []; bloecke.push({ text }); }
+        text.push(z);
+      }
+    }
+    return bloecke.map(b => b.liste
+      ? `<ul class="notiz-liste">${b.liste.map(i => `<li>${inline(i)}</li>`).join('')}</ul>`
+      : `<div class="notiz-absatz">${b.text.map(inline).join('<br>')}</div>`
+    ).join('');
+  }).join('') + merkeHtml + (opt?.fallback ? `<div class="notiz-de">${DE_BADGE}</div>` : '');
+}
+
+// ── Karte Detail Overlay ──────────────────────────────
+let detailIds   = [];   // sichtbare Karten-IDs in aktueller Reihenfolge
+let detailIndex = 0;    // aktuelle Position
+
+function fillKarteDetail(s) {
+  const isText = s.modus === 'text';
+  const fotoWrap = document.getElementById('karte-detail-foto-wrap');
+  const textWrap = document.getElementById('karte-detail-text-wrap');
+  if (!isText && s.foto) renderFotoSlideshow('karte-detail-foto', 'karte-detail-foto-wrap', s);
+  else document.getElementById('karte-detail-foto').src = '';
+  document.getElementById('karte-detail-text').innerHTML = isText ? vorderseiteHtml(s) : '';
+  if (isText) renderTextFotos('karte-detail-text-fotos', s);
+  fotoWrap.classList.toggle('hidden', isText);
+  textWrap.classList.toggle('hidden', !isText);
+  document.getElementById('karte-detail-name').innerHTML     = nameMitBadge(s);
+  document.getElementById('karte-detail-gruppe').textContent = (g => g ? gruppeName(g) : '')(gruppen.find(g => g.id === s.gruppeId));
+  const notizEl = document.getElementById('karte-detail-notiz');
+  if (hatNotizInhalt(s)) { notizEl.innerHTML = notizHtml(s); notizEl.classList.remove('hidden'); }
+  else { notizEl.classList.add('hidden'); }
+  showLinks('karte-detail-links', s.links || []);
+  showVideo('karte-detail-video', s);
+  const favBtn = document.getElementById('btn-detail-favorit');
+  if (favBtn) { favBtn.classList.toggle('aktiv', !!s.favorit); }
+  const counterEl = document.getElementById('karte-detail-counter');
+  if (counterEl) counterEl.textContent = detailIds.length > 1 ? `${detailIndex + 1} / ${detailIds.length}` : '';
+}
+
+function openKarteDetailOverlay(id) {
+  detailIds = [...document.querySelectorAll('.karte-detail-trigger.karte-name')].map(el => el.dataset.id);
+  if (!detailIds.length) detailIds = [id];
+  detailIndex = detailIds.indexOf(id);
+  if (detailIndex < 0) { detailIds = [id]; detailIndex = 0; }
+
+  const s = studenten.find(x => x.id === detailIds[detailIndex]);
+  if (!s) return;
+  fillKarteDetail(s);
+
+  const overlay = document.getElementById('karte-detail-overlay');
+  overlay.classList.remove('hidden');
+
+  const hint = document.getElementById('karte-detail-swipe-hint');
+  if (hint) {
+    if (detailIds.length > 1 && !localStorage.getItem('swipeHintSeen')) {
+      hint.classList.remove('hidden');
+      setTimeout(() => {
+        hint.classList.add('fade-out');
+        setTimeout(() => { hint.classList.add('hidden'); hint.classList.remove('fade-out'); }, 500);
+      }, 2000);
+      localStorage.setItem('swipeHintSeen', '1');
+    } else {
+      hint.classList.add('hidden');
+    }
+  }
+}
+
+// ── Canvas Sammelkarte ───────────────────────────────────
+function _cvWrapText(ctx, text, maxW) {
+  const words = String(text).split(' ');
+  const lines = [];
+  let cur = '';
+  for (const w of words) {
+    const test = cur ? cur + ' ' + w : w;
+    if (ctx.measureText(test).width > maxW && cur) {
+      lines.push(cur);
+      cur = w;
+    } else {
+      cur = test;
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+function _cvRoundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+async function erstelleKartenBild(s) {
+  s = kAnzeige(s);
+  const W = 630, PAD = 40, RADIUS = 24;
+
+  // Akzentfarbe der Sammlung
+  const gruppe = gruppen.find(g => g.id === s.gruppeId);
+  const sam    = sammlungen.find(sm => sm.id === gruppe?.sammlungId);
+  const si     = sammlungen.indexOf(sam);
+  const akzent = sammlungFarbe(sam || {}, si >= 0 ? si : 0);
+  const rC = parseInt(akzent.slice(1, 3), 16);
+  const gC = parseInt(akzent.slice(3, 5), 16);
+  const bC = parseInt(akzent.slice(5, 7), 16);
+
+  const isFoto  = s.modus !== 'text' && s.foto;
+  const PHOTO_H = isFoto ? Math.round(W * 0.82) : 0; // ~517px — typisches Filmplakat-Verhältnis
+  const AKZENT  = 5;
+  const BRAND_H = 52;
+
+  // ── Texte vorab umbrechen (auf Hilfs-Canvas messen) ──────
+  const tmp = document.createElement('canvas').getContext('2d');
+  const FONT_NAME  = 'bold 48px sans-serif';
+  const FONT_NOTIZ = '27px sans-serif';
+  const FONT_HINT  = '22px sans-serif';
+  const FONT_SAM   = '19px sans-serif';
+  const NAME_LH = 58, NOTIZ_LH = 36, HINT_LH = 30;
+
+  tmp.font = FONT_NAME;
+  const nameLines  = _cvWrapText(tmp, s.name, W - PAD * 2);
+
+  tmp.font = FONT_NOTIZ;
+  const notizLines = s.notiz ? _cvWrapText(tmp, s.notiz.trim(), W - PAD * 2) : [];
+
+  tmp.font = FONT_NAME;
+  const vordLines  = (s.modus === 'text' && s.vorderseite)
+    ? _cvWrapText(tmp, s.vorderseite.trim(), W - PAD * 2) : [];
+
+  // Nur kurze Hinweise auf Links/Video — keine URLs
+  const hints = [];
+  if (s.links?.length) hints.push(`🔗 ${s.links.length === 1 ? '1 Weblink' : s.links.length + ' Weblinks'}`);
+  if (s.videoId)       hints.push(`▶ ${s.videoTitel || 'Video'}`);
+
+  const samName = (sam ? sammlungName(sam) : '').toUpperCase();
+
+  // ── Höhe berechnen ──────────────────────────────────────
+  const samH   = samName ? 30 : 0;
+  const nameH  = nameLines.length * NAME_LH;
+  const divH   = 20;
+  const vordH  = vordLines.length  ? vordLines.length  * 40 + 12 : 0;
+  const notizH = notizLines.length ? notizLines.length * NOTIZ_LH + 12 : 0;
+  const hintH  = hints.length      ? HINT_LH + 10 : 0;
+  const textPadTop = isFoto ? 24 : 56;
+  const textPadBot = 16;
+
+  const textBlock = textPadTop + samH + nameH + 16 + divH + vordH + notizH + hintH + textPadBot;
+  const H = PHOTO_H + AKZENT + Math.max(textBlock, 200) + BRAND_H;
+
+  // ── Echtes Canvas ────────────────────────────────────────
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  _cvRoundRect(ctx, 0, 0, W, H, RADIUS);
+  ctx.clip();
+
+  // Hintergrund
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(0, 0, W, H);
+
+  if (isFoto) {
+    // Foto laden & cover-fit
+    const img = await new Promise((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = getFotoUrl(s);
+    });
+    const scale = Math.max(W / img.width, PHOTO_H / img.height);
+    const sw = W / scale, sh = PHOTO_H / scale;
+    ctx.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, 0, 0, W, PHOTO_H);
+
+    // Sanfter Übergang unten
+    const fadeGrad = ctx.createLinearGradient(0, PHOTO_H - 80, 0, PHOTO_H);
+    fadeGrad.addColorStop(0, 'rgba(10,10,10,0)');
+    fadeGrad.addColorStop(1, 'rgba(10,10,10,1)');
+    ctx.fillStyle = fadeGrad;
+    ctx.fillRect(0, PHOTO_H - 80, W, 80);
+  } else {
+    // Text-Karte: dezenter Radial-Glow
+    const glow = ctx.createRadialGradient(W * 0.5, H * 0.18, 0, W * 0.5, H * 0.18, W * 0.65);
+    glow.addColorStop(0, `rgba(${rC},${gC},${bC},0.13)`);
+    glow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // Akzent-Stripe
+  ctx.fillStyle = akzent;
+  ctx.fillRect(0, PHOTO_H, W, AKZENT);
+
+  // ── Text-Bereich ─────────────────────────────────────────
+  ctx.textBaseline = 'top';
+  let y = PHOTO_H + AKZENT + textPadTop;
+
+  // Sammlungsname
+  if (samName) {
+    ctx.font = FONT_SAM;
+    ctx.fillStyle = `rgba(${rC},${gC},${bC},0.85)`;
+    ctx.fillText(samName, PAD, y);
+    y += samH;
+  }
+
+  // Name
+  ctx.font = FONT_NAME;
+  ctx.fillStyle = '#ffffff';
+  nameLines.forEach(ln => { ctx.fillText(ln, PAD, y); y += NAME_LH; });
+  y += 16;
+
+  // Divider
+  ctx.fillStyle = akzent;
+  ctx.fillRect(PAD, y, 52, 3);
+  y += divH;
+
+  // Vorderseite (Text-Karten)
+  if (vordLines.length) {
+    ctx.font = '30px sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.72)';
+    vordLines.forEach(ln => { ctx.fillText(ln, PAD, y); y += 40; });
+    y += 12;
+  }
+
+  // Notiz (vollständig, nicht abgeschnitten)
+  if (notizLines.length) {
+    ctx.font = FONT_NOTIZ;
+    ctx.fillStyle = 'rgba(255,255,255,0.62)';
+    notizLines.forEach(ln => { ctx.fillText(ln, PAD, y); y += NOTIZ_LH; });
+    y += 12;
+  }
+
+  // Weblink/Video-Hinweis (kein URL-Text)
+  if (hints.length) {
+    y += 4;
+    ctx.font = FONT_HINT;
+    ctx.fillStyle = `rgba(${rC},${gC},${bC},0.80)`;
+    ctx.fillText(hints.join('   '), PAD, y);
+  }
+
+  // ── MemoFix Branding ─────────────────────────────────────
+  const BRAND_Y = H - BRAND_H;
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fillRect(0, BRAND_Y, W, BRAND_H);
+
+  ctx.beginPath();
+  ctx.arc(PAD + 10, BRAND_Y + BRAND_H / 2, 9, 0, Math.PI * 2);
+  ctx.fillStyle = akzent;
+  ctx.fill();
+
+  ctx.font = 'bold 20px sans-serif';
+  ctx.fillStyle = '#ffffff';
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left';
+  ctx.fillText('MemoFix', PAD + 26, BRAND_Y + BRAND_H / 2);
+
+  ctx.font = '16px sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.40)';
+  ctx.textAlign = 'right';
+  ctx.fillText('teltenkoetter.github.io/MemoFix', W - PAD, BRAND_Y + BRAND_H / 2);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+
+  return new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
+}
+
+// ── Karte teilen ─────────────────────────────────────────
+async function teileKarte(s) {
+  s = kAnzeige(s);
+  const MEMOFIX_URL = 'https://teltenkoetter.github.io/MemoFix/';
+
+  // Extra-Text: Links + Video (als Begleittext oder Fallback)
+  const zeilen = [`📌 ${s.name}`];
+  if (s.modus === 'text' && s.vorderseite) { zeilen.push(''); zeilen.push(s.vorderseite.trim()); }
+  if (s.notiz)       { zeilen.push(''); zeilen.push(`📝 ${s.notiz.trim()}`); }
+  if (s.links?.length) { zeilen.push(''); s.links.forEach(l => zeilen.push(`🔗 ${l}`)); }
+  if (s.videoId) {
+    zeilen.push('');
+    const ytUrl = `https://www.youtube.com/watch?v=${s.videoId}`;
+    zeilen.push(`${s.videoTitel ? `▶ ${s.videoTitel}` : '▶ YouTube'}\n${ytUrl}`);
+  }
+  zeilen.push(''); zeilen.push(`— Geteilt mit MemoFix\n${MEMOFIX_URL}`);
+  const shareText = zeilen.join('\n');
+
+  // Canvas-Karte als Bild teilen
+  try {
+    const blob = await erstelleKartenBild(s);
+    const file = new File([blob], `${s.name}-MemoFix.jpg`, { type: 'image/jpeg' });
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({ title: s.name, files: [file] });
       return;
     }
-    const gh = e.target.closest('[data-g-hoch],[data-g-runter]');
-    if (gh) { verschieben(S.gruppen, gh.dataset.gHoch || gh.dataset.gRunter, gh.dataset.gHoch ? -1 : 1, () => true); return; }
-    const neu = e.target.closest('[data-neu-moment]'); if (neu) { momentSheet(null, neu.dataset.neuMoment); return; }
-    const b = e.target.closest('[data-edit]'); if (b) { momentSheet(b.dataset.edit); return; }
-    const ga = e.target.closest('[data-gauf]');
-    if (ga) { const k = ga.dataset.gauf; offeneGruppen.has(k) ? offeneGruppen.delete(k) : offeneGruppen.add(k); renderVerwaltung(); return; }
-    const g = e.target.closest('[data-gruppe]'); if (g) gruppeSheet(g.dataset.gruppe);
-  });
-  $('#btn-sort').onclick = () => { sortiermodus = !sortiermodus; renderVerwaltung(); };
-  $('#btn-gruppe-neu').onclick = () => gruppeSheet(null);
-  const korridorNeu = () => {
-    const von = $('#korridor-von').value, bis = $('#korridor-bis').value;
-    if (!von || !bis) return;
-    S.einstellungen.korridorVon = von; S.einstellungen.korridorBis = bis;
-    if (korridorPruefen(S.einstellungen)) { $('#korridor-bis').value = S.einstellungen.korridorBis; toast(`„spätestens“ muss nach „ab“ liegen: ${S.einstellungen.korridorBis}`); }
-    speichern();
-  };
-  $('#arbeit-gewicht').oninput = e => {
-    S.einstellungen.arbeitGewicht = +e.target.value; $('#arbeit-gewicht-text').textContent = gewichtText(+e.target.value);
-  };
-  $('#arbeit-gewicht').onchange = () => { speichern(); renderHeute(); };
-  $('#tag-wechsel').onchange = e => { S.einstellungen.tagWechsel = +e.target.value; speichern(); renderHeute(); };
-  $('#heute-datum').onclick = () => { heuteVersatz = heuteVersatz ? 0 : -1; renderHeute(); window.scrollTo(0, 0); };
-  $('#korridor-von').onchange = korridorNeu;
-  $('#korridor-bis').onchange = korridorNeu;
-  $('#arbeitstage').onclick = e => {
-    const b = e.target.closest('[data-tag]'); if (!b) return;
-    const t = +b.dataset.tag, at = new Set(S.einstellungen.arbeitstage || [1, 2, 3, 4, 5]);
-    at.has(t) ? at.delete(t) : at.add(t);
-    S.einstellungen.arbeitstage = [...at].sort(); speichern(); renderVerwaltung(); renderHeute();
-  };
-  for (const art of Object.keys(WAHL).filter(a => !WAHL[a].frei)) $('#zeige-' + art).onchange = e => { S.einstellungen['zeige_' + art] = e.target.checked; speichern(); renderHeute(); };
+  } catch (err) {
+    if (err.name === 'AbortError') return;
+    // Canvas fehlgeschlagen → Text-Fallback
+  }
 
-  $('#btn-alles-loeschen').onclick = () => {
-    sheet('Alle Einträge löschen', `<p class="card-text">Gezählte Momente, Feierabende und Schlaf-Einträge werden von diesem Gerät gelöscht. Die Momente selbst und die Einstellungen bleiben. Das lässt sich nicht rückgängig machen.</p>
-      <div class="btn-reihe"><button class="btn-primary" id="del-ja" type="button">Einträge löschen</button><button class="btn-leise" id="del-nein" type="button">Abbrechen</button></div>`);
-    $('#del-ja').onclick = () => { S.taps = []; S.feierabend = {}; S.schlaf = {}; S.essen = {}; S.trinken = {}; S.arbeit = {}; S.arbeitStufe = {}; S.arbeitZeit = {}; speichern(); sheetZu(); renderAlles(); toast('Einträge gelöscht'); };
-    $('#del-nein').onclick = sheetZu;
-  };
+  // Text-only Share
+  if (navigator.share) {
+    try { await navigator.share({ title: s.name, text: shareText }); return; }
+    catch (err) { if (err.name === 'AbortError') return; }
+  }
 
-  // Sicherung als Datei (zum Mitnehmen auf ein anderes Gerät)
-  $('#btn-export').onclick = () => {
-    const daten = JSON.stringify({ app: 'MemoMe', exportiert: new Date().toISOString(), zustand: S }, null, 1);
-    const url = URL.createObjectURL(new Blob([daten], { type: 'application/json' }));
-    const a = document.createElement('a'); a.href = url; a.download = `MemoMe-Sicherung-${tagKey(new Date())}.json`;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
-    toast('Sicherung erstellt');
-  };
-  $('#btn-import').onclick = () => $('#import-datei').click();
-  $('#import-datei').onchange = async e => {
-    const datei = e.target.files[0]; e.target.value = '';
-    if (!datei) return;
-    let neu;
-    try { const j = JSON.parse(await datei.text()); neu = j.app === 'MemoMe' ? j.zustand : null; } catch { neu = null; }
-    if (!neu || neu.version !== 1 || !Array.isArray(neu.momente)) { toast('Diese Datei ist keine MemoMe-Sicherung'); return; }
-    sheet('Sicherung laden', `<p class="card-text">Die Sicherung enthält ${neu.momente.length === 1 ? '1 Moment' : neu.momente.length + ' Momente'} und ${(n => n === 1 ? '1 Eintrag' : n + ' Einträge')((neu.taps || []).length)}. Sie ersetzt alles, was jetzt auf diesem Gerät gespeichert ist.</p>
-      <div class="btn-reihe"><button class="btn-primary" id="imp-ja" type="button">Sicherung laden</button><button class="btn-leise" id="imp-nein" type="button">Abbrechen</button></div>`);
-    $('#imp-ja').onclick = () => { S = zustandAus(neu); gruppenAktualisieren(); speichern(); sheetZu(); renderAlles(); toast('Sicherung geladen'); };
-    $('#imp-nein').onclick = sheetZu;
-  };
-
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) renderAlles(); });
+  // Letzter Fallback: Zwischenablage
+  try {
+    await navigator.clipboard.writeText(shareText);
+    toast(t('toast_kopiert'));
+  } catch (_) { toast(t('toast_teilen_nv')); }
 }
 
-// Gespeicherten oder importierten Zustand auf den aktuellen Datenstand bringen
-// Korridor: „bis“ muss nach „von“ liegen (gleicher Abend). Sonst bis = von + 1 Stunde.
-function korridorPruefen(e) {
-  const v = zuMin(e.korridorVon), b = zuMin(e.korridorBis);
-  if (b > v) return false;
-  e.korridorBis = zuHHMM(Math.min(v + 60, 23 * 60 + 59));
+document.getElementById('btn-karte-teilen').addEventListener('click', async e => {
+  e.stopPropagation();
+  const s = studenten.find(x => x.id === detailIds[detailIndex]);
+  if (s) await teileKarte(s);
+});
+
+document.getElementById('btn-detail-favorit').addEventListener('click', async e => {
+  e.stopPropagation();
+  const btn = e.currentTarget;
+  const id = detailIds[detailIndex];
+  if (!id) return;
+  await toggleFavorit(id);
+  const s = studenten.find(x => x.id === id);
+  if (s) {
+    btn.classList.toggle('aktiv', s.favorit);
+    // Auch Karte in der Liste aktualisieren
+    const listBtn = document.querySelector(`.btn-favorit[data-id="${id}"]`);
+    if (listBtn) { listBtn.classList.toggle('aktiv', s.favorit); listBtn.title = s.favorit ? t('fav_entfernen') : t('fav_markieren'); }
+  }
+});
+
+function detailNavigate(dir) {
+  if (!detailIds.length) return;
+  const next = detailIndex + dir;
+  if (next < 0 || next >= detailIds.length) return;
+
+  const inner = document.querySelector('.karte-detail-inner');
+  if (!inner) {
+    detailIndex = next;
+    const s = studenten.find(x => x.id === detailIds[detailIndex]);
+    if (s) fillKarteDetail(s);
+    return;
+  }
+
+  // Ausblenden + verschieben (Richtung der Wischbewegung)
+  inner.style.transition = 'opacity 0.12s ease, transform 0.12s ease';
+  inner.style.opacity    = '0';
+  inner.style.transform  = `translateX(${dir > 0 ? '-40px' : '40px'})`;
+
+  setTimeout(() => {
+    detailIndex = next;
+    const s = studenten.find(x => x.id === detailIds[detailIndex]);
+    if (s) fillKarteDetail(s);
+
+    // Sofort auf Gegenseite setzen (ohne Transition)
+    inner.style.transition = 'none';
+    inner.style.transform  = `translateX(${dir > 0 ? '40px' : '-40px'})`;
+    inner.style.opacity    = '0';
+
+    // Einblenden (zwei RAFs damit Browser die Reset-Position gerendert hat)
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      inner.style.transition = 'opacity 0.12s ease, transform 0.12s ease';
+      inner.style.opacity    = '1';
+      inner.style.transform  = 'translateX(0)';
+    }));
+  }, 120);
+}
+
+
+function karteItemHtml(s, idx, total) {
+  const isText = s.modus === 'text';
+  let thumb;
+  if (isText) {
+    thumb = `<div class="karte-text-thumb karte-detail-trigger" data-id="${s.id}">${esc((s.vorderseite || '').substring(0, 40))}${(s.vorderseite || '').length > 40 ? '…' : ''}</div>`;
+  } else if (s.foto) {
+    const multiCount = (s.fotos && s.fotos.length > 1) ? s.fotos.length : 0;
+    thumb = `<img src="${getFotoUrl(s)}" alt="${esc(kName(s))}" loading="lazy" decoding="async">
+       <div class="karte-foto-overlay">📷</div>
+       ${multiCount ? `<div class="karte-foto-multi-badge">${multiCount}</div>` : ''}
+       <input type="file" accept="image/*" class="karte-foto-input" data-id="${s.id}">`;
+  } else {
+    thumb = `<div class="karte-foto-leer karte-detail-trigger" data-id="${s.id}" title="${t('foto_fehlt')}">📷</div>
+       <input type="file" accept="image/*" class="karte-foto-input" data-id="${s.id}">`;
+  }
+  const sortVal  = document.getElementById('select-karten-sort')?.value || 'manuell';
+  const showMove = (total > 1) && (sortVal === 'manuell') && !String(s.gruppeId).startsWith('tutorial-');
+  return `
+    <div class="karte-item">
+      <div class="karte-foto-wrapper">
+        ${thumb}
+      </div>
+      <span class="karte-name karte-detail-trigger" data-id="${s.id}">${nameMitBadge(s)}${s.notiz ? ' <span style="opacity:.45;font-size:.7rem">📝</span>' : ''}${s.merke ? ' <span style="opacity:.55;font-size:.7rem">📌</span>' : ''}${s.links?.length ? ' <span style="opacity:.45;font-size:.7rem">🔗</span>' : ''}${s.videoId ? ' <span style="opacity:.55;font-size:.7rem">▶</span>' : ''}</span>
+      <button class="btn-favorit${s.favorit ? ' aktiv' : ''}" data-id="${s.id}" title="${s.favorit ? t('fav_entfernen') : t('fav_markieren')}">★</button>
+      ${showMove ? `<button class="btn-karte-move" data-id="${s.id}" data-gid="${s.gruppeId}" data-dir="up" ${idx === 0 ? 'disabled' : ''}>▲</button>
+      <button class="btn-karte-move" data-id="${s.id}" data-gid="${s.gruppeId}" data-dir="down" ${idx === total - 1 ? 'disabled' : ''}>▼</button>` : ''}
+      <button class="btn-karte-ren"  data-id="${s.id}" title="${t('bearbeiten')}">✏️</button>
+      <button class="btn-karte-copy" data-id="${s.id}" title="${t('kopieren')}">📋</button>
+      <button class="btn-karte-del"  data-id="${s.id}" title="${t('karte_loeschen_title')}">✕</button>
+    </div>`;
+}
+
+// ── Karte-Hinzufügen-Form öffnen/schließen ────────────────
+function oeffneKarteHinzufuegenForm() {
+  const body  = document.getElementById('karte-hinzufuegen-body');
+  const arrow = document.querySelector('#karte-hinzufuegen-header .card-toggle-arrow');
+  body?.classList.remove('hidden');
+  if (arrow) arrow.classList.add('open');
+}
+
+document.getElementById('karte-hinzufuegen-header').addEventListener('click', () => {
+  const body   = document.getElementById('karte-hinzufuegen-body');
+  const arrow  = document.querySelector('#karte-hinzufuegen-header .card-toggle-arrow');
+  const opening = body.classList.toggle('hidden') === false; // true = gerade geöffnet
+  arrow?.classList.toggle('open', opening);
+});
+
+function renderVerwaltung() {
+  const scrollY = window.scrollY;
+  _renderVerwaltung();
+  requestAnimationFrame(() => window.scrollTo(0, scrollY));
+}
+
+function _renderVerwaltung() {
+  const sortierteSammlungen = getSortierteSammlungen();
+
+  // ── Badges ───────────────────────────────────────────
+  document.getElementById('sammlungen-badge').textContent = sammlungen.length;
+  document.getElementById('karten-gesamt').textContent    = studenten.length;
+
+  // ── Gruppe-Select ────────────────────────────────────
+  const sel     = document.getElementById('select-gruppe');
+  const savedId = localStorage.getItem('lastGruppeId') || sel.value;
+  sel.innerHTML = `<option value="">${t('gruppe_waehlen')}</option>` +
+    sortierteSammlungen.map(sam => {
+      const gs = getSortierteGruppenInSammlung(sam.id);
+      if (!gs.length) return '';
+      return `<optgroup label="${esc(sammlungName(sam))}">` +
+        gs.map(g => `<option value="${g.id}"${g.id === savedId ? ' selected' : ''}>${esc(gruppeName(g))}</option>`).join('') +
+        `</optgroup>`;
+    }).join('');
+
+  const container        = document.getElementById('sammlungen-liste');
+  const keinSammlHinweis = document.getElementById('keine-sammlungen-hinweis');
+  const keinKarteHinweis = document.getElementById('keine-karten-hinweis');
+  const toggleBtn        = document.getElementById('btn-toggle-alle-gruppen');
+  const suche            = (document.getElementById('input-karten-suche')?.value || '').trim().toLowerCase();
+  const sort             = document.getElementById('select-karten-sort')?.value || 'manuell';
+
+  // ── FLAT MODE: nur bei aktiver Suche ─────────────────
+  if (suche) {
+    if (toggleBtn) toggleBtn.style.visibility = 'hidden';
+    keinSammlHinweis.classList.add('hidden');
+    const gefiltert = getGefilterteStudenten();
+    keinKarteHinweis.classList.toggle('hidden', gefiltert.length > 0);
+    container.innerHTML = gefiltert.length
+      ? gefiltert.map(s => karteItemHtml(s, 0, 1)).join('')
+      : `<p class="hinweis" style="padding:0.5rem 0">${t('keine_karten_gefunden')}</p>`;
+    return;
+  }
+
+  if (toggleBtn) toggleBtn.style.visibility = 'visible';
+
+  // ── Leer-Hinweis ─────────────────────────────────────
+  if (!sortierteSammlungen.length && !studenten.length) {
+    container.innerHTML = '';
+    keinSammlHinweis.classList.remove('hidden');
+    keinKarteHinweis.classList.add('hidden');
+    if (toggleBtn) toggleBtn.textContent = t('alle_oeffnen');
+    return;
+  }
+  keinSammlHinweis.classList.add('hidden');
+  keinKarteHinweis.classList.add('hidden');
+
+  // ── HIERARCHICAL MODE ────────────────────────────────
+  let html = '';
+
+  sortierteSammlungen.forEach((sam, si) => {
+    const gs     = getSortierteGruppenInSammlung(sam.id);
+    const isOpen = openSammlungen.has(sam.id);
+    const kCount = sammlungKartenAnzahl(sam.id);
+
+    // ★ Favoriten dieser Sammlung — aufklappbar wie normale Gruppen
+    const samFavs   = studenten.filter(s => s.favorit && gs.some(g => g.id === s.gruppeId));
+    const favGid    = `__fav__:${sam.id}`;
+    const favOpen   = openGruppen.has(favGid);
+    const favGruppeHtml = samFavs.length ? `<div class="gruppe-karten-section fav-gruppe-section">
+      <div class="gruppe-karten-header fav-gruppe-header" data-favgid="${favGid}">
+        <span class="gruppe-toggle-arrow">${favOpen ? '▼' : '▶'}</span>
+        <span class="gruppe-karten-title-text">${t('favoriten')}</span>
+        <span class="gruppe-karten-count">${tf('karte_n', samFavs.length)}</span>
+      </div>
+      <div id="gruppe-body-${favGid}" class="gruppe-karten-body${favOpen ? '' : ' hidden'}">
+        ${samFavs.map((s, idx) => karteItemHtml(s, idx, samFavs.length)).join('')}
+      </div>
+    </div>` : '';
+
+    const gruppenHtml = gs.map((g, gi) => {
+      const kartenInGruppe = getSortierteKartenInGruppe(g.id);
+      const isGroupOpen    = openGruppen.has(g.id);
+      const gCount         = kartenInGruppe.length;
+      return `<div class="gruppe-karten-section">
+        <div class="gruppe-karten-header" data-gid="${g.id}">
+          <span class="gruppe-toggle-arrow">${isGroupOpen ? '▼' : '▶'}</span>
+          <span class="gruppe-karten-title-text">${esc(gruppeName(g))}</span>
+          <span class="gruppe-karten-count">${tf('karte_n', gCount)}</span>
+          <div class="gruppe-mgmt-btns">
+            <button class="btn-gruppe-add-karte" data-gid="${g.id}" title="${t('karte_hinzufuegen')}">＋</button>
+            <button class="btn-gruppe-move" data-id="${g.id}" data-dir="up" data-sid="${sam.id}"${gi === 0 ? ' disabled' : ''}>▲</button>
+            <button class="btn-gruppe-move" data-id="${g.id}" data-dir="down" data-sid="${sam.id}"${gi === gs.length - 1 ? ' disabled' : ''}>▼</button>
+            <button class="btn-gruppe-move-sammlung" data-id="${g.id}" title="${t('sammlung_wechseln')}">📁</button>
+            <button class="btn-gruppe-ren" data-id="${g.id}">✏️</button>
+            <button class="btn-gruppe-del" data-id="${g.id}">✕</button>
+          </div>
+        </div>
+        <div id="gruppe-body-${g.id}" class="gruppe-karten-body${isGroupOpen ? '' : ' hidden'}">
+          ${kartenInGruppe.map((s, idx) => karteItemHtml(s, idx, kartenInGruppe.length)).join('')}
+        </div>
+      </div>`;
+    }).join('');
+
+    const farbe = sammlungFarbe(sam, si);
+    html += `<div class="sammlung-section" style="${sammlungStyle(farbe)}">
+      <div class="sammlung-header" data-sid="${sam.id}">
+        <span class="sammlung-toggle-icon">${isOpen ? '▼' : '▶'}</span>
+        <span class="sammlung-name-text">${esc(sammlungName(sam))}</span>
+        <span class="sammlung-count">${gs.length} ${t('gr_abbr')} · ${kCount} ${t('k_abbr')}</span>
+        <div class="sammlung-btns">
+          <button class="btn-sammlung-move" data-id="${sam.id}" data-dir="up"${si === 0 ? ' disabled' : ''}>▲</button>
+          <button class="btn-sammlung-move" data-id="${sam.id}" data-dir="down"${si === sortierteSammlungen.length - 1 ? ' disabled' : ''}>▼</button>
+          <button class="btn-sammlung-farbe" data-id="${sam.id}" style="background:${farbe}" title="${t('farbe_aendern')}"></button>
+          <button class="btn-sammlung-ren" data-id="${sam.id}">✏️</button>
+          <button class="btn-sammlung-del" data-id="${sam.id}">✕</button>
+        </div>
+      </div>
+      <div class="sammlung-body${isOpen ? '' : ' hidden'}" id="sammlung-body-${sam.id}">
+        ${favGruppeHtml}${gruppenHtml}
+        <div class="neue-gruppe-row">
+          <input type="text" class="input-neue-gruppe-sammlung" data-sid="${sam.id}" placeholder="${t('neue_gruppe')}" maxlength="60">
+          <button class="btn-gruppe-add-sammlung btn-icon" data-sid="${sam.id}">+</button>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  // ── Orphan-Gruppen ───────────────────────────────────
+  const orphanGs = gruppen.filter(g => !g.sammlungId || !sammlungen.find(s => s.id === g.sammlungId));
+  if (orphanGs.length) {
+    const isOpen = openSammlungen.has('__orphan__');
+    const orphanGruppenHtml = orphanGs.map((g, gi) => {
+      const kartenInGruppe = getSortierteKartenInGruppe(g.id);
+      const isGroupOpen    = openGruppen.has(g.id);
+      const gCount         = kartenInGruppe.length;
+      return `<div class="gruppe-karten-section">
+        <div class="gruppe-karten-header" data-gid="${g.id}">
+          <span class="gruppe-toggle-arrow">${isGroupOpen ? '▼' : '▶'}</span>
+          <span class="gruppe-karten-title-text">${esc(gruppeName(g))}</span>
+          <span class="gruppe-karten-count">${tf('karte_n', gCount)}</span>
+          <div class="gruppe-mgmt-btns">
+            <button class="btn-gruppe-move-sammlung" data-id="${g.id}" title="${t('sammlung_zuweisen')}">📁</button>
+            <button class="btn-gruppe-ren" data-id="${g.id}">✏️</button>
+            <button class="btn-gruppe-del" data-id="${g.id}">✕</button>
+          </div>
+        </div>
+        <div id="gruppe-body-${g.id}" class="gruppe-karten-body${isGroupOpen ? '' : ' hidden'}">
+          ${kartenInGruppe.map((s, idx) => karteItemHtml(s, idx, kartenInGruppe.length)).join('')}
+        </div>
+      </div>`;
+    }).join('');
+
+    html += `<div class="sammlung-section sammlung-section--orphan">
+      <div class="sammlung-header" data-sid="__orphan__">
+        <span class="sammlung-toggle-icon">${isOpen ? '▼' : '▶'}</span>
+        <span class="sammlung-name-text" style="opacity:.65">${t('ohne_sammlung')}</span>
+        <span class="sammlung-count">${orphanGs.length} ${t('gr_abbr')}</span>
+        <div class="sammlung-btns"></div>
+      </div>
+      <div class="sammlung-body${isOpen ? '' : ' hidden'}" id="sammlung-body-__orphan__">
+        ${orphanGruppenHtml}
+      </div>
+    </div>`;
+  }
+
+  container.innerHTML = html || `<p class="hinweis" style="padding:0.5rem 0">${t('keine_inhalte')}</p>`;
+
+  // ── Toggle-Button Text ────────────────────────────────
+  if (toggleBtn) {
+    const anyOpen = sortierteSammlungen.some(s => openSammlungen.has(s.id)) || openSammlungen.has('__orphan__');
+    toggleBtn.textContent = anyOpen ? t('alle_schliessen') : t('alle_oeffnen');
+  }
+}
+
+// ============================================================
+// RENDER – LERNEN (Gruppenauswahl)
+// ============================================================
+
+function renderLernAuswahl() {
+  const container = document.getElementById('gruppen-checkboxen');
+  if (!gruppen.length) {
+    container.innerHTML = `<p class="hinweis">${t('lernen_hinweis')}</p>`;
+    document.getElementById('btn-lernen-start').disabled = true;
+    return;
+  }
+  const sortierteSammlungen = getSortierteSammlungen();
+  let html = '';
+
+  function lernGruppenHtml(gs, showIcon = true) {
+    return gs.map(g => {
+      const n     = gruppeKartenAnzahl(g.id);
+      const fotoC = studenten.filter(s => s.gruppeId === g.id && s.modus !== 'text').length;
+      const textC = studenten.filter(s => s.gruppeId === g.id && s.modus === 'text').length;
+      const icon  = showIcon
+        ? (fotoC > 0 && textC > 0 ? '📷 · 📖' : textC > 0 ? '📖' : '📷')
+        : '';
+      return `
+        <div class="gruppe-check-item" data-gid="${g.id}">
+          <div class="check-box">✓</div>
+          <div class="check-label">
+            <strong>${esc(gruppeName(g))}</strong>
+            <span>${tf('karte_n', n)}${icon ? ' · ' + icon : ''}</span>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  sortierteSammlungen.forEach((sam, si) => {
+    const gs = getSortierteGruppenInSammlung(sam.id).filter(modusGruppeSichtbar);
+    if (!gs.length) return;
+    const isOpen  = openLernSammlungen.has(sam.id);
+    const farbe   = sammlungFarbe(sam, si);
+    const samFavs = studenten.filter(s => s.favorit && gs.some(g => g.id === s.gruppeId));
+    const favItem = samFavs.length ? `
+      <div class="gruppe-check-item fav-gruppe-item" data-gid="__favoriten__:${sam.id}">
+        <div class="check-box">✓</div>
+        <div class="check-label">
+          <strong>${t('favoriten')}</strong>
+          <span>${tf('karte_n', samFavs.length)}</span>
+        </div>
+      </div>` : '';
+    html += `<div class="lern-sammlung-section" style="${sammlungStyle(farbe)}">
+      <div class="lern-sammlung-header" data-lern-sid="${sam.id}">
+        <span class="lern-sammlung-toggle">${isOpen ? '▼' : '▶'}</span>
+        <span class="lern-sammlung-name">${esc(sammlungName(sam))}</span>
+        <button class="btn-lern-sam-alle" data-sam-sid="${sam.id}" title="${t('alle_gruppen_toggle')}">${t('alle')}</button>
+      </div>
+      <div class="lern-sammlung-body${isOpen ? '' : ' hidden'}" data-lern-sid="${sam.id}">
+        ${favItem}${lernGruppenHtml(gs)}
+      </div>
+    </div>`;
+  });
+  // Orphan-Gruppen
+  const orphans = gruppen.filter(g => !g.sammlungId || !sammlungen.find(s => s.id === g.sammlungId));
+  if (orphans.length) {
+    const isOpen = openLernSammlungen.has('__orphan__');
+    html += `<div class="lern-sammlung-section">
+      <div class="lern-sammlung-header" data-lern-sid="__orphan__">
+        <span class="lern-sammlung-toggle">${isOpen ? '▼' : '▶'}</span>
+        <span>${t('ohne_sammlung')}</span>
+      </div>
+      <div class="lern-sammlung-body${isOpen ? '' : ' hidden'}" data-lern-sid="__orphan__">
+        ${lernGruppenHtml(orphans, false)}
+      </div>
+    </div>`;
+  }
+  container.innerHTML = html;
+  // Gespeicherte Gruppenauswahl wiederherstellen
+  try {
+    const saved = JSON.parse(localStorage.getItem('memoLernGids') || '[]');
+    if (saved.length) {
+      container.querySelectorAll('.gruppe-check-item').forEach(el => {
+        if (saved.includes(el.dataset.gid)) el.classList.add('selected');
+      });
+    }
+  } catch(e) {}
+  const lernToggle = document.getElementById('btn-lern-toggle-alle');
+  if (lernToggle) {
+    const anyOpen = sortierteSammlungen.some(x => openLernSammlungen.has(x.id)) || openLernSammlungen.has('__orphan__');
+    lernToggle.textContent = anyOpen ? t('alle_schliessen') : t('alle_oeffnen');
+  }
+  updateLernStartBtn();
+}
+
+function getSelectedGids() {
+  return [...document.querySelectorAll('.gruppe-check-item.selected')].map(el => el.dataset.gid);
+}
+function saveLernSelection() {
+  localStorage.setItem('memoLernGids', JSON.stringify(getSelectedGids()));
+}
+
+function updateLernStartBtn() {
+  const total = getSelectedGids().reduce((s, gid) => s + gruppeKartenAnzahl(gid), 0);
+  const btn = document.getElementById('btn-lernen-start');
+  btn.disabled = total === 0;
+  const label = total > 0 ? tf('lernen_starten_n', total) : t('lernen_starten');
+  const m = label.match(/^(.*?)\s*(\(.*\))$/);
+  if (m) btn.innerHTML = `${esc(m[1])}<span class="start-n">${esc(m[2])}</span>`;
+  else btn.textContent = label;
+  const fs = document.getElementById('btn-fullscreen169');
+  if (fs) fs.disabled = total === 0;
+  const sp = document.getElementById('btn-spiel');
+  if (sp) sp.disabled = total === 0;
+  if (typeof updateLernFortsetzen === 'function') updateLernFortsetzen();
+}
+
+// ============================================================
+// RENDER – STATISTIK
+// ============================================================
+
+async function renderStatistik() {
+  const sitzungen = await dbGetAll('sitzungen');
+  sitzungen.sort((a, b) => new Date(b.datum) - new Date(a.datum));
+
+  // Übersicht
+  document.getElementById('stat-total-sitzungen').textContent = sitzungen.length;
+  if (!sitzungen.length) {
+    document.getElementById('stat-avg-score').textContent = '—';
+    document.getElementById('stat-total-abgefragt').textContent = '0';
+  } else {
+    document.getElementById('stat-avg-score').textContent =
+      Math.round(sitzungen.reduce((s, x) => s + x.score, 0) / sitzungen.length) + '%';
+    document.getElementById('stat-total-abgefragt').textContent =
+      sitzungen.reduce((s, x) => s + x.total, 0);
+  }
+
+  // Schwierigste Karten (Zeitraum wählbar, nur noch vorhandene Karten)
+  const tage = statistikTage();
+  const nameStats = statistikNamenStats(sitzungen, tage);
+  document.querySelectorAll('#stat-zeitraum button').forEach(b => b.classList.toggle('active', (parseInt(b.dataset.tage, 10) || 0) === tage));
+
+  const schwierigEl = document.getElementById('schwierigste-namen');
+  const keineSchEl  = document.getElementById('keine-schwierig-hinweis');
+  const schwaeBtn   = document.getElementById('btn-schwaeche-ueben');
+
+  const nameArr = [...nameStats.entries()]
+    .filter(([, s]) => s.nachgeschaut > 0)
+    .map(([name, s]) => {
+      const total = s.gewusst + s.nachgeschaut;
+      return { name, rate: Math.round((s.nachgeschaut / total) * 100), total, nach: s.nachgeschaut, letzte: s.letzte };
+    })
+    // Karten mit mindestens zwei Abfragen zuerst, danach nach Anteil und Häufigkeit
+    .sort((a, b) => (b.total >= 2) - (a.total >= 2) || b.rate - a.rate || b.total - a.total)
+    .slice(0, 8);
+
+  if (!nameArr.length) {
+    schwierigEl.innerHTML = '';
+    keineSchEl.textContent = (tage > 0 && sitzungen.length) ? t('stat_keine_zeitraum') : t('keine_daten');
+    keineSchEl.classList.remove('hidden');
+    schwaeBtn.classList.add('hidden');
+  } else {
+    keineSchEl.classList.add('hidden');
+    schwierigEl.innerHTML = nameArr.map((item, i) => `
+      <div class="schwierig-item">
+        <span class="schwierig-rank">${i + 1}</span>
+        <div class="schwierig-name-wrap">
+          <span class="schwierig-name">${esc(item.name)}</span>
+          <span class="schwierig-detail">${esc(tf('stat_von', item.nach, item.total, new Date(item.letzte).toLocaleDateString(istEn() ? 'en-GB' : 'de-DE', { day: '2-digit', month: '2-digit' })))}</span>
+          <div class="schwierig-bar-track">
+            <div class="schwierig-bar-fill" style="width:${item.rate}%"></div>
+          </div>
+        </div>
+        <span class="schwierig-rate" title="${esc(t('stat_titel_rate'))}">${item.rate}%</span>
+      </div>`).join('');
+
+    const schwacheKarten = await getSchwacheKarten();
+    if (schwacheKarten.length) {
+      schwaeBtn.textContent = tf('schwaechste_n', schwacheKarten.length);
+      schwaeBtn.classList.remove('hidden');
+      schwaeBtn.onclick = () => {
+        showView('lernen');
+        document.getElementById('lernen-auswahl').classList.add('hidden');
+        starteSession(schwacheKarten);
+        toast(tf('toast_schwaechste', schwacheKarten.length, t('toast_ausgewaehlt')));
+      };
+    } else {
+      schwaeBtn.classList.add('hidden');
+    }
+  }
+
+  // Letzte Sitzungen
+  const verlaufEl   = document.getElementById('sitzungen-verlauf');
+  const keineVerlEl = document.getElementById('keine-verlauf-hinweis');
+  if (!sitzungen.length) {
+    verlaufEl.innerHTML = '';
+    keineVerlEl.classList.remove('hidden');
+  } else {
+    keineVerlEl.classList.add('hidden');
+    verlaufEl.innerHTML = sitzungen.slice(0, 10).map(sitz => {
+      const d = new Date(sitz.datum);
+      const datum   = d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+      const uhrzeit = d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+      const cls = sitz.score >= 75 ? 'gut' : sitz.score >= 50 ? 'mitte' : 'schlecht';
+      const gruppenText = sitz.gruppenNamen?.length
+        ? sitz.gruppenNamen.join(', ')
+        : null;
+      return `
+        <div class="sitzung-item">
+          <span class="sitzung-datum">${datum} ${uhrzeit}</span>
+          <div class="sitzung-info">
+            <span>${sitz.total} Karte${sitz.total !== 1 ? 'n' : ''}</span>
+            ${gruppenText ? `<span class="sitzung-gruppe">${esc(gruppenText)}</span>` : ''}
+          </div>
+          <span class="sitzung-score ${cls}">${sitz.score}%</span>
+        </div>`;
+    }).join('');
+  }
+}
+
+// ============================================================
+// STATISTICS – SESSION SAVING
+// ============================================================
+
+async function speichereSitzung() {
+  if (!lernKarten.length) return;
+  const answeredCount = gewusst + nichtGewusst;
+  // Reine Timer-Durchläufe ohne manuelle Bewertung nicht speichern —
+  // sie würden als 0% in der Statistik erscheinen und den Fortschritt verzerren.
+  if (answeredCount === 0) return;
+  const details = lernKarten.map(s => ({
+    name: s.name,
+    status: gewusstIds.has(s.id) ? 'gewusst' : nichtGewusstIds.has(s.id) ? 'nachgeschaut' : 'übersprungen'
+  }));
+  const score = Math.round((gewusst / answeredCount) * 100);
+  // Beteiligte Gruppen ermitteln
+  const gidsInSession = [...new Set(lernKarten.map(s => s.gruppeId).filter(Boolean))];
+  const gruppenNamen  = gidsInSession
+    .map(gid => gruppen.find(g => g.id === gid)?.name)
+    .filter(Boolean);
+  await dbPut('sitzungen', {
+    id: Date.now().toString(),
+    datum: new Date().toISOString(),
+    total: lernKarten.length,
+    gewusst, nichtGewusst, score, details,
+    gruppenNamen
+  });
+}
+
+// ============================================================
+// FLASHCARD LOGIC
+// ============================================================
+
+// Null-sicher: ein fehlendes (neues) Element darf nie die ganze Kartenanzeige abbrechen
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function zeigeKarte() {
+  nameVisible     = false;
+  aktuelleWertung = null;
+  isAnimating     = false;
+  document.getElementById('lern-repeat-pause')?.classList.add('hidden');
+
+  // Karte zurücksetzen (Flip + Fly-out entfernen, ohne sichtbare Transition)
+  const card = document.getElementById('lernkarte');
+  card.style.transition = 'none';
+  card.style.transform  = '';
+  card.classList.remove('fly-out-up', 'fly-out-down');
+  document.getElementById('stack-card-1').classList.remove('stack-advance-1');
+  document.getElementById('stack-card-2').classList.remove('stack-advance-2');
+  void card.offsetWidth; // force reflow
+  card.style.transition = '';
+
+  document.getElementById('lern-name-overlay').classList.add('hidden');
+  document.getElementById('lern-feedback').className = 'lern-feedback hidden';
+  document.getElementById('btn-aufdecken').style.visibility = '';
+  document.getElementById('lern-hint-pill').classList.remove('hidden');
+
+  const s           = lernKarten[lernIndex];
+  const gruppe      = gruppen.find(g => g.id === s.gruppeId);
+  const gName       = gruppe ? gruppeName(gruppe) : '';
+  const kartenModus = s.modus || 'foto';
+  const total       = lernKarten.length;
+
+  // Sammlungsfarbe auf Lernkarte anwenden
+  const sammlung    = gruppe ? sammlungen.find(sm => sm.id === gruppe.sammlungId) : null;
+  const si          = sammlung ? getSortierteSammlungen().indexOf(sammlung) : 0;
+  const kartefarbe  = sammlungFarbe(sammlung || {}, si);
+  const lernkarte   = document.getElementById('lernkarte');
+  lernkarte.style.setProperty('--sam-farbe', kartefarbe);
+  lernkarte.style.setProperty('--sam-farbe-tint', hexToRgba(kartefarbe, 0.13));
+
+  document.getElementById('lern-name-text') && (document.getElementById('lern-name-text').innerHTML = nameMitBadge(s));
+  setText('lern-gruppe-text', gName);
+  setText('lern-name-karte-gruppe', gName);
+  setText('lern-text-gruppe', gName);
+  document.getElementById('lern-favorit-stern').classList.toggle('hidden', !s.favorit);
+  // Favorit-Button im Header: immer sichtbar, Zustand sofort aktualisieren
+  const favHdrBtn = document.getElementById('btn-lern-favorit');
+  if (favHdrBtn) { favHdrBtn.classList.remove('hidden'); favHdrBtn.classList.toggle('aktiv', !!s.favorit); }
+  document.getElementById('lern-card-links').classList.add('hidden');
+  const videoEl = document.getElementById('lern-card-video');
+  if (videoEl) { videoEl.classList.add('hidden'); videoEl.innerHTML = ''; }
+
+  // Fortschrittsbalken + Counter
+  const answered = answeredIds.size;
+  document.getElementById('lern-progress-fill').style.width = total > 0 ? (answered / total * 100) + '%' : '0%';
+  document.getElementById('lern-position').innerHTML =
+    `${lernIndex + 1}<span class="counter-total"> / ${total}</span>`;
+
+  // Stapel: Ghost-Karten nur wenn Karten dahinter vorhanden
+  document.getElementById('stack-card-1').style.display = lernIndex + 1 < total ? '' : 'none';
+  document.getElementById('stack-card-2').style.display = lernIndex + 2 < total ? '' : 'none';
+
+  document.getElementById('btn-zurueck').classList.toggle('invisible', lernIndex === 0);
+  document.getElementById('btn-weiter').classList.toggle('invisible', lernIndex === total - 1);
+
+  // Alle Anzeigebereiche zurücksetzen
+  document.getElementById('lernkarte-foto-wrapper').classList.add('hidden');
+  document.getElementById('lernkarte-text-scroll-wrap').classList.add('hidden');
+  document.getElementById('lern-name-karte').classList.add('hidden');
+
+  const aufdeckBtn = document.getElementById('btn-aufdecken');
+  aufdeckBtn.style.visibility = '';
+
+  if (kartenModus === 'text' && lernModus === 'name') {
+    // Begriff-Karte UMGEKEHRT: Info/Definition (+ Fotos) vorne → Begriff aufdecken
+    document.getElementById('lern-vorderseite-text').innerHTML = vorderseiteHtml(s);
+    renderTextFotos('lern-text-fotos', s);
+    document.getElementById('lernkarte-text-scroll-wrap').classList.remove('hidden');
+    resetScrollIndikatoren();
+    aufdeckBtn.textContent = t('begriff_zeigen');
+  } else if (kartenModus === 'text') {
+    document.getElementById('lern-name-karte').classList.remove('hidden');
+    document.getElementById('lern-name-karte-text').innerHTML = nameMitBadge(s);
+    aufdeckBtn.textContent = t('info_zeigen');
+  } else if (lernModus === 'name') {
+    document.getElementById('lern-name-karte').classList.remove('hidden');
+    document.getElementById('lern-name-karte-text').innerHTML = nameMitBadge(s);
+    aufdeckBtn.textContent = t('bild_zeigen');
+  } else {
+    renderFotoSlideshow('lern-foto', 'lernkarte-foto-wrapper', s);
+    document.getElementById('lernkarte-foto-wrapper').classList.toggle('hidden', !s.foto);
+    aufdeckBtn.textContent = t('begriff_zeigen');
+  }
+  starteAutoTimer();
+  if (spielAktiv) { if (!spiel.sprache) spielKarteAngezeigt(); } else mdSpeichern();
+}
+
+function zeigeName(wertung) {
+  nameVisible     = true;
+  aktuelleWertung = wertung;
+  const s           = lernKarten[lernIndex];
+  const kartenModus = s.modus || 'foto';
+  if (!answeredIds.has(s.id)) {
+    if (wertung === 'gewusst') { gewusst++; gewusstIds.add(s.id); }
+    else                       { nichtGewusst++; nichtGewusstIds.add(s.id); }
+    answeredIds.add(s.id);
+  }
+  if (kartenModus === 'text' && lernModus === 'name') {
+    // Begriff-Karte umgekehrt aufdecken: Begriff im Overlay zeigen (Info/Definition war vorne)
+    document.getElementById('lernkarte-text-scroll-wrap').classList.add('hidden');
+    document.getElementById('lern-name-overlay').classList.remove('hidden');
+    const notizEl = document.getElementById('lern-notiz-text');
+    if (hatNotizInhalt(s)) { notizEl.innerHTML = notizHtml(s); notizEl.classList.remove('hidden'); }
+    else { notizEl.classList.add('hidden'); }
+    showLinks('lern-card-links', s.links || []);
+    showVideo('lern-card-video', s);
+  } else if (kartenModus === 'text') {
+    // Begriff-Karte normal aufdecken: Info/Definition (+ Fotos) anzeigen (Begriff war vorne)
+    document.getElementById('lern-name-karte').classList.add('hidden');
+    document.getElementById('lern-vorderseite-text').innerHTML = vorderseiteHtml(s);
+    renderTextFotos('lern-text-fotos', s);
+    document.getElementById('lernkarte-text-scroll-wrap').classList.remove('hidden');
+    resetScrollIndikatoren();
+    const notizRueck = document.getElementById('lern-notiz-text-rueck');
+    if (hatNotizInhalt(s)) { notizRueck.innerHTML = notizHtml(s); notizRueck.classList.remove('hidden'); }
+    else { notizRueck.classList.add('hidden'); }
+    showLinks('lern-card-links', s.links || []);
+    showVideo('lern-card-video', s);
+  } else if (lernModus === 'name') {
+    // Foto-Karte umgekehrt aufdecken: Bild anzeigen
+    renderFotoSlideshow('lern-foto', 'lernkarte-foto-wrapper', s);
+    document.getElementById('lernkarte-foto-wrapper').classList.remove('hidden');
+    document.getElementById('lern-name-karte').classList.add('hidden');
+    const notizEl = document.getElementById('lern-notiz-text');
+    if (hatNotizInhalt(s)) { notizEl.innerHTML = notizHtml(s); notizEl.classList.remove('hidden'); }
+    else { notizEl.classList.add('hidden'); }
+    showLinks('lern-card-links', s.links || []);
+    showVideo('lern-card-video', s);
+  } else {
+    // Foto-Karte normal aufdecken: Begriff im Overlay
+    document.getElementById('lern-name-overlay').classList.remove('hidden');
+    const notizEl = document.getElementById('lern-notiz-text');
+    if (hatNotizInhalt(s)) { notizEl.innerHTML = notizHtml(s); notizEl.classList.remove('hidden'); }
+    else { notizEl.classList.add('hidden'); }
+    showLinks('lern-card-links', s.links || []);
+    showVideo('lern-card-video', s);
+  }
+  // Hint Pill verstecken, Fortschrittsbalken aktualisieren
+  document.getElementById('lern-hint-pill').classList.add('hidden');
+  const total = lernKarten.length;
+  document.getElementById('lern-progress-fill').style.width =
+    total > 0 ? (answeredIds.size / total * 100) + '%' : '0%';
+
+  document.getElementById('btn-aufdecken').style.visibility = 'hidden';
+  if (!(spielAktiv && spiel.sprache)) zeigeFeedback(wertung === 'gewusst' ? 'gewusst' : 'nicht');
+  // Favorit-Button im Header: Zustand nach Aufdecken aktualisieren
+  const lernFavBtn = document.getElementById('btn-lern-favorit');
+  if (lernFavBtn) { lernFavBtn.classList.toggle('aktiv', !!s.favorit); }
+  if (spielAktiv && !spiel.sprache) spielAufgedeckt();
+}
+
+function naechsteKarteOderEnde() {
+  if (lernIndex < lernKarten.length - 1) {
+    if (aktuelleWertung && !isAnimating) {
+      isAnimating = true;
+      const card = document.getElementById('lernkarte');
+      const animClass = aktuelleWertung === 'gewusst' ? 'fly-out-up' : 'fly-out-down';
+      card.classList.add(animClass);
+      document.getElementById('stack-card-1').classList.add('stack-advance-1');
+      document.getElementById('stack-card-2').classList.add('stack-advance-2');
+      setTimeout(() => { lernIndex++; zeigeKarte(); }, 450);
+    } else if (!isAnimating) {
+      lernIndex++; zeigeKarte();
+    }
+  } else {
+    zeigeEnde();
+  }
+}
+
+async function zeigeEnde() {
+  stoppeAutoTimer();
+  mdAbschliessen();   // fertig: nichts mehr fortzusetzen
+  if (spielAktiv) { spielPodium(true); return; }   // Spiel: Auswertung statt Ergebnis-Seite, keine Statistik
+  gebeWakeLockFrei();
+  if (!autoRepeat) beendePraesentation();
+  await speichereSitzung();
+  if (autoRepeat) {
+    const pause = timerSekunden ? 600 : 1800;
+    document.getElementById('lern-repeat-pause').classList.remove('hidden');
+    toast(t('toast_neue_runde'));
+    setTimeout(() => starteSession(lernKarten), pause);
+    return;
+  }
+  document.getElementById('lernen-flashcard').classList.add('hidden');
+  document.getElementById('lernen-ende').classList.remove('hidden');
+  const total = lernKarten.length;
+  document.getElementById('stat-gewusst').textContent  = gewusst;
+  document.getElementById('stat-nicht').textContent    = nichtGewusst;
+  document.getElementById('ende-subtitle').textContent = `${total} Karte${total !== 1 ? 'n' : ''} abgefragt`;
+  // „Nachgeschaut üben" nur zeigen, wenn mind. 1 Karte nachgeschaut
+  const nachBtn = document.getElementById('btn-nachgeschaut-ueben');
+  if (nachBtn) nachBtn.classList.toggle('hidden', nichtGewusst === 0);
+}
+
+let lernStand = null, lernStandNaechster = null;   // {key,id} für „Lernen fortsetzen“ (key beginnt mit 'L:')
+let lernKartenOriginal = []; // unsortierte Ursprungsreihenfolge
+let lernIstGemischt    = true;
+
+function aktualisiereMischenBtn() {
+  const btn = document.getElementById('btn-mischen');
+  if (lernIstGemischt) {
+    btn.textContent = t('gemischt');
+    btn.classList.add('active');
+  } else {
+    btn.textContent = t('sortiert');
+    btn.classList.remove('active');
+  }
+}
+
+function starteSession(karten, shuffle = true, startIndex = 0, alsGemischt = false) {
+  stoppeAutoTimer();
+  lernStand = lernStandNaechster; lernStandNaechster = null;   // Fortschritt nur für Starts aus der Auswahl merken
+  try { lsStempel('kurssetZuletzt', [...new Set(karten.map(k => k.kurssetId).filter(Boolean))]); } catch (_) {}
+  lernKartenOriginal = [...karten];
+  lernIstGemischt    = shuffle || alsGemischt;
+  lernKarten         = shuffle ? mischen([...karten]) : [...karten];
+  lernIndex    = startIndex;
+  gewusst      = 0;
+  nichtGewusst = 0;
+  isAnimating  = false;
+  answeredIds.clear();
+  gewusstIds.clear();
+  nichtGewusstIds.clear();
+  document.getElementById('lern-progress-fill').style.width = '0%';
+
+  // Farbe der ersten Karte VOR dem Einblenden setzen — verhindert
+  // schwarzen Hintergrund während des Countdowns (iOS Safari malt sofort)
+  if (lernKarten.length) {
+    const ersteKarte = lernKarten[0];
+    const g0  = gruppen.find(g => g.id === ersteKarte.gruppeId);
+    const sm0 = g0 ? sammlungen.find(s => s.id === g0.sammlungId) : null;
+    const si0 = sm0 ? getSortierteSammlungen().indexOf(sm0) : 0;
+    const f0  = sammlungFarbe(sm0 || {}, si0);
+    const lk  = document.getElementById('lernkarte');
+    lk.style.setProperty('--sam-farbe', f0);
+    lk.style.setProperty('--sam-farbe-tint', hexToRgba(f0, 0.13));
+  }
+
+  document.getElementById('lernen-ende').classList.add('hidden');
+  document.getElementById('lernen-flashcard').classList.remove('hidden');
+
+  // Mischen-Button: Zustand + Wackel-Animation bei gemischter Session
+  document.getElementById('btn-mischen').style.visibility = '';
+  aktualisiereMischenBtn();
+  if (shuffle) {
+    setTimeout(() => {
+      const btnM = document.getElementById('btn-mischen');
+      btnM.classList.remove('btn-wackeln');
+      void btnM.offsetWidth;
+      btnM.classList.add('btn-wackeln');
+    }, 60); // kurz warten bis DOM sichtbar ist
+  }
+
+  // Timer-Buttons & Autorepeat synchronisieren
+  document.querySelectorAll('.timer-btn').forEach(b =>
+    b.classList.toggle('active', +b.dataset.sek === timerSekunden)
+  );
+  document.querySelectorAll('.timer-btn-repeat').forEach(b =>
+    b.classList.toggle('active', autoRepeat)
+  );
+  if (timerSekunden) {
+    erwerbeWakeLock();
+    starteCountdown(() => zeigeKarte());
+  } else {
+    zeigeKarte();
+  }
+
+  // Swipe-Hint einmalig anzeigen
+  const hint = document.getElementById('lern-swipe-hint');
+  if (!localStorage.getItem('swipeLearnHintSeen')) {
+    hint.classList.remove('hidden');
+    setTimeout(() => {
+      hint.classList.add('fade-out');
+      setTimeout(() => { hint.classList.add('hidden'); hint.classList.remove('fade-out'); }, 500);
+    }, 2500);
+    localStorage.setItem('swipeLearnHintSeen', '1');
+  } else {
+    hint.classList.add('hidden');
+  }
+}
+
+// ============================================================
+// KARTE EDIT MODAL
+// ============================================================
+
+// Puffer der aktuell im Bearbeiten-Formular gezeigten Fotos: { blob, url }
+let editFotosBuffer = [];
+
+function renderEditFotosListe() {
+  const el = document.getElementById('karte-edit-fotos-liste');
+  if (!el) return;
+  el.innerHTML = editFotosBuffer.map((f, i) => `
+    <div class="karte-edit-foto-thumb">
+      <img src="${f.url}" alt="">
+      <button type="button" class="btn-foto-entfernen" data-idx="${i}" title="Entfernen">✕</button>
+    </div>`).join('');
+  el.classList.toggle('hidden', editFotosBuffer.length === 0);
+}
+
+async function openKarteEditModal(studentId, mode) {
+  editModalMode      = mode;
+  editModalStudentId = studentId;
+  const s = studenten.find(x => x.id === studentId);
+
+  document.getElementById('karte-edit-titel').textContent = mode === 'copy' ? t('karte_kopieren') : t('karte_bearbeiten');
+  document.getElementById('karte-edit-name').value  = s.name;
+  document.getElementById('karte-edit-notiz').value = s.notiz || '';
+  document.getElementById('karte-edit-merke').value = s.merke || '';
+  EN_FELDER_KARTE.forEach(f => { document.getElementById('karte-edit-' + f.replace('_', '-')).value = s[f] || ''; });
+  document.getElementById('karte-edit-en').open = EN_FELDER_KARTE.some(f => s[f]);
+  document.getElementById('karte-edit-links').value = (s.links || []).join('\n');
+  document.getElementById('karte-edit-video').value = s.videoId || '';
+  const editVideoStatus = document.getElementById('karte-edit-video-status');
+  if (editVideoStatus) {
+    editVideoStatus.textContent = s.videoTitel ? `✓ ${s.videoTitel}` : '';
+    editVideoStatus.className = 'video-input-status' + (s.videoTitel ? ' ok' : '');
+  }
+
+  // Typ-Chips setzen
+  const isFoto = s.modus !== 'text';
+  document.getElementById('karte-edit-chip-foto').classList.toggle('active', isFoto);
+  document.getElementById('karte-edit-chip-text').classList.toggle('active', !isFoto);
+  document.getElementById('karte-edit-name-label').textContent = isFoto ? t('name_label') : t('begriff_label');
+
+  // Felder ein-/ausblenden — Fotos sind jetzt bei Foto- UND Begriff-Karten relevant
+  // (bei Begriff optional, erscheinen auf der Rückseite zusätzlich zum Info-Text)
+  document.getElementById('karte-edit-foto-gruppe').classList.remove('hidden');
+  document.getElementById('karte-edit-foto-label').innerHTML = isFoto ? t('fotos_label_foto') : t('fotos_label_begriff');
+  document.getElementById('karte-edit-vorderseite-gruppe').classList.toggle('hidden', isFoto);
+
+  // Foto-Puffer zurücksetzen und mit aktuellen (frischen) Bildern befüllen — unabhängig vom Modus
+  document.getElementById('karte-edit-foto-input').value = '';
+  editFotosBuffer.forEach(f => URL.revokeObjectURL(f.url));
+  editFotosBuffer = [];
+  try {
+    const dbRec = await dbGet('studenten', s.id);
+    const blobs = (dbRec?.fotos && dbRec.fotos.length) ? dbRec.fotos : (dbRec?.foto ? [dbRec.foto] : []);
+    editFotosBuffer = blobs.map(blob => ({ blob, url: URL.createObjectURL(blob) }));
+  } catch (err) { console.warn('Foto DB-Fehler:', err); }
+  renderEditFotosListe();
+  if (s.modus === 'text') {
+    document.getElementById('karte-edit-vorderseite').value = s.vorderseite || '';
+  }
+
+  const sel = document.getElementById('karte-edit-gruppe');
+  const sortierteSamml = getSortierteSammlungen();
+  sel.innerHTML = sortierteSamml.map(sam => {
+    const gs = getSortierteGruppenInSammlung(sam.id);
+    if (!gs.length) return '';
+    return `<optgroup label="${esc(sammlungName(sam))}">` +
+      gs.map(g => `<option value="${g.id}">${esc(gruppeName(g))}</option>`).join('') +
+      `</optgroup>`;
+  }).join('');
+  if (mode === 'copy') {
+    const other = gruppen.find(g => g.id !== s.gruppeId);
+    sel.value = other ? other.id : (gruppen[0]?.id || '');
+  } else {
+    sel.value = s.gruppeId;
+  }
+
+  document.getElementById('karte-edit-modal').classList.remove('hidden');
+  setTimeout(() => {
+    const inp = document.getElementById('karte-edit-name');
+    inp.focus(); inp.select();
+  }, 80);
+}
+
+// ============================================================
+// VIEW NAVIGATION
+// ============================================================
+
+// ── Modus Einfach / Erweitert ────────────────────────────────
+let appModus = 'einfach';
+function hatEigeneKarten() {
+  return studenten.some(k => !k.kurssetId && !/^tut(orial)?-/.test(k.id));
+}
+function hatKursset() {
+  return studenten.some(k => k.kurssetId) || sammlungen.some(x => x.kurssetId);
+}
+function modusErmitteln() {
+  let m = null;
+  try { m = localStorage.getItem('memofixModus'); } catch (_) {}
+  if (m === 'einfach' || m === 'erweitert') return m;
+  m = hatEigeneKarten() ? 'erweitert' : 'einfach';       // bestehende Nutzer mit eigenen Karten behalten alle Funktionen
+  try { localStorage.setItem('memofixModus', m); } catch (_) {}
+  return m;
+}
+function setzeModus(m) {
+  appModus = m;
+  try { localStorage.setItem('memofixModus', m); } catch (_) {}
+  document.body.classList.toggle('modus-einfach', m === 'einfach');
+  document.body.classList.toggle('modus-erweitert', m === 'erweitert');
+  if (typeof applyTranslations === 'function' && db) applyTranslations();
+  aktualisiereWillkommen();
+  const aktiv = document.querySelector('.nav-item.active')?.dataset.view;
+  if (m === 'einfach' && aktiv === 'verwaltung') showView('lernen');
+  else if (aktiv === 'lernen' && !document.getElementById('lernen-auswahl').classList.contains('hidden')) renderLernAuswahl();
+}
+function aktualisiereWillkommen() {
+  document.getElementById('willkommen-card')?.classList.toggle('hidden', !(appModus === 'einfach' && !hatKursset()));
+}
+function modusGruppeSichtbar(g) {                      // Tutorial-Gruppe „Erweitert“ nur im Modus Erweitert
+  return !(appModus === 'einfach' && g.id === 'tutorial-weiter');
+}
+
+function showView(name) {
+  if (name !== 'lernen') gebeWakeLockFrei(); // Lern-View verlassen → Bildschirmsperre wieder aktiv
+  localStorage.setItem('memoLastView', name);
+  ['verwaltung', 'lernen', 'statistik', 'sicherung'].forEach(v =>
+    document.getElementById(`view-${v}`).classList.toggle('hidden', v !== name));
+  document.querySelectorAll('.nav-item').forEach(b =>
+    b.classList.toggle('active', b.dataset.view === name));
+  if (name === 'lernen') {
+    document.getElementById('lernen-auswahl').classList.remove('hidden');
+    try { updateLernStartBtn(); } catch (_) {}
+    document.getElementById('lernen-flashcard').classList.add('hidden');
+    document.getElementById('lernen-ende').classList.add('hidden');
+    renderLernAuswahl();
+  }
+  if (name === 'statistik') renderStatistik();
+  if (name === 'sicherung') { aktualisiereWillkommen(); ladeKurssetListe(); }
+}
+
+// ============================================================
+// EXPORT / IMPORT
+// ============================================================
+
+function blobToDataUrl(blob) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload  = () => res(r.result);
+    r.onerror = () => rej(r.error || new Error('FileReader-Fehler'));
+    r.readAsDataURL(blob);
+  });
+}
+
+function dataUrlToBlob(dataUrl) {
+  const [header, b64] = dataUrl.split(',');
+  const mime  = header.match(/:(.*?);/)[1];
+  const bytes = atob(b64);
+  const arr   = new Uint8Array(bytes.length);
+  for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+
+// ── KURSSETS: manifest.json, Status (rot ● / grün ✓ / orange ↻) und Update-Check ──
+const KURSSET_MANIFEST_CACHE = 'kurssetManifestLetzter';
+
+async function holeJson(url, timeoutMs = 5000) {
+  const ctrl  = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const r = await fetch(url + (url.includes('?') ? '&' : '?') + 'cb=' + Date.now(), { cache: 'no-store', signal: ctrl.signal });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } finally { clearTimeout(timer); }
+}
+
+async function holeBinaer(url, timeoutMs = 30000) {
+  const ctrl  = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const r = await fetch(url + '?cb=' + Date.now(), { cache: 'no-store', signal: ctrl.signal });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return new Uint8Array(await r.arrayBuffer());
+  } finally { clearTimeout(timer); }
+}
+
+// Passwortgeschützte Sets (.mfx): "MFX1" | Iterationen | Salt 16 | IV 16 | AES-256-CTR(gzip(JSON)) | HMAC-SHA256 (siehe Kurssets-Werkzeug/mfx.py)
+// Liefert das JSON-Objekt, null bei falschem Passwort; wirft bei beschädigter Datei.
+async function mfxOeffnen(buf, passwort) {
+  const sub = window.crypto?.subtle;
+  if (!sub || typeof DecompressionStream === 'undefined') throw new Error(t('pw_alt'));
+  if (buf.length < 73 || String.fromCharCode(...buf.slice(0, 4)) !== 'MFX1') throw new Error(t('kursset_format'));
+  const iter = new DataView(buf.buffer, buf.byteOffset + 4, 4).getUint32(0);
+  const salt = buf.slice(8, 24), iv = buf.slice(24, 40), ct = buf.slice(40, buf.length - 32), mac = buf.slice(buf.length - 32);
+  const roh = await sub.importKey('raw', new TextEncoder().encode(passwort.normalize('NFC')), 'PBKDF2', false, ['deriveBits']);
+  const bits = new Uint8Array(await sub.deriveBits({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, roh, 512));
+  const kmac = await sub.importKey('raw', bits.slice(32), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']);
+  if (!await sub.verify('HMAC', kmac, mac, buf.subarray(0, buf.length - 32))) return null;
+  const kenc = await sub.importKey('raw', bits.slice(0, 32), 'AES-CTR', false, ['decrypt']);
+  const gz = await sub.decrypt({ name: 'AES-CTR', counter: iv, length: 64 }, kenc, ct);
+  const klar = await new Response(new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+  return JSON.parse(new TextDecoder().decode(klar));
+}
+
+const kurssetPwLesen = () => lsJson('kurssetPasswoerter');
+function kurssetPwMerken(setId, pw) {
+  const m = kurssetPwLesen(); m[setId] = pw;
+  try { localStorage.setItem('kurssetPasswoerter', JSON.stringify(m)); } catch (_) {}
+}
+
+// Passwort-Dialog; liefert das eingegebene Passwort (und ob es gemerkt werden soll) oder null bei Abbruch.
+// pruefe(pw) -> true/false entscheidet, ob der Dialog schließt.
+function fragePasswort(name, pruefe) {
+  return new Promise(resolve => {
+    const wrap = document.createElement('div');
+    wrap.className = 'modal-backdrop pw-dialog';
+    wrap.innerHTML = `<div class="modal"><div class="modal-header"><h2>${esc(t('pw_titel'))}</h2><button class="btn-modal-close" type="button" aria-label="${esc(t('pw_abbrechen'))}">✕</button></div>
+      <form class="modal-body"><p class="modal-hint">${esc(tf('pw_text', name))}</p>
+      <div class="form-group"><label for="pw-eingabe">${esc(t('pw_label'))}</label>
+      <input type="password" id="pw-eingabe" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+      <p class="pw-fehler hidden" role="alert">${esc(t('pw_falsch'))}</p>
+      <label class="pw-merken"><input type="checkbox" checked> <span>${esc(t('pw_merken'))}</span></label>
+      <button class="btn-primary btn-large" type="submit">${esc(t('pw_ok'))}</button></form></div>`;
+    document.body.appendChild(wrap);
+    const input = wrap.querySelector('input[type=password]'), fehler = wrap.querySelector('.pw-fehler'), ok = wrap.querySelector('.btn-primary');
+    const zu = wert => { wrap.remove(); resolve(wert); };
+    wrap.querySelector('.btn-modal-close').addEventListener('click', () => zu(null));
+    wrap.addEventListener('click', e => { if (e.target === wrap) zu(null); });
+    wrap.querySelector('form').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (!input.value) return;
+      ok.disabled = true; ok.textContent = t('pw_pruefe'); fehler.classList.add('hidden');
+      let gut = false;
+      try { gut = await pruefe(input.value); } finally { ok.disabled = false; ok.textContent = t('pw_ok'); }
+      if (gut) zu({ pw: input.value, merken: wrap.querySelector('input[type=checkbox]').checked });
+      else { fehler.classList.remove('hidden'); input.select(); }
+    });
+    setTimeout(() => input.focus(), 50);
+  });
+}
+
+// Entschlüsselt die erste Datei eines geschützten Sets: gemerkte Passwörter zuerst (auch die anderer Sets,
+// ein Passwort gilt oft für einen ganzen Ordner), sonst Dialog. Liefert {pw, erste} oder null bei Abbruch.
+async function kurssetEntsperren(set, name, ersteBytes) {
+  const gemerkt = kurssetPwLesen();
+  const kandidaten = [...new Set([gemerkt[set.id], ...Object.values(gemerkt)].filter(Boolean))];
+  for (const pw of kandidaten) {
+    const d = await mfxOeffnen(ersteBytes, pw);
+    if (d) { kurssetPwMerken(set.id, pw); return { pw, erste: d }; }
+  }
+  // Eingabe = Passwort des Ordners oder Admin-Passwort (öffnet den Schlüsselbund mit allen Ordner-Passwörtern)
+  let erste = null, gefunden = null, bund = [];
+  const antwort = await fragePasswort(name, async pw => {
+    erste = await mfxOeffnen(ersteBytes, pw);
+    if (erste) { gefunden = pw; return true; }
+    bund = await kurssetSchluesselbund(pw);
+    for (const k of bund) { erste = await mfxOeffnen(ersteBytes, k); if (erste) { gefunden = k; return true; } }
+    return false;
+  });
+  if (!antwort) return null;
+  if (antwort.merken) {
+    kurssetPwMerken(set.id, gefunden);
+    bund.forEach((k, i) => kurssetPwMerken('_schluessel:' + i, k));   // gilt dann für alle Ordner
+  }
+  return { pw: gefunden, erste };
+}
+
+// Schlüsselbund (kurssets/schluessel.mfx): alle Ordner-Passwörter, mit dem Admin-Passwort verschlüsselt.
+let KURSSET_SCHLUESSEL = 'kurssets/schluessel.mfx', kurssetBundBytes;
+async function kurssetSchluesselbund(adminPw) {
+  try {
+    if (!kurssetBundBytes) kurssetBundBytes = await holeBinaer(KURSSET_SCHLUESSEL);
+    const d = await mfxOeffnen(kurssetBundBytes, adminPw);
+    return d && Array.isArray(d.pw) ? d.pw.filter(x => typeof x === 'string') : [];
+  } catch (_) { return []; }
+}
+
+// manifest.json bevorzugt, sonst alte index.json, sonst letzter bekannter Stand (offline)
+async function ladeKurssetManifest() {
+  try {
+    const m = await holeJson('kurssets/manifest.json');
+    if (Array.isArray(m.sets)) {
+      const sets = m.sets.map(x => ({ ...x, pfad: Array.isArray(x.pfad) ? x.pfad : [], dateien: Array.isArray(x.dateien) && x.dateien.length ? x.dateien : (x.datei ? [x.datei] : []) }));
+      try { localStorage.setItem(KURSSET_MANIFEST_CACHE, JSON.stringify(sets)); } catch (_) {}
+      return sets;
+    }
+  } catch (_) { /* weiter mit Fallback */ }
+  try {
+    const idx = await holeJson('kurssets/index.json');
+    if (Array.isArray(idx.sets)) {
+      return idx.sets.map(x => ({ id: x.id, name: x.titel || x.id, beschreibung: x.beschreibung || '', hash: '', pfad: String(x.datei || '').split('/').slice(0, -1), dateien: x.datei ? [x.datei] : [] }));
+    }
+  } catch (_) { /* weiter mit Cache */ }
+  try {
+    const c = JSON.parse(localStorage.getItem(KURSSET_MANIFEST_CACHE) || 'null');
+    if (Array.isArray(c)) return c;
+  } catch (_) {}
+  return null;
+}
+
+// Kurzer Fingerabdruck der inhaltlichen Felder einer Karte (nur lokal, erkennt Änderungen in der Verwaltung)
+function kartenFingerabdruck(k) {
+  const z = v => String(v == null ? '' : v).trim();
+  const fotos = (k.fotos && k.fotos.length) ? k.fotos : (k.foto ? [k.foto] : []);
+  const str = JSON.stringify([
+    z(k.modus), z(k.name), z(k.vorderseite), z(k.notiz), z(k.merke),
+    z(k.name_en), z(k.vorderseite_en), z(k.notiz_en), z(k.merke_en),
+    (k.links || []).map(z), z(k.videoId), fotos.map(b => b?.size || 0)
+  ]);
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(16);
+}
+
+// 'rot' = nie geladen, 'gruen' = aktuell, 'orange' = Update verfügbar
+function kurssetStatus(set) {
+  const sams = sammlungen.filter(x => x.kurssetId === set.id);
+  const geladen = sams.length || studenten.some(k => k.kurssetId === set.id) || sammlungen.some(x => x.id === set.id && !x.kurssetEntfernt);
+  if (!geladen) return 'rot';
+  if (!set.hash) return 'gruen';                       // alte index.json ohne Hash
+  const gespeichert = sams.find(x => x.kurssetHash)?.kurssetHash;
+  return gespeichert && gespeichert === set.hash ? 'gruen' : 'orange';   // vor dem Status-Feature geladen -> orange
+}
+const KURSSET_SYMBOL = { rot: '●', gruen: '✓', orange: '↻' };
+
+// ── Kursset: Größe, Nutzung, Entfernen ───────────────────────
+const GR_ORANGE_MB = 20, GR_ROT_MB = 40, AUFRAEUMEN_TAGE = 60;
+function groessenKlasse(mb) { return mb >= GR_ROT_MB ? 'rot' : mb >= GR_ORANGE_MB ? 'orange' : 'gruen'; }
+function lsJson(key) { try { return JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch (_) { return {}; } }
+function lsStempel(key, setIds) {
+  if (!setIds.length) return;
+  const m = lsJson(key), jetzt = new Date().toISOString();
+  setIds.forEach(id => { m[id] = jetzt; });
+  try { localStorage.setItem(key, JSON.stringify(m)); } catch (_) {}
+}
+function kurssetLetzteNutzung(setId) {
+  const z = lsJson('kurssetZuletzt')[setId], g = lsJson('kurssetGeladen')[setId];
+  const d = [z, g].filter(Boolean).map(x => new Date(x).getTime());
+  return d.length ? Math.max(...d) : null;
+}
+// Karten eines Sets auf diesem Gerät (markierte Karten; ältere Ladungen ohne Markierung: alle Karten der Sammlung)
+function kurssetKartenLokal(setId) {
+  const getaggt = studenten.filter(k => k.kurssetId === setId);
+  if (getaggt.length) return getaggt;
+  const gids = new Set(gruppen.filter(g => g.sammlungId === setId).map(g => g.id));
+  return studenten.filter(k => gids.has(k.gruppeId));
+}
+function kurssetLokalMB(setId) {
+  let bytes = 0;
+  for (const k of kurssetKartenLokal(setId)) {
+    const list = (k.fotos && k.fotos.length) ? k.fotos : (k.foto ? [k.foto] : []);
+    list.forEach(b => { bytes += b?.size || 0; });
+  }
+  return Math.round(bytes / 104857.6) / 10;   // MB mit einer Nachkommastelle
+}
+function kurssetIstGeladen(set) { return kurssetStatus(set) !== 'rot'; }
+
+// Entfernt die Karten eines Sets (eigene Karten in denselben Gruppen bleiben). Favoriten werden gemerkt.
+async function entferneKurssetDaten(set) {
+  const karten = kurssetKartenLokal(set.id);
+  const favs = karten.filter(k => k.favorit).map(k => k.id);
+  const gids = new Set(karten.map(k => k.gruppeId));
+  for (const k of karten) { await dbDelete('studenten', k.id); revokeUrl(k.id); }
+  const restKarten = studenten.filter(k => !karten.some(x => x.id === k.id));
+  const sids = new Set();
+  for (const gid of gids) {
+    const g = gruppen.find(x => x.id === gid);
+    if (g?.sammlungId) sids.add(g.sammlungId);
+    if (!restKarten.some(k => k.gruppeId === gid)) {
+      await dbDelete('gruppen', gid);
+      try { localStorage.removeItem('kartenReihenfolge-' + gid); } catch (_) {}
+      gruppenReihenfolge = gruppenReihenfolge.filter(x => x !== gid);
+    }
+  }
+  saveGruppenReihenfolge();
+  const restGruppen = gruppen.filter(g => !gids.has(g.id) || restKarten.some(k => k.gruppeId === g.id));
+  for (const sid of sids) {
+    const sam = sammlungen.find(x => x.id === sid);
+    if (sam && !restGruppen.some(g => g.sammlungId === sid)) {
+      await dbDelete('sammlungen', sid);
+      sammlungenReihenfolge = sammlungenReihenfolge.filter(x => x !== sid);
+    } else if (sam) {
+      // Sammlung bleibt (eigene Karten) -> nicht mehr als geladenes Kursset markieren
+      const rest = { ...sam, kurssetEntfernt: true };
+      delete rest.kurssetId; delete rest.kurssetHash; delete rest.kurssetStand;
+      await dbPut('sammlungen', rest);
+    }
+  }
+  saveSammlungenReihenfolge();
+  if (favs.length) {
+    const m = lsJson('kurssetFavoriten'); m[set.id] = favs;
+    try { localStorage.setItem('kurssetFavoriten', JSON.stringify(m)); } catch (_) {}
+  }
+  for (const key of ['kurssetZuletzt', 'kurssetGeladen']) {
+    const m = lsJson(key); delete m[set.id];
+    try { localStorage.setItem(key, JSON.stringify(m)); } catch (_) {}
+  }
+  return karten.length;
+}
+
+async function entferneKurssetMitRueckfrage(set) {
+  const name = (istEn() && set.name_en) ? set.name_en : (set.name || set.id);
+  const karten = kurssetKartenLokal(set.id);
+  const geaendert = karten.filter(k => k.kurssetStand && kartenFingerabdruck(k) !== k.kurssetStand).length;
+  const en = istEn();
+  const msg = en
+    ? `Remove "${name}" from this device?\n\n${karten.length} cards (${kurssetLokalMB(set.id)} MB) will be deleted. Your learning statistics stay, favorites are restored when you load the set again. You need internet to load it again.${geaendert ? `\n\n⚠️ ${geaendert} card(s) were changed by you and will be lost.` : ''}`
+    : `„${name}" vom Gerät entfernen?\n\n${karten.length} Karten (${kurssetLokalMB(set.id)} MB) werden gelöscht. Deine Lernstatistik bleibt erhalten, Favoriten werden beim erneuten Laden wiederhergestellt. Zum erneuten Laden brauchst du Internet.${geaendert ? `\n\n⚠️ ${geaendert} Karte(n) hast du selbst geändert, sie gehen verloren.` : ''}`;
+  if (!confirm(msg)) return false;
+  const n = await entferneKurssetDaten(set);
+  await ladeAlles(); renderVerwaltung(); renderLernAuswahl(); await ladeKurssetListe();
+  toast(tf('toast_kursset_entfernt', name, n));
   return true;
 }
 
-function zustandAus(alt) {
-  const z = { ...startZustand(), ...alt, einstellungen: { ...startZustand().einstellungen, ...alt.einstellungen } };
-  if (!(alt.stand >= 3)) {
-    // Stand 3: Piktogramme für die Startmomente
-    for (const m of z.momente) { const st = FRUEHERE_MOMENTE.find(x => x.id === m.id); if (st && !m.icon) m.icon = st.icon; }
+async function ladeKurssetListe() {
+  aktualisiereWillkommen();
+  const box   = document.getElementById('kursset-liste');
+  const hint  = document.getElementById('kursset-hinweis');
+  const alle  = document.getElementById('btn-kursset-alle');
+  if (!box) return;
+  const sets = await ladeKurssetManifest();
+  box._sets = sets || [];
+  if (hint) hint.classList.add('hidden');
+  if (alle) alle.classList.add('hidden');
+  if (!sets) { box.innerHTML = `<p class="kursset-hinweis">${esc(t('kursset_offline'))}</p>`; return; }
+  if (!sets.length) { box.innerHTML = `<p class="kursset-hinweis">${esc(t('kursset_keine'))}</p>`; return; }
+  let updates = 0, geladeneSets = 0;
+  const zeile = set => {
+    const st    = kurssetStatus(set);
+    const name  = (istEn() && set.name_en) ? set.name_en : (set.name || set.id);
+    const neu   = (istEn() && set.neu_en) ? set.neu_en : (set.neu || '');
+    const gk    = groessenKlasse(set.mb || 0);
+    const wort  = gk === 'rot' ? ' · ' + t('kursset_wort_rot') : gk === 'orange' ? ' · ' + t('kursset_wort_orange') : '';
+    const lokal = st !== 'rot' ? kurssetLokalMB(set.id) : 0;
+    const metaTeile = [
+      set.stand ? esc(`${t('kursset_stand')} ${set.stand}`) : '',
+      set.karten ? esc(tf('karte_n', set.karten)) : '',
+      set.mb ? `${set.bilder ? '🖼 ' : ''}<span class="gr-${gk}">${set.mb} MB${esc(wort)}</span>` : '',
+      lokal ? esc(`${lokal} ${t('kursset_belegt')}`) : '',
+      set.gruppen ? esc(`${set.gruppen} ${t('kursset_gruppen')}`) : ''
+    ].filter(Boolean);
+    const meta = metaTeile.join(' · ');
+    if (st !== 'rot') geladeneSets++;
+    const btnTxt = t(st === 'rot' ? 'kursset_laden' : st === 'orange' ? 'kursset_aktualisieren' : 'kursset_erneut');
+    const iconBtn = st === 'gruen';          // aktuell: nur ein kleines ↻ (Beschriftung als Tooltip)
+    return `<div class="kursset-zeile">
+      <div class="kursset-info">
+        <strong class="ks-${st}" title="${esc(t('kursset_status_' + st))}">${KURSSET_SYMBOL[st]} ${esc(name)}${set.geschuetzt ? ` <span class="ks-schloss" title="${esc(t('pw_geschuetzt'))}" aria-label="${esc(t('pw_geschuetzt'))}">🔒</span>` : ''}</strong>
+        ${meta ? `<span>${meta}</span>` : ''}
+        ${set.beschreibung ? `<span>${esc(set.beschreibung)}</span>` : ''}
+        ${neu ? `<span>${esc(t('kursset_neu'))}: ${esc(neu)}</span>` : ''}
+      </div>
+      <div class="kursset-aktionen">
+        <button class="btn-secondary btn-inline${iconBtn ? ' btn-kursset-neu' : ''}" data-kursset="${esc(set.id)}"${iconBtn ? ` title="${esc(btnTxt)}" aria-label="${esc(btnTxt)}"` : ''}>${iconBtn ? '↻' : esc(btnTxt)}</button>
+        ${st !== 'rot' ? `<button class="btn-kursset-del" data-kursset-del="${esc(set.id)}" title="${esc(t('kursset_entfernen_title'))}" aria-label="${esc(t('kursset_entfernen_title'))}">✕</button>` : ''}
+      </div>
+    </div>`;
+  };
+  // Baum aus pfad (Studiengang/Fach/…): Ordner zuerst, Sets ohne Pfad stehen auf oberster Ebene
+  const wurzel = { sets: [], kinder: new Map() };
+  for (const set of sets) {
+    let n = wurzel;
+    for (const seg of (set.pfad || [])) {
+      if (!n.kinder.has(seg)) n.kinder.set(seg, { sets: [], kinder: new Map() });
+      n = n.kinder.get(seg);
+    }
+    n.sets.push(set);
+    if (kurssetStatus(set) === 'orange') updates++;
   }
-  if (!(alt.stand >= 4)) {
-    // Stand 4: Gruppen werden Daten
-    z.gruppen = START_GRUPPEN.map(x => ({ ...x }));
+  const alleSets = n => [...n.sets, ...[...n.kinder.values()].flatMap(alleSets)];
+  let ordnerZustand = {};
+  try { ordnerZustand = JSON.parse(localStorage.getItem('kurssetOrdnerOffen') || '{}') || {}; } catch (_) {}
+  const keinesGeladen = sets.every(x => kurssetStatus(x) === 'rot');
+  const zeichne = (n, tiefe) => {
+    const ordner = [...n.kinder.entries()].map(([name, kind]) => {
+      const st = alleSets(kind).map(kurssetStatus);
+      const pfadKey = (kind._pfad = [...(n._pfad || []), name]).join('/');
+      const gemerkt = ordnerZustand[pfadKey];
+      // Standard: oberste Ebene immer offen; tiefer offen, solange noch nichts geladen ist oder hier etwas geladen/aktualisierbar ist
+      const standard = tiefe === 1 || keinesGeladen || st.some(x => x !== 'rot');
+      const offen = (gemerkt === undefined ? standard : gemerkt) ? ' open' : '';
+      const marke = st.includes('orange') ? ` <span class="ks-orange" title="${esc(t('kursset_status_orange'))}">↻</span>` : '';
+      return `<details class="ks-ordner ks-ebene-${Math.min(tiefe, 3)}" data-pfad="${esc(pfadKey)}"${offen}><summary>${esc(name)}${marke}</summary>${zeichne(kind, tiefe + 1)}</details>`;
+    }).join('');
+    return ordner + n.sets.map(zeile).join('');
+  };
+  box.innerHTML = zeichne(wurzel, 1);
+  const aufr = document.getElementById('btn-kursset-aufraeumen');
+  if (aufr) aufr.classList.toggle('hidden', geladeneSets === 0);
+  box.insertAdjacentHTML('beforeend', '<p class="kursset-hinweis kursset-speicher" id="kursset-speicher"></p>');
+  try {
+    navigator.storage?.estimate?.().then(e => {
+      const el = document.getElementById('kursset-speicher');
+      if (!el || !e?.usage) return;
+      const u = Math.round(e.usage / 1048576);
+      const q = e.quota ? (e.quota >= 1073741824 ? (e.quota / 1073741824).toFixed(1) + ' GB' : Math.round(e.quota / 1048576) + ' MB') : '';
+      el.textContent = tf('kursset_speicher', u, q);
+    }).catch(() => {});
+  } catch (_) {}
+  // Auf-/Zuklappen merken
+  box.querySelectorAll('details.ks-ordner').forEach(d => d.addEventListener('toggle', () => {
+    try {
+      const z = JSON.parse(localStorage.getItem('kurssetOrdnerOffen') || '{}') || {};
+      z[d.dataset.pfad] = d.open;
+      localStorage.setItem('kurssetOrdnerOffen', JSON.stringify(z));
+    } catch (_) {}
+  }));
+  if (updates > 0) {
+    if (alle) alle.classList.remove('hidden');
+    if (hint) { hint.querySelector('span').textContent = tf('kursset_updates_hinweis', updates); hint.classList.remove('hidden'); }
   }
-  if (!(alt.stand >= 5)) {
-    // Stand 5: keine Untergruppen mehr; die Momente bleiben in ihrer Gruppe
-    delete z.untergruppen;
-    for (const m of z.momente) delete m.unter;
-    z.stand = 5;
-  }
-  if (!(alt.stand >= 6)) {
-    // Stand 6: eine Skala für alle Tage. leicht → halb; freie Tage: etwas · halb bleiben, ganz → normal
-    const st = z.arbeitStufe = { ...(z.arbeitStufe || {}) };
-    for (const [k, v] of Object.entries(st)) if (v === 'leicht') st[k] = 'halb';
-    for (const [k, v] of Object.entries(z.arbeit || {})) st[k] = v === 'ganz' ? 'normal' : v;
-    z.arbeit = {}; z.arbeitZeit ||= {};
-    z.stand = 6;
-  }
-  korridorPruefen(z.einstellungen);
-  return z;
 }
 
-// Hinweis „Neue Version verfügbar“ (wie MemoFix)
+// Karten werden über ihre ID abgeglichen. Entfallene Karten und lokal geänderte Karten
+// werden nie stillschweigend entfernt bzw. überschrieben, sondern erst nach Rückfrage.
+async function ladeKursset(set, opt = {}) {
+  const name = (istEn() && set.name_en) ? set.name_en : (set.name || set.id);
+  if (!opt.ohneRueckfrage && kurssetStatus(set) === 'rot' && !(set.mb > 5) && !confirm(tf('confirm_kursset', name))) return false;
+  // Große Sets: Warnung (Mobilfunk) — bei „Alle aktualisieren“ einmal vorab für alle
+  if (!opt.ohneRueckfrage && set.mb > 5 && !confirm(tf('confirm_kursset_gross', name, set.mb))) return false;
+  const lade = document.querySelector(`#kursset-liste [data-kursset="${CSS.escape(set.id)}"]`);
+  const ladeText = lade?.textContent;
+  if (lade) lade.disabled = true;
+  try {
+    const daten = { sammlungen: [], gruppen: [], studenten: [] };
+    const mische = (liste, neuListe) => {
+      for (const x of neuListe) { const i = liste.findIndex(y => y.id === x.id); if (i >= 0) liste[i] = x; else liste.push(x); }
+    };
+    let setPw = null;
+    for (let di = 0; di < set.dateien.length; di++) {
+      const datei = set.dateien[di];
+      if (lade) lade.textContent = tf('kursset_laedt', di + 1, set.dateien.length);
+      const url = 'kurssets/' + datei.split('/').map(encodeURIComponent).join('/');
+      let d;
+      if (set.geschuetzt) {
+        const bytes = await holeBinaer(url);
+        if (setPw === null) {
+          const frei = await kurssetEntsperren(set, name, bytes);
+          if (!frei) { if (lade) { lade.disabled = false; lade.textContent = ladeText; } return false; }
+          setPw = frei.pw; d = frei.erste;
+        } else {
+          d = await mfxOeffnen(bytes, setPw);
+          if (!d) throw new Error(t('pw_falsch'));
+        }
+      } else d = await holeJson(url, 30000);
+      if (!Array.isArray(d.studenten) || !Array.isArray(d.gruppen)) throw new Error(t('kursset_format'));
+      mische(daten.sammlungen, d.sammlungen || []); mische(daten.gruppen, d.gruppen); mische(daten.studenten, d.studenten);
+    }
+    const neueIds = new Set(daten.studenten.map(k => k.id));
+
+    // Lokal geänderte Karten (Verwaltung) erkennen
+    const konflikte = daten.studenten
+      .filter(k => { const v = studenten.find(x => x.id === k.id); return v && v.kurssetStand && kartenFingerabdruck(v) !== v.kurssetStand; })
+      .map(k => k.id);
+    let behalten = new Set();
+    if (konflikte.length && !confirm(tf('confirm_kursset_konflikt', name, konflikte.length))) behalten = new Set(konflikte);
+    // Entfallene Karten: Standard behalten
+    const entfallen = studenten.filter(x => x.kurssetId === set.id && !neueIds.has(x.id));
+    const entfernen = entfallen.length > 0 && confirm(tf('confirm_kursset_entfallen', entfallen.length));
+
+    for (const sam of daten.sammlungen) {
+      const vorh = sammlungen.find(x => x.id === sam.id);
+      const enS = {};
+      ['name_en', 'zweisprachig_inhalt'].forEach(f => { if (sam[f] != null) enS[f] = sam[f]; });
+      const marke = { kurssetId: set.id, kurssetHash: set.hash || '', kurssetStand: set.stand || '' };
+      const samRec = vorh ? { ...vorh, name: sam.name, ...enS, ...marke } : { ...sam, ...marke };
+      delete samRec.kurssetEntfernt;
+      await dbPut('sammlungen', samRec);
+    }
+    for (const g of daten.gruppen) {
+      const vorh = gruppen.find(x => x.id === g.id);
+      const enG = g.name_en != null ? { name_en: g.name_en } : {};
+      await dbPut('gruppen', vorh ? { ...vorh, name: g.name, sammlungId: g.sammlungId, ...enG } : g);
+    }
+    const gemerkteFavs = new Set(lsJson('kurssetFavoriten')[set.id] || []);
+    let neu = 0, aktualisiert = 0, beibehalten = 0;
+    for (const k of daten.studenten) {
+      const vorh = studenten.find(x => x.id === k.id);
+      if (vorh && behalten.has(k.id)) { beibehalten++; continue; }
+      const rec = { ...k, ...importFotosFelder(k), kurssetId: set.id };
+      if (vorh?.favorit || gemerkteFavs.has(k.id)) rec.favorit = true;
+      EN_FELDER_KARTE.forEach(f => { if ((rec[f] == null || rec[f] === '') && vorh?.[f]) rec[f] = vorh[f]; });
+      rec.kurssetStand = kartenFingerabdruck(rec);
+      revokeUrl(k.id);
+      await dbPut('studenten', rec);
+      vorh ? aktualisiert++ : neu++;
+    }
+    { const m = lsJson('kurssetFavoriten'); if (m[set.id]) { delete m[set.id]; try { localStorage.setItem('kurssetFavoriten', JSON.stringify(m)); } catch (_) {} } }
+    lsStempel('kurssetGeladen', [set.id]);
+    let entfernt = 0;
+    if (entfernen) for (const k of entfallen) { await dbDelete('studenten', k.id); revokeUrl(k.id); entfernt++; }
+    await ladeAlles();
+    renderVerwaltung(); renderLernAuswahl(); ladeKurssetListe();
+    if (!opt.still) toast(tf('toast_kursset_ok', name, neu, aktualisiert, entfernt, beibehalten));
+    return true;
+  } catch (err) {
+    if (lade) { lade.disabled = false; lade.textContent = ladeText; }
+    toast(tf('toast_kursset_fehler', err.message));
+    return false;
+  }
+}
+
+document.getElementById('btn-tutorial-neu')?.addEventListener('click', async () => {
+  await erstelleTutorial();
+  await ladeAlles(); renderVerwaltung(); renderLernAuswahl();
+  toast(t('toast_tutorial_neu'));
+});
+document.getElementById('kursset-liste')?.addEventListener('click', e => {
+  const del = e.target.closest('[data-kursset-del]');
+  if (del) {
+    const setD = (document.getElementById('kursset-liste')._sets || []).find(x => x.id === del.dataset.kurssetDel);
+    if (setD) entferneKurssetMitRueckfrage(setD);
+    return;
+  }
+  const btn = e.target.closest('[data-kursset]');
+  if (!btn) return;
+  const set = (document.getElementById('kursset-liste')._sets || []).find(x => x.id === btn.dataset.kursset);
+  if (set) ladeKursset(set);
+});
+document.getElementById('btn-kursset-alle')?.addEventListener('click', async () => {
+  const sets = (document.getElementById('kursset-liste')._sets || []).filter(x => kurssetStatus(x) === 'orange');
+  const summe = sets.reduce((a, x) => a + (x.mb || 0), 0);
+  if (summe > 5 && !confirm(tf('confirm_kursset_gross', t('kursset_alle'), Math.round(summe * 10) / 10))) return;
+  for (const set of sets) await ladeKursset(set, { ohneRueckfrage: true, still: true });
+  if (sets.length) toast(tf('toast_kursset_alle', sets.length));
+});
+document.getElementById('kursset-hinweis-link')?.addEventListener('click', () =>
+  document.getElementById('kursset-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+
+// Konvertiert importierte foto/fotos-Felder (dataURLs) zurück in Blobs
+// (Begriff-Karten können optional ebenfalls Fotos auf der Rückseite haben)
+function importFotosFelder(s) {
+  const list  = (s.fotos && s.fotos.length) ? s.fotos : (s.foto ? [s.foto] : []);
+  const fotos = list.map(dataUrlToBlob);
+  return { foto: fotos[0] || null, fotos };
+}
+
+// ============================================================
+// UTILITY
+// ============================================================
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.add('hidden'), 2500);
+}
+
+function mischen(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ============================================================
+// EVENTS – VERWALTUNG
+// ============================================================
+
+document.querySelectorAll('.nav-item').forEach(btn =>
+  btn.addEventListener('click', () => showView(btn.dataset.view)));
+
+document.getElementById('btn-modus')?.addEventListener('click', () => {
+  if (appModus === 'einfach') { setzeModus('erweitert'); return; }
+  if (hatEigeneKarten() && !confirm(t('modus_confirm'))) return;
+  setzeModus('einfach');
+});
+document.getElementById('btn-willkommen-laden')?.addEventListener('click', () =>
+  document.getElementById('kursset-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+document.getElementById('btn-willkommen-start')?.addEventListener('click', () => {
+  try { localStorage.setItem('memoLernGids', JSON.stringify(['tutorial-start'])); } catch (_) {}
+  openLernSammlungen.add('sammlung-tutorial'); saveOpenLernSammlungen();
+  showView('lernen');
+});
+
+// Info-Modal
+document.getElementById('btn-lang').addEventListener('click', () => {
+  currentLang = currentLang === 'de' ? 'en' : 'de';
+  localStorage.setItem('memoLang', currentLang);
+  applyTranslations();
+});
+
+document.getElementById('btn-info').addEventListener('click', () => {
+  // Help modal body up-to-date with current language
+  const body = document.querySelector('#info-modal .modal-body');
+  if (body) body.innerHTML = getHelpHtml();
+  document.getElementById('info-modal').classList.remove('hidden');
+});
+document.getElementById('btn-info-close').addEventListener('click', () =>
+  document.getElementById('info-modal').classList.add('hidden'));
+document.getElementById('info-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.add('hidden');
+});
+
+// Karte-Edit-Modal – Typ-Chips
+function karteEditSetModus(isFoto) {
+  // Vorderseite-Text sichern bevor Feld verschwindet
+  if (isFoto) {
+    const vorderseite = document.getElementById('karte-edit-vorderseite').value.trim();
+    if (vorderseite) {
+      const notizEl  = document.getElementById('karte-edit-notiz');
+      const notiz    = notizEl.value.trim();
+      const vsFlat   = vorderseite.split('\n').map(z => z.trim()).filter(z => z).join(' · ');
+      notizEl.value  = notiz ? `${notiz} · ${vsFlat}` : vsFlat;
+    }
+  }
+  document.getElementById('karte-edit-chip-foto').classList.toggle('active', isFoto);
+  document.getElementById('karte-edit-chip-text').classList.toggle('active', !isFoto);
+  document.getElementById('karte-edit-name-label').textContent = isFoto ? t('name_label') : t('begriff_label');
+  document.getElementById('karte-edit-foto-gruppe').classList.remove('hidden');
+  document.getElementById('karte-edit-foto-label').innerHTML = isFoto ? t('fotos_label_foto') : t('fotos_label_begriff');
+  document.getElementById('karte-edit-vorderseite-gruppe').classList.toggle('hidden', isFoto);
+}
+document.getElementById('karte-edit-chip-foto').addEventListener('click', () => karteEditSetModus(true));
+document.getElementById('karte-edit-chip-text').addEventListener('click', () => karteEditSetModus(false));
+document.getElementById('karte-edit-foto-input').addEventListener('change', async e => {
+  const files = [...e.target.files];
+  if (!files.length) return;
+  const blobs = await Promise.all(files.map(f => compressPhoto(f)));
+  blobs.forEach(blob => editFotosBuffer.push({ blob, url: URL.createObjectURL(blob) }));
+  renderEditFotosListe();
+  e.target.value = '';
+});
+document.getElementById('karte-edit-fotos-liste').addEventListener('click', e => {
+  const btn = e.target.closest('.btn-foto-entfernen');
+  if (!btn) return;
+  const idx = +btn.dataset.idx;
+  URL.revokeObjectURL(editFotosBuffer[idx].url);
+  editFotosBuffer.splice(idx, 1);
+  renderEditFotosListe();
+});
+
+document.getElementById('btn-karte-edit-close').addEventListener('click', () =>
+  document.getElementById('karte-edit-modal').classList.add('hidden'));
+document.getElementById('karte-edit-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.add('hidden');
+});
+document.getElementById('karte-edit-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btn-karte-edit-save').click();
+});
+document.getElementById('btn-karte-edit-save').addEventListener('click', async () => {
+  const name     = document.getElementById('karte-edit-name').value.trim();
+  const gruppeId = document.getElementById('karte-edit-gruppe').value;
+  const notiz    = document.getElementById('karte-edit-notiz').value.trim();
+  const merke    = document.getElementById('karte-edit-merke').value.trim();
+  const links    = parseLinks(document.getElementById('karte-edit-links').value);
+  if (!name || !gruppeId) return;
+
+  // Video: resolve ID + title from current input
+  const videoRaw   = document.getElementById('karte-edit-video').value.trim();
+  const videoId    = extrahiereYoutubeId(videoRaw) || null;
+  let   videoTitel = null;
+  if (videoId) {
+    const orig = studenten.find(x => x.id === editModalStudentId);
+    if (orig?.videoId === videoId && orig?.videoTitel) {
+      videoTitel = orig.videoTitel; // reuse cached title
+    } else {
+      videoTitel = await ladeVideoTitel(videoId);
+    }
+  }
+
+  if (editModalMode === 'copy') {
+    const orig = studenten.find(x => x.id === editModalStudentId);
+    const fotos = await Promise.all(editFotosBuffer.map(async f =>
+      new Blob([await f.blob.arrayBuffer()], { type: f.blob.type })));
+    const enFelder = {};
+    EN_FELDER_KARTE.forEach(f => { const v = document.getElementById('karte-edit-' + f.replace('_', '-')).value.trim(); if (v) enFelder[f] = v; });
+    const newS = orig.modus === 'text'
+      ? { ...enFelder, id: Date.now().toString(), name, gruppeId, modus: 'text',
+          foto: fotos[0] || null, fotos, vorderseite: orig.vorderseite || '', notiz, ...(merke ? { merke } : {}), links,
+          videoId, videoTitel, erstellt: new Date().toISOString() }
+      : { ...enFelder, id: Date.now().toString(), name, gruppeId, modus: 'foto',
+          foto: fotos[0] || null, fotos, vorderseite: '', notiz, ...(merke ? { merke } : {}), links,
+          videoId, videoTitel, erstellt: new Date().toISOString() };
+    await dbPut('studenten', newS);
+    studenten.push(newS);
+    toast(tf('toast_karte_kopiert', name));
+  } else {
+    const s        = studenten.find(x => x.id === editModalStudentId);
+    const newModus = document.getElementById('karte-edit-chip-foto').classList.contains('active') ? 'foto' : 'text';
+
+    // Moduswechsel text → foto: mindestens ein Foto erforderlich
+    if (newModus === 'foto' && editFotosBuffer.length === 0) {
+      toast(t('toast_foto_fehlt')); return;
+    }
+
+    s.name       = name;
+    s.gruppeId   = gruppeId;
+    s.notiz      = notiz;
+    if (merke) s.merke = merke; else delete s.merke;
+    EN_FELDER_KARTE.forEach(f => {
+      const v = document.getElementById('karte-edit-' + f.replace('_', '-')).value.trim();
+      if (v) s[f] = v; else delete s[f];
+    });
+    s.links      = links;
+    s.videoId    = videoId;
+    s.videoTitel = videoTitel;
+
+    revokeUrl(s.id); // alte Objekt-URLs immer invalidieren
+    s.fotos = editFotosBuffer.map(f => f.blob); // bei Begriff optional, bei Foto erforderlich
+    s.foto  = s.fotos[0] || null;
+    if (newModus === 'text') {
+      s.modus       = 'text';
+      s.vorderseite = document.getElementById('karte-edit-vorderseite').value.trim();
+    } else {
+      s.modus       = 'foto';
+      s.vorderseite = '';
+    }
+
+    await dbPut('studenten', s);
+    toast(tf('toast_karte_aktualisiert', name));
+  }
+  document.getElementById('karte-edit-modal').classList.add('hidden');
+  renderVerwaltung();
+});
+
+// ── Namen bearbeiten (Sammlung / Gruppe): Name, Name EN, bei Sammlungen "bereits zweisprachig" ──
+let namenModalCtx = null;
+function oeffneNamenModal(typ, id) {
+  const obj = (typ === 'sammlung' ? sammlungen : gruppen).find(x => x.id === id);
+  if (!obj) return;
+  namenModalCtx = { typ, id };
+  document.getElementById('namen-modal-titel').textContent = t(typ === 'sammlung' ? 'namen_titel_sammlung' : 'namen_titel_gruppe');
+  document.getElementById('namen-de').value = obj.name || '';
+  document.getElementById('namen-en').value = obj.name_en || '';
+  document.getElementById('namen-zweisprachig').checked = !!obj.zweisprachig_inhalt;
+  document.getElementById('namen-zweisprachig-zeile').classList.toggle('hidden', typ !== 'sammlung');
+  document.getElementById('namen-modal').classList.remove('hidden');
+  setTimeout(() => { const i = document.getElementById('namen-de'); i.focus(); i.select(); }, 80);
+}
+function schliesseNamenModal() {
+  document.getElementById('namen-modal').classList.add('hidden');
+  namenModalCtx = null;
+}
+document.getElementById('btn-namen-close').addEventListener('click', schliesseNamenModal);
+document.getElementById('namen-modal').addEventListener('click', e => { if (e.target === e.currentTarget) schliesseNamenModal(); });
+document.getElementById('btn-namen-save').addEventListener('click', async () => {
+  if (!namenModalCtx) return;
+  const { typ, id } = namenModalCtx;
+  const obj = (typ === 'sammlung' ? sammlungen : gruppen).find(x => x.id === id);
+  const name = document.getElementById('namen-de').value.trim();
+  if (!obj || !name) return;
+  const nameEn = document.getElementById('namen-en').value.trim();
+  obj.name = name;
+  if (nameEn) obj.name_en = nameEn; else delete obj.name_en;
+  if (typ === 'sammlung') {
+    if (document.getElementById('namen-zweisprachig').checked) obj.zweisprachig_inhalt = true;
+    else delete obj.zweisprachig_inhalt;
+  }
+  await dbPut(typ === 'sammlung' ? 'sammlungen' : 'gruppen', obj);
+  schliesseNamenModal();
+  renderVerwaltung(); renderLernAuswahl();
+  toast(t('toast_namen_gespeichert'));
+});
+
+// Sammlung hinzufügen
+document.getElementById('btn-sammlung-add').addEventListener('click', async () => {
+  const input = document.getElementById('input-neue-sammlung');
+  const name  = input.value.trim();
+  if (!name) return;
+  const sam = { id: 'sammlung-' + Date.now(), name, farbe: naechsteFarbe(), erstellt: new Date().toISOString() };
+  await dbPut('sammlungen', sam);
+  sammlungen.push(sam);
+  openSammlungen.add(sam.id);
+  saveOpenSammlungen();
+  input.value = '';
+  renderVerwaltung();
+  toast(tf('toast_sammlung_erstellt', name));
+});
+document.getElementById('input-neue-sammlung').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btn-sammlung-add').click();
+});
+
+// Sammlungen-Liste: Delegation für alle Sammlung- und Gruppen-Aktionen
+document.getElementById('sammlungen-liste').addEventListener('click', async e => {
+  // Sammlung-Header aufklappen/zuklappen
+  const sammlHeader = e.target.closest('.sammlung-header');
+  if (sammlHeader && !e.target.closest('button')) {
+    const sid = sammlHeader.dataset.sid;
+    if (openSammlungen.has(sid)) openSammlungen.delete(sid); else openSammlungen.add(sid);
+    saveOpenSammlungen();
+    renderVerwaltung();
+    return;
+  }
+  // Karte inline hinzufügen (＋ am Gruppen-Header)
+  const addKarteBtn = e.target.closest('.btn-gruppe-add-karte');
+  if (addKarteBtn) {
+    const gid = addKarteBtn.dataset.gid;
+    const sel = document.getElementById('select-gruppe');
+    sel.value = gid;
+    localStorage.setItem('lastGruppeId', gid);
+    oeffneKarteHinzufuegenForm();
+    setTimeout(() => document.getElementById('input-name').focus(), 400);
+    return;
+  }
+
+  // Favoriten-Gruppe aufklappen / zuklappen
+  const favHeader = e.target.closest('.fav-gruppe-header');
+  if (favHeader && !e.target.closest('button')) {
+    const fgid  = favHeader.dataset.favgid;
+    const body  = document.getElementById(`gruppe-body-${fgid}`);
+    const arrow = favHeader.querySelector('.gruppe-toggle-arrow');
+    if (openGruppen.has(fgid)) {
+      openGruppen.delete(fgid);
+      body?.classList.add('hidden');
+      if (arrow) arrow.textContent = '▶';
+    } else {
+      openGruppen.add(fgid);
+      body?.classList.remove('hidden');
+      if (arrow) arrow.textContent = '▼';
+    }
+    saveOpenGruppen();
+    return;
+  }
+
+  // Gruppe aufklappen / zuklappen
+  const gruppeHeader = e.target.closest('.gruppe-karten-header');
+  if (gruppeHeader && !e.target.closest('button')) {
+    const gid   = gruppeHeader.dataset.gid;
+    const body  = document.getElementById(`gruppe-body-${gid}`);
+    const arrow = gruppeHeader.querySelector('.gruppe-toggle-arrow');
+    if (openGruppen.has(gid)) {
+      openGruppen.delete(gid);
+      body?.classList.add('hidden');
+      if (arrow) arrow.textContent = '▶';
+    } else {
+      openGruppen.add(gid);
+      body?.classList.remove('hidden');
+      if (arrow) arrow.textContent = '▼';
+    }
+    saveOpenGruppen();
+    return;
+  }
+  // Karte Detail-Overlay öffnen
+  const detailTrigger = e.target.closest('.karte-detail-trigger');
+  if (detailTrigger && !e.target.closest('button')) {
+    openKarteDetailOverlay(detailTrigger.dataset.id);
+    return;
+  }
+  // Karte bearbeiten / kopieren / löschen
+  const karteRenBtn  = e.target.closest('.btn-karte-ren');
+  if (karteRenBtn)  { openKarteEditModal(karteRenBtn.dataset.id, 'edit'); return; }
+  const karteCopyBtn = e.target.closest('.btn-karte-copy');
+  if (karteCopyBtn) { openKarteEditModal(karteCopyBtn.dataset.id, 'copy'); return; }
+  const karteDelBtn  = e.target.closest('.btn-karte-del');
+  if (karteDelBtn) {
+    const id = karteDelBtn.dataset.id;
+    const s  = studenten.find(x => x.id === id);
+    if (!confirm(tf('confirm_karte', s.name))) return;
+    await dbDelete('studenten', id);
+    revokeUrl(id);
+    studenten = studenten.filter(x => x.id !== id);
+    renderVerwaltung();
+    toast(currentLang === 'en' ? 'Card deleted' : 'Karte gelöscht');
+    return;
+  }
+  // Favorit togglen
+  const favBtn = e.target.closest('.btn-favorit');
+  if (favBtn) {
+    e.stopPropagation();
+    await toggleFavorit(favBtn.dataset.id);
+    const s2 = studenten.find(x => x.id === favBtn.dataset.id);
+    if (s2) { favBtn.classList.toggle('aktiv', s2.favorit); favBtn.title = s2.favorit ? t('fav_entfernen') : t('fav_markieren'); }
+    return;
+  }
+  // Sammlung Farbe ändern
+  const farbBtn = e.target.closest('.btn-sammlung-farbe');
+  if (farbBtn) {
+    e.stopPropagation();
+    zeigeFarbPicker(farbBtn.dataset.id, farbBtn);
+    return;
+  }
+  // Sammlung verschieben
+  const sammlMoveBtn = e.target.closest('.btn-sammlung-move');
+  if (sammlMoveBtn && !sammlMoveBtn.disabled) {
+    const id = sammlMoveBtn.dataset.id, dir = sammlMoveBtn.dataset.dir;
+    const sorted = getSortierteSammlungen();
+    const idx = sorted.findIndex(x => x.id === id);
+    if (dir === 'up'   && idx > 0)                [sorted[idx-1], sorted[idx]]   = [sorted[idx], sorted[idx-1]];
+    if (dir === 'down' && idx < sorted.length - 1) [sorted[idx],   sorted[idx+1]] = [sorted[idx+1], sorted[idx]];
+    sammlungenReihenfolge = sorted.map(x => x.id);
+    saveSammlungenReihenfolge();
+    renderVerwaltung();
+    return;
+  }
+  // Sammlung umbenennen
+  const sammlRenBtn = e.target.closest('.btn-sammlung-ren');
+  if (sammlRenBtn) {
+    oeffneNamenModal('sammlung', sammlRenBtn.dataset.id);
+    return;
+  }
+  // Sammlung löschen (Kaskade: alle Gruppen + Karten)
+  const sammlDelBtn = e.target.closest('.btn-sammlung-del');
+  if (sammlDelBtn) {
+    const sid        = sammlDelBtn.dataset.id;
+    const sam        = sammlungen.find(x => x.id === sid);
+    const inSam      = gruppen.filter(g => g.sammlungId === sid);
+    const inSamGidSet = new Set(inSam.map(g => g.id));
+    const kCount     = studenten.filter(s => inSamGidSet.has(s.gruppeId)).length;
+
+    if (!confirm(tf('confirm_sammlung', sam.name, inSam.length, kCount))) return;
+
+    // Karten löschen
+    for (const s of studenten.filter(x => inSamGidSet.has(x.gruppeId))) {
+      await dbDelete('studenten', s.id); revokeUrl(s.id);
+    }
+    // Gruppen löschen
+    for (const g of inSam) await dbDelete('gruppen', g.id);
+    // Sammlung löschen
+    await dbDelete('sammlungen', sid);
+
+    // In-Memory aufräumen
+    studenten          = studenten.filter(s => !inSamGidSet.has(s.gruppeId));
+    gruppen            = gruppen.filter(g => !inSamGidSet.has(g.id));
+    gruppenReihenfolge = gruppenReihenfolge.filter(x => !inSamGidSet.has(x));
+    saveGruppenReihenfolge();
+    sammlungen            = sammlungen.filter(x => x.id !== sid);
+    sammlungenReihenfolge = sammlungenReihenfolge.filter(x => x !== sid);
+    saveSammlungenReihenfolge();
+    renderVerwaltung();
+    toast(tf('toast_sammlung_geloescht', inSam.length, kCount));
+    return;
+  }
+  // Gruppe hinzufügen (Button)
+  const addGrpBtn = e.target.closest('.btn-gruppe-add-sammlung');
+  if (addGrpBtn) {
+    const inp = document.querySelector(`.input-neue-gruppe-sammlung[data-sid="${addGrpBtn.dataset.sid}"]`);
+    if (inp) await addGruppeInSammlung(addGrpBtn.dataset.sid, inp);
+    return;
+  }
+  // Gruppe in andere Sammlung verschieben (📁)
+  const moveSammlBtn = e.target.closest('.btn-gruppe-move-sammlung');
+  if (moveSammlBtn) {
+    gruppeVerschiebenId = moveSammlBtn.dataset.id;
+    const g = gruppen.find(x => x.id === gruppeVerschiebenId);
+    document.getElementById('gruppe-verschieben-info').textContent = currentLang === 'en' ? `Move "${esc(gruppeName(g))}" to:` : `„${esc(gruppeName(g))}" verschieben nach:`;
+    const andere = getSortierteSammlungen().filter(s => s.id !== g.sammlungId);
+    document.getElementById('sammlung-auswahl-liste').innerHTML = andere.length
+      ? andere.map(s => `
+          <div class="sammlung-ziel-item" data-sid="${s.id}">
+            <span class="sammlung-ziel-name">${esc(sammlungName(s))}</span>
+            <span class="sammlung-ziel-count">${sammlungKartenAnzahl(s.id)} K.</span>
+          </div>`).join('')
+      : `<p class="hinweis" style="padding:0.75rem 0">${t('keine_anderen_sammlungen')}</p>`;
+    document.getElementById('gruppe-verschieben-modal').classList.remove('hidden');
+    return;
+  }
+
+  // Karte verschieben (innerhalb Gruppe)
+  const karteMovBtn = e.target.closest('.btn-karte-move');
+  if (karteMovBtn && !karteMovBtn.disabled) {
+    const id  = karteMovBtn.dataset.id;
+    const gid = karteMovBtn.dataset.gid;
+    const dir = karteMovBtn.dataset.dir;
+    const sorted = getSortierteKartenInGruppe(gid);
+    const idx = sorted.findIndex(x => x.id === id);
+    if (dir === 'up'   && idx > 0)               [sorted[idx-1], sorted[idx]]   = [sorted[idx], sorted[idx-1]];
+    if (dir === 'down' && idx < sorted.length-1) [sorted[idx],   sorted[idx+1]] = [sorted[idx+1], sorted[idx]];
+    speichereKartenReihenfolge(gid, sorted.map(x => x.id));
+    renderVerwaltung();
+    return;
+  }
+
+  // Gruppe verschieben (innerhalb Sammlung)
+  const moveBtn = e.target.closest('.btn-gruppe-move');
+  if (moveBtn && !moveBtn.disabled) {
+    const id = moveBtn.dataset.id, dir = moveBtn.dataset.dir, sid = moveBtn.dataset.sid;
+    const inSam = getSortierteGruppenInSammlung(sid);
+    const idx   = inSam.findIndex(x => x.id === id);
+    const all   = getSortierteGruppen();
+    const swapAll = (a, b) => {
+      const ai = all.findIndex(x => x.id === a), bi = all.findIndex(x => x.id === b);
+      [all[ai], all[bi]] = [all[bi], all[ai]];
+    };
+    if (dir === 'up'   && idx > 0)              swapAll(inSam[idx-1].id, id);
+    if (dir === 'down' && idx < inSam.length-1) swapAll(id, inSam[idx+1].id);
+    gruppenReihenfolge = all.map(x => x.id);
+    saveGruppenReihenfolge();
+    renderVerwaltung();
+    return;
+  }
+  // Gruppe umbenennen
+  const renBtn = e.target.closest('.btn-gruppe-ren');
+  if (renBtn) {
+    oeffneNamenModal('gruppe', renBtn.dataset.id);
+    return;
+  }
+  // Gruppe löschen (inkl. aller Karten)
+  const delBtn = e.target.closest('.btn-gruppe-del');
+  if (!delBtn) return;
+  const id = delBtn.dataset.id;
+  const g  = gruppen.find(x => x.id === id);
+  if (!g) return;
+  const n  = studenten.filter(s => s.gruppeId === id).length;
+  if (!confirm(tf('confirm_gruppe', g.name, n))) return;
+  for (const s of studenten.filter(x => x.gruppeId === id)) { await dbDelete('studenten', s.id); revokeUrl(s.id); }
+  await dbDelete('gruppen', id);
+  gruppen   = gruppen.filter(x => x.id !== id);
+  studenten = studenten.filter(s => s.gruppeId !== id);
+  gruppenReihenfolge = gruppenReihenfolge.filter(x => x !== id);
+  saveGruppenReihenfolge();
+  renderVerwaltung();
+  toast(tf('toast_gruppe_geloescht', n));
+});
+
+// Gruppe via Enter-Taste innerhalb Sammlung hinzufügen
+document.getElementById('sammlungen-liste').addEventListener('keydown', async e => {
+  if (e.key !== 'Enter') return;
+  const inp = e.target.closest('.input-neue-gruppe-sammlung');
+  if (inp) await addGruppeInSammlung(inp.dataset.sid, inp);
+});
+
+// Foto tauschen (per Klick aufs Thumbnail, jetzt in sammlungen-liste)
+document.getElementById('sammlungen-liste').addEventListener('change', async e => {
+  const fotoInput = e.target.closest('.karte-foto-input');
+  if (!fotoInput) return;
+  const file = fotoInput.files[0];
+  if (!file) return;
+  const id = fotoInput.dataset.id;
+  const s  = studenten.find(x => x.id === id);
+  try {
+    const blob = await compressPhoto(file);
+    revokeUrl(id);
+    s.fotos = [blob, ...(s.fotos || []).slice(1)];
+    s.foto  = blob;
+    await dbPut('studenten', s);
+    renderVerwaltung();
+    toast(t('toast_foto_aktualisiert'));
+  } catch (err) {
+    toast(tf('toast_fehler', err.message));
+  }
+});
+
+// Gruppe verschieben – Modal
+document.getElementById('btn-gruppe-verschieben-close').addEventListener('click', () => {
+  document.getElementById('gruppe-verschieben-modal').classList.add('hidden');
+  gruppeVerschiebenId = null;
+});
+document.getElementById('gruppe-verschieben-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) { e.currentTarget.classList.add('hidden'); gruppeVerschiebenId = null; }
+});
+document.getElementById('sammlung-auswahl-liste').addEventListener('click', async e => {
+  const item = e.target.closest('.sammlung-ziel-item');
+  if (!item || !gruppeVerschiebenId) return;
+  const sid = item.dataset.sid;
+  const g   = gruppen.find(x => x.id === gruppeVerschiebenId);
+  const sam = sammlungen.find(x => x.id === sid);
+  g.sammlungId = sid;
+  await dbPut('gruppen', g);
+  document.getElementById('gruppe-verschieben-modal').classList.add('hidden');
+  gruppeVerschiebenId = null;
+  renderVerwaltung();
+  toast(tf('toast_verschoben', g.name, sam.name));
+});
+
+// Letzte Gruppe merken
+document.getElementById('select-gruppe').addEventListener('change', e => {
+  if (e.target.value) localStorage.setItem('lastGruppeId', e.target.value);
+});
+
+// Modus-Chips (Foto / Begriff) — Foto-Bereich bleibt in beiden Modi sichtbar:
+// bei Foto erforderlich (Vorderseite), bei Begriff optional (zusätzlich zur Rückseite)
+document.getElementById('chip-foto').addEventListener('click', () => {
+  document.getElementById('chip-foto').classList.add('active');
+  document.getElementById('chip-text').classList.remove('active');
+  document.getElementById('foto-bereich').classList.remove('hidden');
+  document.getElementById('text-bereich').classList.add('hidden');
+  document.getElementById('foto-bereich-label').classList.add('hidden');
+  document.getElementById('label-input-name').textContent = t('name_label');
+});
+document.getElementById('chip-text').addEventListener('click', () => {
+  document.getElementById('chip-text').classList.add('active');
+  document.getElementById('chip-foto').classList.remove('active');
+  document.getElementById('text-bereich').classList.remove('hidden');
+  document.getElementById('foto-bereich').classList.remove('hidden');
+  const lbl = document.getElementById('foto-bereich-label');
+  lbl.innerHTML = t('fotos_label_begriff');
+  lbl.classList.remove('hidden');
+  document.getElementById('label-input-name').textContent = t('begriff_label');
+});
+
+// Fotos (Karte hinzufügen) — mehrere möglich, "weiteres Foto"-Option
+// erscheint direkt nach dem ersten Bild, ohne Speichern+Neuöffnen
+let neueKarteFotosBuffer = []; // { blob, url }
+
+function renderNeueKarteFotosListe() {
+  const liste = document.getElementById('neue-karte-fotos-liste');
+  liste.innerHTML = neueKarteFotosBuffer.map((f, i) => `
+    <div class="karte-edit-foto-thumb">
+      <img src="${f.url}" alt="">
+      <button type="button" class="btn-foto-entfernen" data-idx="${i}" title="Entfernen">✕</button>
+    </div>`).join('');
+  const hatFotos = neueKarteFotosBuffer.length > 0;
+  liste.classList.toggle('hidden', !hatFotos);
+  document.getElementById('foto-upload').classList.toggle('hidden', hatFotos);
+  document.getElementById('btn-neue-karte-foto-add').classList.toggle('hidden', !hatFotos);
+}
+
+document.getElementById('input-foto').addEventListener('change', async e => {
+  const files = [...e.target.files];
+  if (!files.length) return;
+  const blobs = await Promise.all(files.map(f => compressPhoto(f)));
+  blobs.forEach(blob => neueKarteFotosBuffer.push({ blob, url: URL.createObjectURL(blob) }));
+  renderNeueKarteFotosListe();
+  e.target.value = '';
+});
+document.getElementById('neue-karte-fotos-liste').addEventListener('click', e => {
+  const btn = e.target.closest('.btn-foto-entfernen');
+  if (!btn) return;
+  const idx = +btn.dataset.idx;
+  URL.revokeObjectURL(neueKarteFotosBuffer[idx].url);
+  neueKarteFotosBuffer.splice(idx, 1);
+  renderNeueKarteFotosListe();
+});
+
+// Karte speichern
+document.getElementById('form-karte').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name     = document.getElementById('input-name').value.trim();
+  const gruppeId = document.getElementById('select-gruppe').value;
+  const modus    = document.getElementById('chip-foto').classList.contains('active') ? 'foto' : 'text';
+  const notiz    = document.getElementById('input-notiz').value.trim();
+  const merke    = document.getElementById('input-merke').value.trim();
+  const links    = parseLinks(document.getElementById('input-links').value);
+  const videoRaw = document.getElementById('input-video').value.trim();
+  const videoId  = extrahiereYoutubeId(videoRaw) || null;
+  if (!name || !gruppeId) return;
+  const btn = document.getElementById('btn-karte-speichern');
+  btn.disabled = true; btn.textContent = 'Wird gespeichert…';
+  try {
+    const videoTitel = videoId ? await ladeVideoTitel(videoId) : null;
+    let s;
+    if (modus === 'foto') {
+      if (!neueKarteFotosBuffer.length) { toast(t('toast_foto_pflicht')); return; }
+      const fotos = neueKarteFotosBuffer.map(f => f.blob);
+      s = { id: Date.now().toString(), name, gruppeId, modus: 'foto', foto: fotos[0], fotos, vorderseite: '', notiz, ...(merke ? { merke } : {}), links, videoId, videoTitel, erstellt: new Date().toISOString() };
+    } else {
+      const vorderseite = document.getElementById('input-vorderseite').value.trim();
+      if (!vorderseite) { toast(t('toast_text_pflicht')); return; }
+      // Fotos für die Rückseite sind bei Begriff-Karten optional
+      const fotos = neueKarteFotosBuffer.map(f => f.blob);
+      s = { id: Date.now().toString(), name, gruppeId, modus: 'text', foto: fotos[0] || null, fotos, vorderseite, notiz, ...(merke ? { merke } : {}), links, videoId, videoTitel, erstellt: new Date().toISOString() };
+    }
+    await dbPut('studenten', s);
+    studenten.push(s);
+    document.getElementById('input-name').value       = '';
+    document.getElementById('input-notiz').value      = '';
+    document.getElementById('input-merke').value      = '';
+    document.getElementById('input-links').value      = '';
+    document.getElementById('input-video').value      = '';
+    const addVideoStatus = document.getElementById('input-video-status');
+    if (addVideoStatus) { addVideoStatus.textContent = ''; addVideoStatus.className = 'video-input-status'; }
+    document.getElementById('input-foto').value       = '';
+    document.getElementById('input-vorderseite').value = '';
+    neueKarteFotosBuffer.forEach(f => URL.revokeObjectURL(f.url));
+    neueKarteFotosBuffer = [];
+    renderNeueKarteFotosListe();
+    renderVerwaltung();
+    toast(tf('toast_karte_gespeichert', name));
+  } catch (err) {
+    toast(tf('toast_fehler', err.message));
+  } finally {
+    btn.disabled = false; btn.textContent = t('karte_speichern');
+  }
+});
+
+
+// ── Video Overlay ─────────────────────────────────────────
+document.getElementById('btn-video-close').addEventListener('click', schliesseVideoOverlay);
+document.getElementById('video-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) schliesseVideoOverlay();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !document.getElementById('video-overlay').classList.contains('hidden'))
+    schliesseVideoOverlay();
+});
+
+// Play-Button-Klicks (event delegation – Lernbereich + Fullview)
+function handleVideoPlayClick(e) {
+  const btn = e.target.closest('.video-play-btn');
+  if (!btn) return;
+  const videoId    = btn.dataset.videoid;
+  const videoTitel = btn.dataset.videotitel;
+  if (videoId) oeffneVideoOverlay(videoId, videoTitel, btn.dataset.videoformat || '');
+}
+document.getElementById('lernen-flashcard').addEventListener('click', handleVideoPlayClick);
+document.getElementById('karte-detail-overlay').addEventListener('click', handleVideoPlayClick);
+
+// Enter im Video-Feld: kein Form-Submit, nur Blur auslösen
+document.getElementById('input-video').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+});
+document.getElementById('karte-edit-video').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+});
+
+// Blur-Validierung: Video-Feld im "Karte hinzufügen"-Formular
+document.getElementById('input-video').addEventListener('blur', async () => {
+  const raw    = document.getElementById('input-video').value.trim();
+  const status = document.getElementById('input-video-status');
+  if (!status) return;
+  if (!raw) { status.textContent = ''; status.className = 'video-input-status'; return; }
+  const id = extrahiereYoutubeId(raw);
+  if (!id) { status.textContent = t('video_ungueltig'); status.className = 'video-input-status err'; return; }
+  status.textContent = t('video_laden'); status.className = 'video-input-status laden';
+  const titel = await ladeVideoTitel(id);
+  if (titel) { status.textContent = `✓ ${titel}`; status.className = 'video-input-status ok'; }
+  else       { status.textContent = t('video_extern'); status.className = 'video-input-status laden'; }
+});
+
+// Blur-Validierung: Video-Feld im Edit-Modal
+document.getElementById('karte-edit-video').addEventListener('blur', async () => {
+  const raw    = document.getElementById('karte-edit-video').value.trim();
+  const status = document.getElementById('karte-edit-video-status');
+  if (!status) return;
+  if (!raw) { status.textContent = ''; status.className = 'video-input-status'; return; }
+  const id = extrahiereYoutubeId(raw);
+  if (!id) { status.textContent = t('video_ungueltig'); status.className = 'video-input-status err'; return; }
+  status.textContent = t('video_laden'); status.className = 'video-input-status laden';
+  const titel = await ladeVideoTitel(id);
+  if (titel) { status.textContent = `✓ ${titel}`; status.className = 'video-input-status ok'; }
+  else       { status.textContent = t('video_extern'); status.className = 'video-input-status laden'; }
+});
+
+// Overlay: Swipe-Navigation + Tippen zum Schließen
+(function() {
+  const overlay = document.getElementById('karte-detail-overlay');
+  let touchStartX = 0, touchStartY = 0, touchMoved = false;
+
+  overlay.addEventListener('touchstart', e => {
+    if (!e.touches.length) return;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchMoved  = false;
+  }, { passive: true });
+
+  overlay.addEventListener('touchmove', e => {
+    if (!e.touches.length) return;
+    if (Math.abs(e.touches[0].clientX - touchStartX) > 8) touchMoved = true;
+  }, { passive: true });
+
+  overlay.addEventListener('touchend', e => {
+    if (!e.changedTouches.length) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      detailNavigate(dx < 0 ? 1 : -1);
+    } else if (!touchMoved
+        && !e.target.closest?.('.video-play-btn')
+        && !e.target.closest?.('.karte-detail-share-btn')
+        && !e.target.closest?.('.karte-detail-fav-btn')
+        && !e.target.closest?.('.link-btn')) {
+      overlay.classList.add('hidden');
+    }
+  }, { passive: true });
+
+  overlay.addEventListener('click', e => {
+    if (e.target.closest('.video-play-btn'))        return;
+    if (e.target.closest('.karte-detail-share-btn')) return;
+    if (e.target.closest('.karte-detail-fav-btn'))  return;
+    if (e.target.closest('.link-btn'))              return;
+    if (!('ontouchstart' in window)) overlay.classList.add('hidden');
+  });
+})();
+
+
+// Alle öffnen / schließen
+document.getElementById('btn-toggle-alle-gruppen').addEventListener('click', () => {
+  const sortierteSammlungen = getSortierteSammlungen();
+  const anyOpen = sortierteSammlungen.some(s => openSammlungen.has(s.id)) || openSammlungen.has('__orphan__');
+  if (anyOpen) {
+    openSammlungen.clear();
+  } else {
+    sortierteSammlungen.forEach(s => openSammlungen.add(s.id));
+    const orphanGs = gruppen.filter(g => !g.sammlungId || !sammlungen.find(s => s.id === g.sammlungId));
+    if (orphanGs.length) openSammlungen.add('__orphan__');
+  }
+  saveOpenSammlungen();
+  renderVerwaltung();
+});
+
+document.getElementById('btn-lern-toggle-alle')?.addEventListener('click', () => {
+  const sams = getSortierteSammlungen().filter(x => getSortierteGruppenInSammlung(x.id).some(modusGruppeSichtbar));
+  const anyOpen = sams.some(x => openLernSammlungen.has(x.id)) || openLernSammlungen.has('__orphan__');
+  if (anyOpen) openLernSammlungen.clear();
+  else {
+    sams.forEach(x => openLernSammlungen.add(x.id));
+    if (gruppen.some(g => !g.sammlungId || !sammlungen.find(x => x.id === g.sammlungId))) openLernSammlungen.add('__orphan__');
+  }
+  saveOpenLernSammlungen();
+  renderLernAuswahl();
+});
+
+// Suchen + Sortieren
+const renderVerwaltungDebounced = debounce(renderVerwaltung, 180);
+document.getElementById('input-karten-suche').addEventListener('input', () => {
+  const hasText = document.getElementById('input-karten-suche').value.length > 0;
+  document.getElementById('btn-suche-clear').classList.toggle('hidden', !hasText);
+  renderVerwaltungDebounced();
+});
+document.getElementById('btn-suche-clear').addEventListener('click', () => {
+  document.getElementById('input-karten-suche').value = '';
+  document.getElementById('btn-suche-clear').classList.add('hidden');
+  renderVerwaltung();
+  document.getElementById('input-karten-suche').focus();
+});
+document.getElementById('select-karten-sort').addEventListener('change', () => renderVerwaltung());
+
+// ============================================================
+// EVENTS – LERNEN
+// ============================================================
+
+// Lernmodus-Toggle
+function setLernModus(m) {
+  lernModus = m;
+  document.querySelectorAll('.lernmodus-btn').forEach(b => b.classList.toggle('active', b.dataset.modus === m));
+}
+document.querySelectorAll('.lernmodus-btn').forEach(btn => {
+  btn.addEventListener('click', () => setLernModus(btn.dataset.modus));
+});
+
+document.getElementById('gruppen-checkboxen').addEventListener('click', e => {
+  // Alle-Button: alle Gruppen einer Sammlung auswählen / abwählen
+  const alleBtn = e.target.closest('.btn-lern-sam-alle');
+  if (alleBtn) {
+    e.stopPropagation();
+    const sid  = alleBtn.dataset.samSid;
+    const body = document.querySelector(`.lern-sammlung-body[data-lern-sid="${sid}"]`);
+    if (!body) return;
+    const items      = body.querySelectorAll('.gruppe-check-item');
+    const allSel     = [...items].every(el => el.classList.contains('selected'));
+    items.forEach(el => el.classList.toggle('selected', !allSel));
+    saveLernSelection();
+    // Sammlung aufklappen, damit man die Auswahl sieht
+    if (!openLernSammlungen.has(sid)) {
+      openLernSammlungen.add(sid);
+      saveOpenLernSammlungen();
+      body.classList.remove('hidden');
+      const hdr  = document.querySelector(`.lern-sammlung-header[data-lern-sid="${sid}"]`);
+      const icon = hdr?.querySelector('.lern-sammlung-toggle');
+      if (icon) icon.textContent = '▼';
+    }
+    updateLernStartBtn();
+    return;
+  }
+
+  // Sammlung auf-/zuklappen
+  const sammlHdr = e.target.closest('.lern-sammlung-header');
+  if (sammlHdr) {
+    const sid = sammlHdr.dataset.lernSid;
+    if (openLernSammlungen.has(sid)) openLernSammlungen.delete(sid); else openLernSammlungen.add(sid);
+    saveOpenLernSammlungen();
+    const body = document.querySelector(`.lern-sammlung-body[data-lern-sid="${sid}"]`);
+    const icon = sammlHdr.querySelector('.lern-sammlung-toggle');
+    if (body) body.classList.toggle('hidden', !openLernSammlungen.has(sid));
+    if (icon) icon.textContent = openLernSammlungen.has(sid) ? '▼' : '▶';
+    return;
+  }
+  const item = e.target.closest('.gruppe-check-item');
+  if (!item) return;
+  item.classList.toggle('selected');
+  updateLernStartBtn();
+  saveLernSelection();
+});
+
+document.getElementById('btn-alle-waehlen').addEventListener('click', () => {
+  document.querySelectorAll('.gruppe-check-item').forEach(el => el.classList.add('selected'));
+  updateLernStartBtn();
+  saveLernSelection();
+});
+document.getElementById('btn-keine-waehlen').addEventListener('click', () => {
+  document.querySelectorAll('.gruppe-check-item').forEach(el => el.classList.remove('selected'));
+  updateLernStartBtn();
+  saveLernSelection();
+});
+
+// Schwächste starten – aus aktueller Gruppen-Auswahl (oder alle wenn nichts gewählt)
+document.getElementById('btn-schwaeche-waehlen').addEventListener('click', async () => {
+  const selectedGids  = getSelectedGids();
+  const schwacheKarten = await getSchwacheKarten(selectedGids.length ? selectedGids : null);
+  if (!schwacheKarten.length) {
+    toast(selectedGids.length ? t('toast_keine_stat_auswahl') : t('toast_keine_stat'));
+    return;
+  }
+  document.getElementById('lernen-auswahl').classList.add('hidden');
+  starteSession(schwacheKarten);
+  const label = selectedGids.length ? t('toast_aus_auswahl') : t('toast_ausgewaehlt');
+  toast(tf('toast_schwaechste', schwacheKarten.length, label));
+});
+
+function starteAusAuswahl(gids) {
+  const selectedGids = gids || getSelectedGids();
+  const seen = new Set();
+  const karten = [];
+  selectedGids.forEach(gid => {
+    getKartenFuerGid(gid).forEach(s => { if (!seen.has(s.id)) { seen.add(s.id); karten.push(s); } });
+  });
+  if (!karten.length) return false;
+  // Tutorial-Gruppen immer in Reihenfolge (nicht mischen)
+  const isTutorial = selectedGids.length === 1 &&
+    gruppen.find(g => g.id === selectedGids[0])?.id.startsWith('tutorial-');
+  document.getElementById('lernen-auswahl').classList.add('hidden');
+  starteSession(karten, !isTutorial);
+  return true;
+}
+// „Lernen starten“ / Fullscreen: gespeicherten Stand anbieten (nur Auswahl ohne Tutorial)
+async function starteLernenMitStand(vollbild, gidsVorgabe, vorgabe) {
+  const gids = gidsVorgabe || getSelectedGids();
+  if (!gids.length) return;
+  let wahl = { aktion: 'neu' }, key = null;
+  if (!gids.some(g => String(g).startsWith('tutorial-'))) {
+    key = 'L:' + [...gids].sort().join('|');
+    wahl = vorgabe || await mdWaehle(key, 'lern');
+    if (!wahl) return;
+    lernStandNaechster = { key, id: wahl.stand?.id || ('ls' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)) };
+  }
+  const ok = wahl.aktion === 'weiter' ? starteAusStand(wahl.stand, true, gids) : starteAusAuswahl(gids);
+  lernStandNaechster = null;
+  if (ok) mlMerken(gids);
+  if (ok && vollbild) betretePraesentation();
+}
+document.getElementById('btn-lernen-start').addEventListener('click', () => starteLernenMitStand(false, undefined, { aktion: 'neu' }));
+// Schmale Zeile über „Lernen starten“: gespeicherten Stand dieser Auswahl fortsetzen
+function lernStandFuerAuswahl() {
+  const gids = getSelectedGids();
+  if (!gids.length || gids.some(g => String(g).startsWith('tutorial-'))) return null;
+  const st = (mdStaende()['L:' + [...gids].sort().join('|')] || [])[0];
+  return st && Array.isArray(st.ids) && st.i >= 1 && st.i < st.ids.length ? st : null;
+}
+function updateLernFortsetzen() {
+  const b = document.getElementById('lern-fortsetzen');
+  if (!b) return;
+  const st = lernStandFuerAuswahl();
+  b.classList.toggle('hidden', !st);
+  if (st) b.textContent = '▶ ' + tf('md_weiter', st.label || '', st.i + 1, st.ids.length, mdDatum(st.t));
+}
+document.getElementById('lern-fortsetzen')?.addEventListener('click', () => {
+  const st = lernStandFuerAuswahl();
+  if (st) starteLernenMitStand(false, undefined, { aktion: 'weiter', stand: st });
+});
+
+// ── Fullscreen 16:9 (Präsentationsansicht für Beamer/Prüfungsgespräche) ──
+let praesentationAktiv = false;
+const SPIEL_NAME = 'MemoDive';
+let spielAktiv = false;
+const spiel = { namen: [], klasse: 0, wuerfel: false, aktuell: null, helfer: false, vergeben: new Set(), verlauf: [], rollTimer: 0,
+  zeit: 0, zeitEnde: 0, zeitTimer: 0, zeitLaeuft: false, zeitAbgelaufen: false, minus: false, aufgedecktZeit: 0,
+  raten: 0, ratenJoker: null, ratenId: null, ratenOrder: [0, 1, 2, 3], ratenGew: null };
+let ratenDaten = null;   // { kartenId: { f: Frage, o: [richtig, falsch, falsch, falsch] } } aus raten.json
+const SPIEL_ZEITEN = [0, 30, 20, 10, 5];   // aus → langsam → schnell
+
+let praesiFaktor = 1;   // Auto-Verkleinerung für lange Rückseiten (1 = volle Größe)
+let praesiBasis  = 16;
+
+// Bühne = gesamte sichtbare Fläche (kein 16:9-Rahmen mehr). Die Basisschrift bleibt proportional
+// zur 16:9-Fläche, die in den Bildschirm passt — auf einem 16:9-Bildschirm ist alles wie zuvor.
+function praesiMasse() {
+  const vv = window.visualViewport;
+  let w  = Math.round(vv?.width  || window.innerWidth);
+  let h  = Math.round(vv?.height || window.innerHeight);
+  if (document.body.classList.contains('spiel')) {      // Spiel: nur die Kartenfläche zählt
+    const ar = document.querySelector('#lernen-flashcard .lern-karte-area')?.getBoundingClientRect();
+    if (ar && ar.width > 50 && ar.height > 50) { w = Math.round(ar.width); h = Math.round(ar.height); }
+  }
+  const ref = Math.min(h, w * 9 / 16);              // Referenzhöhe für die Schriftgröße
+  const basis = Math.max(14, ref / 18);
+  // Mindestschrift: 28 px Fließtext bei 1280 px Breite (Fließtext = 1.05 rem), proportional skaliert
+  const refBreite = Math.min(w, h * 16 / 9);
+  const minRoot = Math.max(12, refBreite * 28 / 1280 / 1.05);
+  return { w, h, basis, minFaktor: Math.min(1, minRoot / basis) };
+}
+
+function praesiSkalieren() {
+  if (!praesentationAktiv) return;
+  praesiBasis = praesiMasse().basis;
+  document.documentElement.style.fontSize = (praesiBasis * praesiFaktor) + 'px';
+}
+
+// Größte Schriftstufe suchen (Binärsuche bis zur Mindestschrift), bei der die Rückseite ohne Scrollen passt
+let praesiLetzterFit = null;   // { faktor, passt } — für Tests/Diagnose
+function praesiAutofit() {
+  if (!praesentationAktiv) return;
+  const wrap = document.getElementById('lernkarte-text-scroll-wrap');
+  const box  = document.getElementById('lernkarte-text-vorderseite');
+  praesiFaktor = 1;
+  praesiSkalieren();
+  if (!wrap || !box || wrap.classList.contains('hidden')) { praesiLetzterFit = null; return; }
+  const passt = () => box.scrollHeight <= box.clientHeight + 1;
+  const m = praesiMasse();
+  const minF = m.minFaktor;
+  // Hochformat: Bühne ist schmal, aber hoch -> Schrift darf über die Basis hinaus wachsen (bis 1,5)
+  if (m.h > m.w && passt()) {
+    let lo = 1, hi = 1.5;
+    for (let i = 0; i < 8 && hi - lo > 0.01; i++) {
+      const mid = (lo + hi) / 2;
+      praesiFaktor = mid; praesiSkalieren();
+      if (passt()) lo = mid; else hi = mid;
+    }
+    praesiFaktor = lo; praesiSkalieren();
+  } else if (!passt()) {
+    praesiFaktor = minF; praesiSkalieren();
+    if (passt()) {
+      let lo = minF, hi = 1;            // lo passt, hi passt nicht
+      for (let i = 0; i < 8 && hi - lo > 0.005; i++) {
+        const mid = (lo + hi) / 2;
+        praesiFaktor = mid; praesiSkalieren();
+        if (passt()) lo = mid; else hi = mid;
+      }
+      praesiFaktor = lo; praesiSkalieren();
+    }
+  }
+  // Sicherheitsnetz: Layout kann sich nach dem Setzen leicht verschieben (Bild-Mindesthöhe) -> bei Bedarf Schritt für Schritt kleiner
+  for (let i = 0; i < 15 && !passt() && praesiFaktor > minF + 0.001; i++) {
+    praesiFaktor = Math.max(minF, praesiFaktor - 0.02); praesiSkalieren();
+  }
+  praesiLetzterFit = { faktor: +praesiFaktor.toFixed(3), root: +(praesiBasis * praesiFaktor).toFixed(1), passt: passt() };
+  updateScrollIndikatoren(); // Pfeile nach der Größenanpassung neu bewerten
+}
+
+let praesiAutofitFrame = 0, praesiObserver = null;
+function praesiAutofitPlanen() {
+  cancelAnimationFrame(praesiAutofitFrame);
+  praesiAutofitFrame = requestAnimationFrame(praesiAutofit);
+}
+
+function betretePraesentation() {
+  const el = document.documentElement;
+  try { (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el)?.catch?.(() => {}); } catch (_) {}
+  praesentationAktiv = true;
+  document.body.classList.add('praesi');
+  praesiFaktor = 1;
+  praesiSkalieren();
+  if (!praesiObserver) {
+    praesiObserver = new MutationObserver(praesiAutofitPlanen);
+    praesiObserver.observe(document.getElementById('lernkarte-text-vorderseite'), { childList: true, subtree: true });
+    praesiObserver.observe(document.getElementById('lernkarte-text-scroll-wrap'), { attributes: true, attributeFilter: ['class'] });
+    // Bilder laden asynchron und verändern die Höhe -> Fit neu berechnen
+    document.getElementById('lernkarte-text-vorderseite').addEventListener('load', praesiAutofitPlanen, true);
+  }
+  praesiAutofitPlanen();
+  erwerbeWakeLock();
+}
+
+function beendePraesentation() {
+  if (spielAktiv) spielAufraeumen();
+  if (!praesentationAktiv) return;
+  praesentationAktiv = false;
+  document.body.classList.remove('praesi');
+  praesiFaktor = 1;
+  document.documentElement.style.fontSize = '';
+  try {
+    if (document.fullscreenElement || document.webkitFullscreenElement)
+      (document.exitFullscreen || document.webkitExitFullscreen)?.call(document)?.catch?.(() => {});
+  } catch (_) {}
+}
+
+document.getElementById('btn-fullscreen169').addEventListener('click', () => {
+  starteLernenMitStand(true);
+});
+// ── MemoDive: Fortschritt merken und fortsetzen (nur Karten-IDs und Position, keine Namen) ──
+const MD_STAND_KEY = 'memodiveStaende', MD_STAND_MAX = 3, MD_STAND_TAGE = 90;
+let spielStandKontext = null;   // {key, id} für das nächste spielStarten()
+function mdStaende() {
+  const m = lsJson(MD_STAND_KEY), grenze = Date.now() - MD_STAND_TAGE * 864e5;
+  for (const k of Object.keys(m)) {
+    const l = (Array.isArray(m[k]) ? m[k] : []).filter(e => e && e.t > grenze && Array.isArray(e.ids) && e.ids.length);
+    if (l.length) m[k] = l; else delete m[k];
+  }
+  return m;
+}
+function mdSchreiben(m) { try { localStorage.setItem(MD_STAND_KEY, JSON.stringify(m)); } catch (_) {} }
+// "DE1 Rhino Commands" -> "DE1 RC": Wörter mit Ziffer oder nur Großbuchstaben bleiben, die übrigen werden zum Anfangsbuchstaben
+function mdKuerzel(name) {
+  name = String(name || '').trim();
+  const w = name.split(/\s+/).filter(Boolean);
+  if (w.length >= 2 && w.some(x => /\d/.test(x))) {
+    const out = []; let ini = '';
+    for (const x of w) {
+      if (/\d/.test(x) || (x === x.toUpperCase() && /[A-ZÄÖÜ]/.test(x))) { if (ini) { out.push(ini); ini = ''; } out.push(x); }
+      else ini += x[0].toLocaleUpperCase();
+    }
+    if (ini) out.push(ini);
+    return out.join(' ');
+  }
+  return name.length > 16 ? name.slice(0, 15).trimEnd() + '…' : name;
+}
+function mdLabel(karten) {
+  const ids = [...new Set(karten.map(k => gruppen.find(g => g.id === k.gruppeId)?.sammlungId).filter(Boolean))];
+  const namen = ids.map(id => { const s = sammlungen.find(x => x.id === id); return s ? mdKuerzel((istEn() && s.name_en) || s.name) : ''; }).filter(Boolean);
+  return namen.length > 3 ? namen.slice(0, 2).join(', ') + ' +' + (namen.length - 2) : namen.join(', ');
+}
+function mdKontext() {   // wohin gehört der Fortschritt: MemoDive oder normales Lernen?
+  if (spielAktiv) return spiel.standKey ? { key: spiel.standKey, id: spiel.standId } : null;
+  return lernStand;
+}
+function mdSpeichern() {
+  const c = mdKontext();
+  if (!c || !lernKarten.length) return;
+  const lern = c.key.startsWith('L:');
+  const m = mdStaende();
+  let l = (m[c.key] || []).filter(e => e.id !== c.id);
+  if (lernIndex >= 1 && lernIndex < lernKarten.length - (lern ? 1 : 0)) {
+    l.unshift({ id: c.id, t: Date.now(), ids: lernKarten.map(k => k.id), i: lernIndex, label: mdLabel(lernKarten) });
+    l = l.slice(0, lern ? 1 : MD_STAND_MAX);
+  }
+  if (l.length) m[c.key] = l; else delete m[c.key];
+  mdSchreiben(m);
+}
+function mdAbschliessen() {   // fertig: nichts mehr fortzusetzen
+  const c = mdKontext();
+  if (!c) return;
+  const m = mdStaende();
+  if (m[c.key]) { m[c.key] = m[c.key].filter(e => e.id !== c.id); if (!m[c.key].length) delete m[c.key]; mdSchreiben(m); }
+}
+function mdDatum(t) {
+  const d = new Date(t);
+  return istEn() ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : `${d.getDate()}.${d.getMonth() + 1}.`;
+}
+// Fragt, ob ein gespeicherter Stand fortgesetzt werden soll. -> {aktion:'neu'} | {aktion:'weiter', stand} | null (abgebrochen)
+function mdWaehle(key, art) {
+  if (!(mdStaende()[key] || []).length) return Promise.resolve({ aktion: 'neu' });
+  return new Promise(resolve => {
+    const wrap = document.createElement('div');
+    wrap.className = 'modal-backdrop pw-dialog md-dialog';
+    const zeichne = () => {
+      const l = mdStaende()[key] || [];
+      if (!l.length) { wrap.remove(); resolve({ aktion: 'neu' }); return; }
+      wrap.innerHTML = `<div class="modal"><div class="modal-header"><h2>${esc(t(art === 'lern' ? 'lst_titel' : 'md_titel'))}</h2><button class="btn-modal-close" type="button" aria-label="${esc(t('beenden'))}">✕</button></div>
+        <div class="modal-body">${l.map(e => `<div class="md-zeile"><button class="btn-secondary md-weiter" type="button" data-id="${esc(e.id)}">▶ ${esc(tf('md_weiter', e.label || '', e.i + 1, e.ids.length, mdDatum(e.t)))}</button><button class="btn-kursset-del md-del" type="button" data-id="${esc(e.id)}" title="${esc(t('md_loeschen'))}" aria-label="${esc(t('md_loeschen'))}">✕</button></div>`).join('')}
+        <button class="btn-primary btn-large md-neu" type="button">${esc(t('md_neu'))}</button></div></div>`;
+    };
+    wrap.addEventListener('click', e => {
+      const m = mdStaende(), l = m[key] || [];
+      const weiter = e.target.closest('.md-weiter'), del = e.target.closest('.md-del');
+      if (weiter) { const st = l.find(x => x.id === weiter.dataset.id); wrap.remove(); resolve(st ? { aktion: 'weiter', stand: st } : { aktion: 'neu' }); }
+      else if (del) { m[key] = l.filter(x => x.id !== del.dataset.id); if (!m[key].length) delete m[key]; mdSchreiben(m); zeichne(); }
+      else if (e.target.closest('.md-neu')) { wrap.remove(); resolve({ aktion: 'neu' }); }
+      else if (e.target.closest('.btn-modal-close') || e.target === wrap) { wrap.remove(); resolve(null); }
+    });
+    document.body.appendChild(wrap); zeichne();
+  });
+}
+// Karten in gespeicherter Reihenfolge ab gespeicherter Position; gelöschte Karten entfallen, neue kommen ans Ende
+function starteAusStand(stand, lern = false, gids = getSelectedGids()) {
+  const alle = new Map();
+  gids.forEach(gid => getKartenFuerGid(gid).forEach(s => alle.set(s.id, s)));
+  const behalten = stand.ids.map(id => alle.get(id));
+  const fehlend = behalten.filter(k => !k).length;
+  const neu = [...alle.values()].filter(k => !stand.ids.includes(k.id));
+  const karten = [...behalten.filter(Boolean), ...neu];
+  const index = Math.min(behalten.slice(0, stand.i).filter(Boolean).length, Math.max(0, karten.length - 1));
+  if (!karten.length) return false;
+  document.getElementById('lernen-auswahl').classList.add('hidden');
+  starteSession(karten, false, index, lern);
+  if (fehlend) toast(tf('md_entfallen', fehlend));
+  return true;
+}
+async function starteDive(gidsVorgabe, vorgabe) {
+  const gids = gidsVorgabe || getSelectedGids();
+  if (!gids.length) return;
+  const key = [...gids].sort().join('|');
+  const wahl = vorgabe || await mdWaehle(key);
+  if (!wahl) return;
+  const ok = wahl.aktion === 'weiter' ? starteAusStand(wahl.stand, false, gids) : starteAusAuswahl(gids);
+  if (!ok) return;
+  lernStand = null;
+  mlMerken(gids);
+  spielStandKontext = { key, id: wahl.stand?.id || ('md' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)) };
+  betretePraesentation(); spielStarten();
+}
+document.getElementById('btn-spiel')?.addEventListener('click', () => starteDive());
+
+// ── Klick auf „MemoFix“: Fortsetzen (gespeicherte Stände) + Zuletzt genutzt (letzte Auswahlen) ──
+const ML_KEY = 'memoZuletzt', ML_MAX = 3;
+function mlListe() { try { const l = JSON.parse(localStorage.getItem(ML_KEY) || '[]'); return Array.isArray(l) ? l.filter(e => e && Array.isArray(e.gids) && e.gids.length) : []; } catch (_) { return []; } }
+function mlKarten(gids) {
+  const seen = new Set(), out = [];
+  gids.forEach(gid => { if (gruppen.some(g => g.id === gid)) getKartenFuerGid(gid).forEach(k => { if (!seen.has(k.id)) { seen.add(k.id); out.push(k); } }); });
+  return out;
+}
+function mlMerken(gids) {
+  if (!gids.length || gids.some(g => String(g).startsWith('tutorial-'))) return;
+  try {
+    const key = [...gids].sort().join('|'), karten = mlKarten(gids);
+    const l = mlListe().filter(e => [...e.gids].sort().join('|') !== key);
+    l.unshift({ gids: [...gids], label: mdLabel(karten), n: karten.length, t: Date.now() });
+    localStorage.setItem(ML_KEY, JSON.stringify(l.slice(0, ML_MAX)));
+  } catch (_) {}
+}
+function mlVersion() {
+  const src = [...document.scripts].map(x => x.src).find(x => /app\.js/.test(x)) || '';
+  return (src.match(/[?&]v=(\d+)/) || [])[1] || '';
+}
+function mlOeffnen() {
+  document.getElementById('ml-dialog')?.remove();
+  const wrap = document.createElement('div');
+  wrap.id = 'ml-dialog'; wrap.className = 'modal-backdrop pw-dialog md-dialog ml-dialog';
+  const zeichne = () => {
+    const stand = [];
+    Object.entries(mdStaende()).forEach(([key, l]) => l.forEach(e => stand.push({ key, e })));
+    stand.sort((a, b) => b.e.t - a.e.t);
+    const zuletzt = mlListe();
+    const stZeile = ({ key, e }) => {
+      const lern = key.startsWith('L:');
+      return `<div class="md-zeile"><button class="btn-secondary md-weiter" type="button" data-ml="stand" data-key="${esc(key)}" data-id="${esc(e.id)}">▶ ${lern ? '' : '🤿 '}${esc(tf('ml_stand', e.label || '', e.i + 1, e.ids.length, mdDatum(e.t)))}</button><button class="btn-kursset-del md-del" type="button" data-ml="del" data-key="${esc(key)}" data-id="${esc(e.id)}" title="${esc(t('md_loeschen'))}" aria-label="${esc(t('md_loeschen'))}">✕</button></div>`;
+    };
+    const zlZeile = (e, i) => `<div class="md-zeile"><span class="ml-name">${esc(e.label || '…')} · ${esc(tf('ml_karten', e.n))}</span><button class="btn-secondary ml-mini" type="button" data-ml="lernen" data-i="${i}">${esc(t('ml_lernen'))}</button><button class="btn-secondary ml-mini" type="button" data-ml="dive" data-i="${i}" title="${esc(SPIEL_NAME)}">🤿</button></div>`;
+    wrap.innerHTML = `<div class="modal"><div class="modal-header"><h2><span class="title-memo">Memo</span><span class="title-pix">Fix</span></h2><button class="btn-modal-close" type="button" aria-label="${esc(t('beenden'))}">✕</button></div>
+      <div class="modal-body">
+        ${stand.length ? `<h3 class="ml-kopf">${esc(t('ml_fortsetzen'))}</h3>${stand.map(stZeile).join('')}` : ''}
+        ${zuletzt.length ? `<h3 class="ml-kopf">${esc(t('ml_zuletzt'))}</h3>${zuletzt.map(zlZeile).join('')}` : ''}
+        ${!stand.length && !zuletzt.length ? `<p class="ml-leer">${esc(t('ml_leer'))}</p>` : ''}
+        <p class="ml-version">${esc(t('ml_version'))} ${esc(mlVersion())}</p></div></div>`;
+  };
+  wrap.addEventListener('click', e => {
+    const b = e.target.closest('[data-ml]');
+    if (!b) { if (e.target === wrap || e.target.closest('.btn-modal-close')) wrap.remove(); return; }
+    const a = b.dataset.ml;
+    if (a === 'del') {
+      const m = mdStaende(), l = (m[b.dataset.key] || []).filter(x => x.id !== b.dataset.id);
+      if (l.length) m[b.dataset.key] = l; else delete m[b.dataset.key];
+      mdSchreiben(m); zeichne(); return;
+    }
+    if (a === 'stand') {
+      const key = b.dataset.key, lern = key.startsWith('L:');
+      const st = (mdStaende()[key] || []).find(x => x.id === b.dataset.id);
+      if (!st) { zeichne(); return; }
+      const gids = key.replace(/^L:/, '').split('|');
+      wrap.remove(); showView('lernen');
+      if (!mlKarten(gids).length) { toast(t('ml_weg')); return; }
+      if (lern) starteLernenMitStand(false, gids, { aktion: 'weiter', stand: st });
+      else starteDive(gids, { aktion: 'weiter', stand: st });
+      return;
+    }
+    const z = mlListe()[Number(b.dataset.i)];
+    if (!z) return;
+    wrap.remove(); showView('lernen');
+    if (!mlKarten(z.gids).length) { toast(t('ml_weg')); return; }
+    if (a === 'dive') starteDive(z.gids, { aktion: 'neu' });
+    else starteLernenMitStand(false, z.gids, { aktion: 'neu' });
+  });
+  document.body.appendChild(wrap); zeichne();
+}
+(() => {
+  const h = document.querySelector('header h1');
+  if (!h) return;
+  h.setAttribute('role', 'button'); h.setAttribute('tabindex', '0'); h.classList.add('logo-klick');
+  h.addEventListener('click', mlOeffnen);
+  h.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); mlOeffnen(); } });
+})();
+window.addEventListener('resize', praesiAutofitPlanen);
+window.addEventListener('orientationchange', praesiAutofitPlanen);
+window.visualViewport?.addEventListener('resize', praesiAutofitPlanen);
+['fullscreenchange', 'webkitfullscreenchange'].forEach(ev =>
+  document.addEventListener(ev, () => {
+    // Vollbild per Esc verlassen -> auch Präsentationsansicht beenden
+    if (praesentationAktiv && !document.fullscreenElement && !document.webkitFullscreenElement) beendePraesentation();
+  }));
+
+// Karte antippen: 1. Klick = 3D-Flip + ✓ (gewusst), 2. Klick = Fly-out + weiter
+// Swipe-Navigation auf der Lernkarte (vor/zurück wie Pfeile)
+(function() {
+  const card = document.getElementById('lernkarte');
+  let tx = 0, ty = 0, swiped = false, inGalerie = false;
+
+  card.addEventListener('touchstart', e => {
+    tx = e.touches[0].clientX;
+    ty = e.touches[0].clientY;
+    swiped = false;
+    // Geste beginnt in einer Foto-Galerie? Dann Kartenwechsel/Drag komplett
+    // der Galerie überlassen (eigenes Wischen zwischen Fotos, kein Kartenwechsel)
+    inGalerie = !!e.target.closest('.foto-slideshow, .lern-text-fotos');
+  }, { passive: true });
+
+  card.addEventListener('touchmove', e => {
+    if (swiped || isAnimating || inGalerie) return;
+    const dx = e.touches[0].clientX - tx;
+    const dy = e.touches[0].clientY - ty;
+    if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      card.style.transition = 'none';
+      card.style.transform  = `translateX(${dx * 0.3}px) rotate(${dx * 0.02}deg)`;
+    }
+  }, { passive: true });
+
+  card.addEventListener('touchend', e => {
+    if (inGalerie) return;
+    const dx = e.changedTouches[0].clientX - tx;
+    const dy = e.changedTouches[0].clientY - ty;
+    card.style.transition = '';
+    card.style.transform  = '';
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && !isAnimating) {
+      swiped = true;
+      if (dx < 0 && lernIndex < lernKarten.length - 1) { lernIndex++; zeigeKarte(); }
+      else if (dx > 0 && lernIndex > 0)                { lernIndex--; zeigeKarte(); }
+    }
+  }, { passive: true });
+})();
+
+document.getElementById('lernkarte').addEventListener('click', e => {
+  if (!nameVisible) {
+    stoppeAutoTimer();
+    triggerFlip('gewusst', () => {
+      if (timerSekunden) {
+        const backMs = TIMER_BACK[timerSekunden] || 2000;
+        timerBarStart(backMs);
+        timerHandle = setTimeout(timerAutoWeiter, backMs);
+      }
+    });
+  } else if (!isAnimating) {
+    if (spielAktiv) {                      // im Spiel: Tipp auf die Karte = Weiter (kurze Schutzzeit nach dem Aufdecken)
+      if (Date.now() - (spiel.aufgedecktZeit || 0) > 700 && !document.getElementById('spiel-wer')?.classList.contains('hidden')) spielWeiterKarte();
+      return;
+    }
+    stoppeAutoTimer();
+    naechsteKarteOderEnde();
+  }
+});
+
+// Button „Begriff zeigen" = Flip + ✗ (nicht gewusst)
+document.getElementById('btn-aufdecken').addEventListener('click', e => {
+  e.stopPropagation();
+  if (!nameVisible) {
+    stoppeAutoTimer();
+    triggerFlip('nicht-gewusst', () => {
+      if (timerSekunden) {
+        const backMs = TIMER_BACK[timerSekunden] || 2000;
+        timerBarStart(backMs);
+        timerHandle = setTimeout(timerAutoWeiter, backMs);
+      }
+    });
+  }
+});
+
+// Pfeile
+document.getElementById('btn-weiter').addEventListener('click', () => {
+  stoppeAutoTimer();
+  if (lernIndex < lernKarten.length - 1) { lernIndex++; zeigeKarte(); }
+});
+document.getElementById('btn-zurueck').addEventListener('click', () => {
+  stoppeAutoTimer();
+  if (lernIndex > 0) { lernIndex--; zeigeKarte(); }
+});
+
+document.getElementById('btn-mischen').addEventListener('click', () => {
+  lernIstGemischt = !lernIstGemischt;
+  if (lernIstGemischt) {
+    mischen(lernKarten);
+    toast(t('toast_gemischt'));
+  } else {
+    lernKarten = [...lernKartenOriginal];
+    toast(t('toast_sortiert'));
+  }
+  lernIndex = 0;
+  aktualisiereMischenBtn();
+  zeigeKarte();
+});
+
+// Toggle ✓ ↔ ✗ wenn auf Feedback-Symbol geklickt wird
+document.getElementById('lern-feedback').addEventListener('click', e => {
+  e.stopPropagation();
+  if (!nameVisible || !aktuelleWertung) return;
+  const s = lernKarten[lernIndex];
+  if (aktuelleWertung === 'gewusst') {
+    gewusst--;          gewusstIds.delete(s.id);
+    nichtGewusst++;     nichtGewusstIds.add(s.id);
+    aktuelleWertung = 'nicht';
+    zeigeFeedback('nicht');
+  } else {
+    nichtGewusst--;     nichtGewusstIds.delete(s.id);
+    gewusst++;          gewusstIds.add(s.id);
+    aktuelleWertung = 'gewusst';
+    zeigeFeedback('gewusst');
+  }
+});
+document.getElementById('btn-lern-favorit').addEventListener('click', async e => {
+  e.stopPropagation();
+  const btn = e.currentTarget;
+  const s = lernKarten[lernIndex];
+  if (!s) return;
+  await toggleFavorit(s.id);
+  btn.classList.toggle('aktiv', !!s.favorit);
+  // Auch Stern auf Karte aktualisieren
+  document.getElementById('lern-favorit-stern').classList.toggle('hidden', !s.favorit);
+});
+
+document.getElementById('btn-beenden').addEventListener('click', () => {
+  beendePraesentation();
+  stoppeAutoTimer();
+  document.getElementById('lernen-flashcard').classList.add('hidden');
+  document.getElementById('lernen-auswahl').classList.remove('hidden');
+  renderLernAuswahl();
+});
+document.getElementById('btn-neue-uebung').addEventListener('click', () => {
+  document.getElementById('lernen-ende').classList.add('hidden');
+  starteSession(lernKarten);
+});
+
+// Timer-Buttons + Autorepeat (Auswahl + Session) – Event-Delegation
+document.addEventListener('click', e => {
+  // Autorepeat-Toggle
+  if (e.target.closest('.timer-btn-repeat')) {
+    setAutoRepeat(!autoRepeat);
+    return;
+  }
+  // Timer-Wert-Buttons
+  const btn = e.target.closest('.timer-btn');
+  if (!btn || btn.classList.contains('timer-btn-repeat')) return;
+  const val = +btn.dataset.sek;
+  setTimerSekunden(val);
+  // Wenn Session läuft: Timer sofort (neu)starten oder stoppen
+  if (!document.getElementById('lernen-flashcard').classList.contains('hidden')) {
+    if (val) starteAutoTimer();
+    else stoppeAutoTimer();
+  }
+});
+document.getElementById('btn-nachgeschaut-ueben').addEventListener('click', () => {
+  const nachKarten = lernKarten.filter(s => nichtGewusstIds.has(s.id));
+  if (!nachKarten.length) return;
+  document.getElementById('lernen-ende').classList.add('hidden');
+  starteSession(nachKarten);
+  toast(tf('toast_nachgeschaut', nachKarten.length));
+});
+document.getElementById('btn-ende-auswahl').addEventListener('click', () => {
+  document.getElementById('lernen-ende').classList.add('hidden');
+  document.getElementById('lernen-auswahl').classList.remove('hidden');
+  renderLernAuswahl();
+});
+
+// Tastatur (Desktop)
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lernen-flashcard').classList.contains('hidden')) {
+    if (e.key === 'ArrowRight') document.getElementById('btn-weiter').click();
+    if (e.key === 'ArrowLeft')  document.getElementById('btn-zurueck').click();
+    if (e.key === ' ')          { e.preventDefault(); document.getElementById('btn-aufdecken').click(); }
+  }
+});
+
+// ============================================================
+// EVENTS – STATISTIK
+// ============================================================
+
+document.getElementById('btn-statistik-loeschen').addEventListener('click', async () => {
+  if (!confirm(t('confirm_statistik'))) return;
+  await dbClear('sitzungen');
+  renderStatistik();
+  toast(t('toast_statistik'));
+});
+
+// ============================================================
+// EVENTS – SICHERUNG (Export- und Import-Modals)
+// ============================================================
+
+// Anzahl gewählter Gruppen pro Sammlung im Kopf anzeigen (Sammlungen sind eingeklappt)
+function aktualisiereExportZaehler() {
+  document.querySelectorAll('#export-gruppen-liste .export-sammlung-header').forEach(h => {
+    const sid = h.dataset.samToggle;
+    const items = [...document.querySelectorAll(`#export-gruppen-liste .gruppe-check-item[data-export-sam="${sid}"]`)];
+    const n = items.filter(i => i.classList.contains('selected')).length;
+    const el = h.querySelector('.export-sam-count');
+    if (el) { el.textContent = n ? `${n} ✓` : ''; el.classList.toggle('aktiv', n > 0); }
+  });
+}
+
+// Export Modal öffnen
+document.getElementById('btn-export').addEventListener('click', () => {
+  if (!gruppen.length) { toast(t('toast_keine_gruppen')); return; }
+  const container = document.getElementById('export-gruppen-liste');
+
+  function setExportSel(item, sel) {
+    item.classList.toggle('selected', sel);
+    const cb = item.querySelector('.check-box');
+    if (sel) Object.assign(cb.style, { background: 'var(--accent)', borderColor: 'var(--accent)', color: '#000' });
+    else      Object.assign(cb.style, { background: '', borderColor: '', color: 'transparent' });
+  }
+  function checkBoxHtml(selected = false) {
+    return selected
+      ? `<div class="check-box" style="background:var(--accent);border-color:var(--accent);color:#000">✓</div>`
+      : `<div class="check-box" style="color:transparent">✓</div>`;
+  }
+  function gruppeItemHtml(g, samId) {
+    const n = gruppeKartenAnzahl(g.id);
+    return `<div class="gruppe-check-item" data-gid="${g.id}" data-export-sam="${samId}">
+      ${checkBoxHtml(false)}
+      <div class="check-label">
+        <strong>${esc(gruppeName(g))}</strong>
+        <span>${n} Karte${n !== 1 ? 'n' : ''}</span>
+      </div>
+    </div>`;
+  }
+
+  let html = '';
+
+  // Nach Sammlungen gegliedert — Favoriten pro Sammlung zuoberst
+  getSortierteSammlungen().forEach(sam => {
+    const gs = getSortierteGruppenInSammlung(sam.id);
+    if (!gs.length) return;
+    const samFavs = studenten.filter(s => s.favorit && gs.some(g => g.id === s.gruppeId));
+    html += `<div class="export-sammlung-header" data-sam-toggle="${sam.id}">
+      <span class="export-sammlung-pfeil">▸</span>
+      <span class="export-sammlung-name">${esc(sammlungName(sam))}</span>
+      <span class="export-sam-count"></span>
+      <button class="btn-export-sam-alle" data-sam-id="${sam.id}">${t('alle')}</button>
+    </div><div class="export-sam-body hidden" data-body-sam="${sam.id}">`;
+    if (samFavs.length) {
+      html += `<div class="gruppe-check-item fav-gruppe-item" data-gid="__favoriten__:${sam.id}" data-export-sam="${sam.id}">
+        ${checkBoxHtml(false)}
+        <div class="check-label">
+          <strong>${t('favoriten')}</strong>
+          <span>${tf('karte_n', samFavs.length)}</span>
+        </div>
+      </div>`;
+    }
+    html += gs.map(g => gruppeItemHtml(g, sam.id)).join('') + '</div>';
+  });
+  // Orphan-Gruppen
+  const orphans = gruppen.filter(g => !g.sammlungId || !sammlungen.find(s => s.id === g.sammlungId));
+  if (orphans.length) {
+    html += `<div class="export-sammlung-header" data-sam-toggle="__orphan__">
+      <span class="export-sammlung-pfeil">▸</span>
+      <span class="export-sammlung-name" style="opacity:.65">${t('ohne_sammlung')}</span>
+      <span class="export-sam-count"></span>
+      <button class="btn-export-sam-alle" data-sam-id="__orphan__">${t('alle')}</button>
+    </div><div class="export-sam-body hidden" data-body-sam="__orphan__">`;
+    html += orphans.map(g => gruppeItemHtml(g, '__orphan__')).join('') + '</div>';
+  }
+  container.innerHTML = html;
+
+  // Einzelne Gruppen toggeln
+  container.querySelectorAll('.gruppe-check-item').forEach(item => {
+    item.addEventListener('click', () => { setExportSel(item, !item.classList.contains('selected')); aktualisiereExportZaehler(); });
+  });
+  // Sammlung auf-/zuklappen (Klick auf Kopfzeile)
+  container.querySelectorAll('.export-sammlung-header').forEach(h => {
+    h.addEventListener('click', e => {
+      if (e.target.closest('.btn-export-sam-alle')) return;
+      const body = container.querySelector(`.export-sam-body[data-body-sam="${h.dataset.samToggle}"]`);
+      const zu = body.classList.toggle('hidden');
+      h.classList.toggle('offen', !zu);
+    });
+  });
+  // Alle-Button pro Sammlung
+  container.querySelectorAll('.btn-export-sam-alle').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const sid   = btn.dataset.samId;
+      const items = container.querySelectorAll(`.gruppe-check-item[data-export-sam="${sid}"]`);
+      const allSel = [...items].every(el => el.classList.contains('selected'));
+      items.forEach(item => setExportSel(item, !allSel));
+      aktualisiereExportZaehler();
+    });
+  });
+  aktualisiereExportZaehler();
+  document.getElementById('export-modal').classList.remove('hidden');
+  document.getElementById('export-ios-hinweis').classList.toggle('hidden', !!window.showSaveFilePicker);
+});
+
+document.getElementById('btn-export-modal-close').addEventListener('click', () =>
+  document.getElementById('export-modal').classList.add('hidden'));
+document.getElementById('export-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.add('hidden');
+});
+
+document.getElementById('btn-export-alle').addEventListener('click', () => {
+  document.querySelectorAll('#export-gruppen-liste .gruppe-check-item').forEach(item => {
+    item.classList.add('selected');
+    const cb = item.querySelector('.check-box');
+    Object.assign(cb.style, { background: 'var(--accent)', borderColor: 'var(--accent)', color: '#000' });
+  });
+  aktualisiereExportZaehler();
+});
+document.getElementById('btn-export-keine').addEventListener('click', () => {
+  document.querySelectorAll('#export-gruppen-liste .gruppe-check-item').forEach(item => {
+    item.classList.remove('selected');
+    const cb = item.querySelector('.check-box');
+    Object.assign(cb.style, { background: '', borderColor: '', color: 'transparent' });
+  });
+  aktualisiereExportZaehler();
+});
+
+// Format-Toggle (Datei / PDF)
+document.querySelectorAll('.export-fmt-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.export-fmt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const fmt = btn.dataset.fmt;
+    document.getElementById('export-ios-hinweis').classList.toggle('hidden', fmt !== 'datei');
+    document.getElementById('export-pdf-hinweis').classList.toggle('hidden', fmt !== 'pdf');
+    document.getElementById('btn-export-start').textContent =
+      fmt === 'pdf' ? t('pdf_drucken') : t('exportieren_start');
+  });
+});
+
+// Speichert einen Export-Teil. Gibt true zurück, wenn eine echte Erfolgsbestätigung
+// vom Betriebssystem vorliegt (File System Access API), sonst false (reiner Download-Anstoß).
+async function speichereExportDatei(blob, filename, dirHandle) {
+  if (dirHandle) {
+    const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(blob);
+    await writable.close();
+    return true;
+  }
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{ description: 'MemoFix Backup', accept: { 'application/json': ['.json'] } }]
+      });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      return true;
+    } catch (err) {
+      if (err.name === 'AbortError') throw err;
+      // sonst: unten auf Standard-Download zurückfallen
+    }
+  }
+  const url = URL.createObjectURL(blob);
+  Object.assign(document.createElement('a'), { href: url, download: filename }).click();
+  URL.revokeObjectURL(url);
+  return false;
+}
+
+document.getElementById('btn-export-start').addEventListener('click', async () => {
+  const selectedGids = [...document.querySelectorAll('#export-gruppen-liste .gruppe-check-item.selected')]
+    .map(el => el.dataset.gid);
+  if (!selectedGids.length) { toast(t('toast_keine_auswahl')); return; }
+
+  // PDF: Fenster SOFORT öffnen (synchron, direkt beim Klick) — bevor irgendein await folgt,
+  // damit iOS Safari es als Nutzer-Geste akzeptiert und nicht als Popup blockt.
+  const fmt = document.querySelector('.export-fmt-btn.active')?.dataset.fmt || 'datei';
+
+  // PDF-Warnung: gemischte Typen oder mehrere Sammlungen
+  if (fmt === 'pdf') {
+    const exportStudVorschau = selectedGids.flatMap(gid => getKartenFuerGid(gid));
+    const seen0 = new Set(); const uniq0 = exportStudVorschau.filter(s => seen0.has(s.id) ? false : (seen0.add(s.id), true));
+    const hatFoto  = uniq0.some(s => s.modus !== 'text' && s.foto);
+    const hatText  = uniq0.some(s => s.modus === 'text');
+    const sammlIds = new Set(
+      gruppen.filter(g => selectedGids.some(gid => gid === g.id || gid === `__favoriten__:${g.sammlungId}`))
+             .map(g => g.sammlungId).filter(Boolean)
+    );
+    const warnTeile = [];
+    if (hatFoto && hatText) warnTeile.push('⚠️ ' + tf('pdf_warn_mixed', [...sammlIds][0] || ''));
+    if (sammlIds.size > 1)  warnTeile.push('⚠️ ' + t('pdf_warn_multi'));
+    if (warnTeile.length && !confirm(tf('confirm_pdf', warnTeile.join('\n\n')))) return;
+  }
+
+  let pdfWin = null;
+  if (fmt === 'pdf') {
+    pdfWin = window.open('', '_blank');
+    if (!pdfWin) { toast(t('toast_popup')); return; }
+    pdfWin.document.write(
+      '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>MemoFix</title></head>' +
+      '<body style="font-family:sans-serif;padding:2rem;color:#666;background:#fff">' +
+      t('wird_aufbereitet') + '</body></html>'
+    );
+  }
+
+  // Alle gids auflösen (inkl. __favoriten__:sid), dedup
+  const seenEx = new Set();
+  const exportStudentenRaw = selectedGids
+    .flatMap(gid => getKartenFuerGid(gid))
+    .filter(s => seenEx.has(s.id) ? false : (seenEx.add(s.id), true));
+  const hasFavoriten = selectedGids.some(g => g === '__favoriten__' || g.startsWith('__favoriten__:'));
+  const normalGids   = selectedGids.filter(g => !g.startsWith('__favoriten__'));
+
+  // Gruppen aus tatsächlich exportierten Karten ableiten
+  const exportGruppenIds = new Set(exportStudentenRaw.map(s => s.gruppeId));
+  const exportGruppen    = gruppen.filter(g => exportGruppenIds.has(g.id));
+
+  const exportSammlIds   = new Set(exportGruppen.map(g => g.sammlungId).filter(Boolean));
+  const exportSammlungen = sammlungen.filter(s => exportSammlIds.has(s.id));
+
+  // PDF-Modus: alle Karten auf einmal aufbereiten (Auswahl dafür üblicherweise klein)
+  if (fmt === 'pdf') {
+    const studExport = await Promise.all(exportStudentenRaw.map(async s => {
+      if (!s.foto) return { ...s, foto: null, fotos: [] };
+      try {
+        const dbRec  = await dbGet('studenten', s.id);
+        const blobs  = (dbRec?.fotos && dbRec.fotos.length) ? dbRec.fotos : (dbRec?.foto ? [dbRec.foto] : [s.foto]);
+        const fotos  = await Promise.all(blobs.map(b => blobToDataUrl(b)));
+        return { ...s, foto: fotos[0] || null, fotos };
+      } catch (err) {
+        console.warn('Export Foto-Fehler für', s.name, err);
+        return { ...s, foto: null, fotos: [] };
+      }
+    }));
+    document.getElementById('export-modal').classList.add('hidden');
+    await exportAlsPDF(studExport, exportGruppen, exportSammlungen, pdfWin);
+    return;
+  }
+
+  // Dateiname
+  function sanitize(str) {
+    return str
+      .replace(/[äÄ]/g,'ae').replace(/[öÖ]/g,'oe').replace(/[üÜ]/g,'ue').replace(/ß/g,'ss')
+      .replace(/[^a-zA-Z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+  }
+  const datum = new Date().toISOString().slice(0,10);
+  let gruppenTeil;
+  if (hasFavoriten && !normalGids.length) {
+    gruppenTeil = 'favoriten';
+  } else if (exportGruppen.length === 1 && !hasFavoriten) {
+    gruppenTeil = sanitize(exportGruppen[0].name);
+  } else {
+    gruppenTeil = `${exportGruppen.length}-gruppen`;
+  }
+  const basisname = `memofix-${gruppenTeil}-${datum}`;
+
+  // Fotos NACHEINANDER (nicht alle gleichzeitig) einlesen; jeder Teil (max. ~20 MB) wird sofort
+  // zum Blob und freigegeben, damit nie alle Bilder gleichzeitig im Speicher liegen.
+  // Zählt mit: gewählt / geschrieben / Bildfehler — Abweichungen werden sichtbar gemeldet.
+  const ohneBilder = !!document.getElementById('export-ohne-bilder')?.checked;
+  const startBtn = document.getElementById('btn-export-start');
+  const startLabel = startBtn.textContent;
+  startBtn.disabled = true;
+  const CHUNK_BYTES = 20 * 1024 * 1024;   // Zielgröße (Schätzung) pro Teil
+  const MAX_TEIL_BYTES = 24.5 * 1024 * 1024;   // harte Grenze: GitHub-Upload im Browser erlaubt max. 25 MB pro Datei
+  let zuGross = 0;                              // Einzelkarten, die allein schon über der Grenze liegen
+  const teile = [];            // { blob, anzahl }
+  const bildFehler = [];       // Kartennamen mit Bildproblem
+  let aktuell = [], aktuellBytes = 0, geschrieben = 0, gesamtBytes = 0;
+  // Baut aus einer Kartenliste einen Teil; ist er (real gemessen) größer als die harte Grenze,
+  // wird er rekursiv halbiert. Nur eine einzelne Karte lässt sich nicht weiter teilen.
+  const baueTeil = karten => {
+    const payload = {
+      version: 2, exportiert: new Date().toISOString(),
+      sammlungen: exportSammlungen, gruppen: exportGruppen, studenten: karten
+    };
+    const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+    if (blob.size > MAX_TEIL_BYTES && karten.length > 1) {
+      const h = Math.ceil(karten.length / 2);
+      baueTeil(karten.slice(0, h)); baueTeil(karten.slice(h));
+      return;
+    }
+    if (blob.size > MAX_TEIL_BYTES) zuGross++;
+    teile.push({ blob, anzahl: karten.length });
+    geschrieben += karten.length; gesamtBytes += blob.size;
+  };
+  const schliesseTeil = () => {
+    if (!aktuell.length) return;
+    baueTeil(aktuell);
+    aktuell = []; aktuellBytes = 0;
+  };
+  try {
+    for (let i = 0; i < exportStudentenRaw.length; i++) {
+      const s = exportStudentenRaw[i];
+      startBtn.textContent = `${i + 1} / ${exportStudentenRaw.length}`;
+      let fotoData = { foto: null, fotos: [] };
+      const hatBild = !!(s.foto || (s.fotos && s.fotos.length));
+      if (!ohneBilder && hatBild) {
+        try {
+          const dbRec = await dbGet('studenten', s.id);
+          const blobs = (dbRec?.fotos && dbRec.fotos.length) ? dbRec.fotos : (dbRec?.foto ? [dbRec.foto] : [s.foto].filter(Boolean));
+          const fotos = await Promise.all(blobs.map(b => blobToDataUrl(b)));
+          if (fotos.some(f => !f)) throw new Error('Bild leer');
+          fotoData = { foto: fotos[0] || null, fotos };
+        } catch (err) {
+          console.warn('Export Foto-Fehler für', s.name, err);
+          bildFehler.push(s.name || s.id);
+        }
+      }
+      // foto steht zusätzlich als fotos[0] in der Datei -> erstes Bild zählt doppelt
+      const groesse = fotoData.fotos.reduce((sum, f) => sum + f.length, 0) + (fotoData.fotos[0]?.length || 0);
+      if (aktuellBytes > 0 && aktuellBytes + groesse > CHUNK_BYTES) schliesseTeil();
+      aktuell.push({ ...s, ...fotoData });
+      aktuellBytes += groesse;
+    }
+    schliesseTeil();
+  } catch (err) {
+    console.error('Export fehlgeschlagen', err);
+    toast(tf('toast_fehler', err.message));
+    return;
+  } finally {
+    startBtn.disabled = false;
+    startBtn.textContent = startLabel;
+  }
+  console.info(`Export: ${exportStudentenRaw.length} gewählt, ${geschrieben} geschrieben, ${teile.length} Teil(e), ${(gesamtBytes / 1048576).toFixed(1)} MB, ${bildFehler.length} Bildfehler`);
+
+  document.getElementById('export-modal').classList.add('hidden');
+  const teilName = i => `${basisname}${teile.length > 1 ? `-teil${i + 1}-von${teile.length}` : ''}.json`;
+  const problem = geschrieben !== exportStudentenRaw.length || bildFehler.length > 0 || zuGross > 0;
+
+  // Ein Teil ohne Auffälligkeit: direkt speichern wie bisher
+  if (teile.length === 1 && !problem) {
+    try {
+      const bestaetigt = await speichereExportDatei(teile[0].blob, teilName(0), null);
+      toast(bestaetigt ? tf('toast_export_datei_ok', teilName(0)) : tf('toast_export_datei_dl', teilName(0)));
+    } catch (err) {
+      if (err.name !== 'AbortError') toast(tf('toast_fehler', err.message));
+    }
+    return;
+  }
+
+  // Mehrere Teile oder Auffälligkeit: Ergebnis-Dialog, jeder Teil mit eigenem Button
+  // (jeder Klick ist eine echte Nutzeraktion – automatische Mehrfach-Downloads werden von Browsern blockiert)
+  zeigeExportErgebnis({
+    teile, teilName, gewaehlt: exportStudentenRaw.length, geschrieben, gesamtBytes, bildFehler, ohneBilder, zuGross
+  });
+});
+
+function zeigeExportErgebnis({ teile, teilName, gewaehlt, geschrieben, gesamtBytes, bildFehler, ohneBilder, zuGross = 0 }) {
+  const en = currentLang === 'en';
+  const L = en ? {
+    titel: 'Export result', summary: (g, w, n, mb) => `${g} selected · ${w} exported · ${n} file${n !== 1 ? 's' : ''} · ${mb} MB`,
+    abw: (g, w) => `⚠️ ${g} selected, only ${w} exported. Please do not rely on this backup.`,
+    bild: (n) => `⚠️ ${n} card${n !== 1 ? 's' : ''} without images (image could not be read): `,
+    gross: n => `⚠️ ${n} file${n !== 1 ? 's are' : ' is'} larger than 25 MB (single card with very large images) – compress photos first (BACKUP → Compress photos).`,
+    ohne: 'Exported without images.', teil: (i, n) => `Part ${i} of ${n}`, karten: n => `${n} cards`,
+    alle: '📁 Save all to one folder', hinweis: 'Tap each part to save it. Keep all parts together.', zu: 'Close'
+  } : {
+    titel: 'Export-Ergebnis', summary: (g, w, n, mb) => `${g} gewählt · ${w} exportiert · ${n} Datei${n !== 1 ? 'en' : ''} · ${mb} MB`,
+    abw: (g, w) => `⚠️ ${g} gewählt, aber nur ${w} exportiert. Bitte verlasse dich nicht auf dieses Backup.`,
+    gross: n => `⚠️ ${n} Datei${n !== 1 ? 'en sind' : ' ist'} größer als 25 MB (einzelne Karte mit sehr großen Bildern) – bitte zuerst Fotos komprimieren (SICHERUNG → Fotos komprimieren).`,
+    bild: (n) => `⚠️ ${n} Karte${n !== 1 ? 'n' : ''} ohne Bild (Bild konnte nicht gelesen werden): `,
+    ohne: 'Ohne Bilder exportiert.', teil: (i, n) => `Teil ${i} von ${n}`, karten: n => `${n} Karten`,
+    alle: '📁 Alle in einen Ordner speichern', hinweis: 'Tippe jeden Teil einzeln an, um ihn zu speichern. Alle Teile zusammen aufbewahren.', zu: 'Schließen'
+  };
+  const mb = b => (b / 1048576).toFixed(1);
+  const abweichung = geschrieben !== gewaehlt;
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  const fehlerStil = 'margin:0.5rem 0;padding:0.5rem 0.7rem;border-radius:10px;border:1px solid rgba(255,122,122,0.5);background:rgba(255,122,122,0.1);color:#ff7a7a;font-size:0.85rem';
+  modal.innerHTML = `<div class="modal"><div class="modal-header"><h2>${L.titel}</h2>
+      <button class="btn-modal-close" data-aktion="zu">✕</button></div>
+    <div class="modal-body">
+      <p class="modal-hint"><strong>${L.summary(gewaehlt, geschrieben, teile.length, mb(gesamtBytes))}</strong></p>
+      ${abweichung ? `<div style="${fehlerStil}">${L.abw(gewaehlt, geschrieben)}</div>` : ''}
+      ${bildFehler.length ? `<div style="${fehlerStil}">${L.bild(bildFehler.length)}${esc(bildFehler.slice(0, 8).join(', '))}${bildFehler.length > 8 ? ' …' : ''}</div>` : ''}
+      ${zuGross ? `<div style="${fehlerStil}">${L.gross(zuGross)}</div>` : ''}
+      ${ohneBilder ? `<p class="modal-hint">${L.ohne}</p>` : ''}
+      ${teile.length > 1 ? `<p class="modal-hint">${L.hinweis}</p>` : ''}
+      <div class="export-teile">${teile.map((tl, i) => `
+        <button class="btn-secondary" style="display:block;width:100%;margin:0.3rem 0;text-align:left" data-teil="${i}">
+          <span class="teil-marke">⬇</span> ${teile.length > 1 ? L.teil(i + 1, teile.length) : esc(teilName(i))}
+          <span style="opacity:0.7"> · ${L.karten(tl.anzahl)} · ${mb(tl.blob.size)} MB</span>
+        </button>`).join('')}</div>
+      ${teile.length > 1 && window.showDirectoryPicker ? `<button class="btn-secondary" style="margin-top:0.5rem;width:100%" data-aktion="ordner">${L.alle}</button>` : ''}
+      <button class="btn-primary" style="margin-top:0.75rem" data-aktion="zu">${L.zu}</button>
+    </div></div>`;
+  document.body.appendChild(modal);
+  const markiere = i => { const m = modal.querySelector(`[data-teil="${i}"] .teil-marke`); if (m) m.textContent = '✓'; };
+  modal.addEventListener('click', async e => {
+    const teilBtn = e.target.closest('[data-teil]');
+    const aktion  = e.target.closest('[data-aktion]')?.dataset.aktion;
+    if (e.target === modal || aktion === 'zu') { modal.remove(); return; }
+    if (teilBtn) {
+      const i = +teilBtn.dataset.teil;
+      try { await speichereExportDatei(teile[i].blob, teilName(i), null); markiere(i); }
+      catch (err) { if (err.name !== 'AbortError') toast(tf('toast_fehler', err.message)); }
+    } else if (aktion === 'ordner') {
+      try {
+        const dir = await window.showDirectoryPicker();
+        for (let i = 0; i < teile.length; i++) { await speichereExportDatei(teile[i].blob, teilName(i), dir); markiere(i); }
+        toast(tf('toast_export_dateien_ok', teile.length));
+      } catch (err) { if (err.name !== 'AbortError') toast(tf('toast_fehler', err.message)); }
+    }
+  });
+}
+
+// ── PDF EXPORT ─────────────────────────────────────────────
+
+function pvCardHtml(s, farbe) {
+  const esc = t => (t || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const fotoHtml = s.foto
+    ? `<img class="pv-card-img" src="${s.foto}" alt="">`
+    : '';
+  const textHtml = (s.modus === 'text' && s.text)
+    ? `<div class="pv-card-text">${esc(s.text)}</div>`
+    : '';
+  const notizHtml = s.notiz
+    ? `<div class="pv-card-notiz">${esc(s.notiz)}</div>`
+    : '';
+  const favHtml = s.favorit ? `<div class="pv-card-fav">★ Favorit</div>` : '';
+  return `
+    <div class="pv-card" style="--pv-farbe:${esc(farbe)}">
+      <div class="pv-card-name">${esc(s.name)}</div>
+      ${fotoHtml}${textHtml}${notizHtml}${favHtml}
+    </div>`;
+}
+
+function pvGridHtml(karten, farbe) {
+  let out = '<table class="pv-table"><tbody>';
+  for (let i = 0; i < karten.length; i += 3) {
+    out += '<tr class="pv-row">';
+    for (let j = 0; j < 3; j++) {
+      const s = karten[i + j];
+      out += s ? `<td class="pv-cell">${pvCardHtml(s, farbe)}</td>`
+               : '<td class="pv-cell pv-cell-empty"></td>';
+    }
+    out += '</tr>';
+  }
+  return out + '</tbody></table>';
+}
+
+async function exportAlsPDF(studExport, exportGruppen, exportSammlungen, win) {
+  studExport = studExport.map(kAnzeige);   // Texte in der gewählten Sprache
+  const esc   = t => (t || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const datum = new Date().toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+  const sortierteSamml = [...exportSammlungen].sort((a,b) => (sammlungName(a)||'').localeCompare(sammlungName(b)||''));
+
+  let body = '';
+
+  for (const sam of sortierteSamml) {
+    const samGruppen = exportGruppen.filter(g => g.sammlungId === sam.id);
+    if (!samGruppen.length) continue;
+    const si    = sortierteSamml.indexOf(sam);
+    const farbe = sammlungFarbe(sam, si);
+
+    body += `<section class="pv-sammlung">`;
+    body += `<h2 class="pv-sammlung-titel" style="color:${esc(farbe)};border-color:${esc(farbe)}">${esc(sammlungName(sam) || 'Sammlung')}</h2>`;
+    for (const gruppe of samGruppen) {
+      const karten = studExport.filter(s => s.gruppeId === gruppe.id);
+      if (!karten.length) continue;
+      body += `<h3 class="pv-gruppe-titel">${esc(gruppeName(gruppe) || 'Gruppe')}</h3>`;
+      body += pvGridHtml(karten, farbe);
+    }
+    body += `</section>`;
+  }
+
+  // Karten ohne Sammlung (z.B. Favoriten-Export)
+  const sammlIdSet    = new Set(exportSammlungen.map(s => s.id));
+  const orphanGruppen = exportGruppen.filter(g => !sammlIdSet.has(g.sammlungId));
+  if (orphanGruppen.length) {
+    body += `<section class="pv-sammlung">`;
+    body += `<h2 class="pv-sammlung-titel" style="color:#888;border-color:#888">Weitere Karten</h2>`;
+    for (const gruppe of orphanGruppen) {
+      const karten = studExport.filter(s => s.gruppeId === gruppe.id);
+      if (!karten.length) continue;
+      body += `<h3 class="pv-gruppe-titel">${esc(gruppeName(gruppe) || 'Gruppe')}</h3>`;
+      body += pvGridHtml(karten, '#888');
+    }
+    body += `</section>`;
+  }
+
+  body += `<p class="pv-meta">MemoFix &middot; ${datum} &middot; ${studExport.length} Karten</p>`;
+
+  // Eigenständiges HTML-Dokument mit inline-CSS — komplett isoliert vom App-CSS
+  const fullHtml = `<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MemoFix PDF Export</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,Helvetica,Arial,sans-serif;background:#fff;color:#111;padding:8mm}
+@page{size:A4 portrait;margin:12mm 10mm}
+
+/* Schließen-Button — nur auf dem Bildschirm sichtbar */
+.pv-close-btn{
+  display:inline-flex;align-items:center;gap:4px;
+  margin-bottom:6mm;padding:2mm 5mm;
+  background:#f0f0f0;border:1pt solid #ccc;border-radius:5pt;
+  font-size:9pt;cursor:pointer;color:#333;
+}
+@media print{.pv-close-btn{display:none}}
+
+/* Seitenumbruch nach jeder Sammlung */
+.pv-sammlung+.pv-sammlung{break-before:page;page-break-before:always}
+.pv-sammlung{margin-bottom:6mm}
+.pv-sammlung-titel{font-size:13pt;font-weight:700;border-bottom:2pt solid currentColor;padding-bottom:2mm;margin-bottom:4mm}
+
+/* Mehr Abstand zwischen Gruppen */
+.pv-gruppe-titel{font-size:10pt;font-weight:600;color:#444;margin:7mm 0 2.5mm}
+
+/* Tabellen-Layout: page-break-inside:avoid auf <tr> ist in Safari zuverlässiger als flex/grid */
+.pv-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.pv-row{break-inside:avoid;page-break-inside:avoid}
+.pv-cell{width:33.333%;vertical-align:top;padding:1.5mm}
+.pv-cell-empty{border:none}
+
+/* Screen-Preview: Zeilen als Flex → Karten nehmen nur ihre eigene Inhaltshöhe */
+@media screen{
+  .pv-row{display:flex;align-items:flex-start;margin-bottom:3mm}
+  .pv-cell{display:block;flex:0 0 33.333%;box-sizing:border-box}
+}
+
+/* Karte: Höhe richtet sich nach Inhalt — kein min-height */
+.pv-card{
+  border:1pt solid #ddd;border-left:3.5pt solid var(--pv-farbe,#888);
+  border-radius:5pt;padding:3mm 3.5mm;
+  background:#fff;
+  display:flex;flex-direction:column;gap:2mm;
+}
+.pv-card-name{font-size:9pt;font-weight:700;color:#111;line-height:1.3;word-break:break-word}
+
+/* object-fit:contain — kein Anschnitt von Gesichtern */
+.pv-card-img{
+  width:100%;height:50mm;
+  object-fit:contain;
+  border-radius:3pt;display:block;
+  background:#f7f7f7;
+}
+.pv-card-text{font-size:8pt;color:#222;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.pv-card-notiz{font-size:7pt;color:#666;font-style:italic;border-top:.5pt solid #e8e8e8;padding-top:1.5mm;word-break:break-word}
+.pv-card-fav{font-size:7pt;color:#b8a000}
+.pv-meta{font-size:7pt;color:#bbb;text-align:right;margin-top:6mm}
+</style>
+</head>
+<body>
+<button class="pv-close-btn" onclick="window.close()">${t('schlies_app')}</button>
+${body}
+<script>
+// Warten bis alle Bilder geladen sind, dann drucken
+window.addEventListener('load', function() {
+  var imgs = document.querySelectorAll('img');
+  var pending = imgs.length;
+  if (pending === 0) { window.print(); return; }
+  function done() { if (--pending <= 0) window.print(); }
+  imgs.forEach(function(img) {
+    if (img.complete) { done(); } else { img.onload = done; img.onerror = done; }
+  });
+});
+<\/script>
+</body>
+</html>`;
+
+  // Bereits offenes Fenster mit fertigem HTML befüllen
+  win.document.open();
+  win.document.write(fullHtml);
+  win.document.close();
+}
+
+// Import Modal
+document.getElementById('btn-import-trigger').addEventListener('click', () =>
+  document.getElementById('input-import').click());
+
+document.getElementById('input-import').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = '';
+  try {
+    const data = JSON.parse(await file.text());
+    if (!data.gruppen || !data.studenten) throw new Error('Ungültiges Format');
+    importDatenBuffer = data;
+
+    document.getElementById('import-gruppen-info').innerHTML = data.gruppen.map(g => {
+      const count    = data.studenten.filter(s => s.gruppeId === g.id).length;
+      const existing = gruppen.find(x => x.name === g.name);
+      return `<div class="import-gruppe-zeile">
+        <span class="import-gruppe-name">${esc(g.name)}</span>
+        <span class="import-gruppe-details">${tf('karte_n', count)}${existing ? ' · <span class="import-gruppe-vorhanden">' + t('import_vorhanden') + '</span>' : ' ' + t('import_neu_badge')}</span>
+      </div>`;
+    }).join('');
+
+    document.querySelectorAll('.import-modus-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.import-modus-btn[data-modus="hinzufuegen"]').classList.add('active');
+    document.getElementById('import-modal').classList.remove('hidden');
+  } catch (err) {
+    toast(tf('toast_lesefehler', err.message));
+  }
+});
+
+document.getElementById('btn-import-modal-close').addEventListener('click', () => {
+  document.getElementById('import-modal').classList.add('hidden');
+  importDatenBuffer = null;
+});
+document.getElementById('import-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) {
+    e.currentTarget.classList.add('hidden');
+    importDatenBuffer = null;
+  }
+});
+
+document.querySelectorAll('.import-modus-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.import-modus-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+document.getElementById('btn-import-start').addEventListener('click', async () => {
+  if (!importDatenBuffer) return;
+  const modus = document.querySelector('.import-modus-btn.active')?.dataset.modus || 'hinzufuegen';
+  try {
+    if (modus === 'ersetzen') {
+      studenten.forEach(s => revokeUrl(s.id));
+      await dbClear('gruppen');
+      await dbClear('studenten');
+      await dbClear('sammlungen');
+      for (const sam of (importDatenBuffer.sammlungen || [])) await dbPut('sammlungen', sam);
+      for (const g of importDatenBuffer.gruppen) await dbPut('gruppen', g);
+      for (const s of importDatenBuffer.studenten)
+        await dbPut('studenten', { ...s, ...importFotosFelder(s) });
+    } else {
+      // Hinzufügen: merge, bestehende unberührt
+      for (const sam of (importDatenBuffer.sammlungen || [])) {
+        const vorh = sammlungen.find(x => x.id === sam.id);
+        if (!vorh) { await dbPut('sammlungen', sam); continue; }
+        const m = ergaenzeEnFelder(vorh, sam, ['name_en', 'zweisprachig_inhalt']);
+        if (m) await dbPut('sammlungen', m);
+      }
+      for (const importGruppe of importDatenBuffer.gruppen) {
+        const existing = gruppen.find(g => g.name === importGruppe.name);
+        const targetId = existing ? existing.id : importGruppe.id;
+        if (!existing) await dbPut('gruppen', importGruppe);
+        else {
+          const m = ergaenzeEnFelder(existing, importGruppe, ['name_en']);
+          if (m) await dbPut('gruppen', m);
+        }
+
+        // Hinzufügen: bestehende Karten NICHT löschen — nur neue Karten ergänzen.
+        // Duplikat-Erkennung per Kartenname: gleicher Name in der Zielgruppe → überspringen.
+        const vorhandeneNamen = new Set(
+          studenten.filter(s => s.gruppeId === targetId).map(s => (s.name || '').trim().toLowerCase())
+        );
+        const importStudents = importDatenBuffer.studenten.filter(s => s.gruppeId === importGruppe.id);
+        let hinzugefuegt = 0;
+        for (const s of importStudents) {
+          if (vorhandeneNamen.has((s.name || '').trim().toLowerCase())) {
+            // bereits vorhanden: nur fehlende englische Felder ergänzen
+            const vorhKarte = studenten.find(x => x.gruppeId === targetId && (x.name || '').trim().toLowerCase() === (s.name || '').trim().toLowerCase());
+            if (vorhKarte) {
+              const frisch = (await dbGet('studenten', vorhKarte.id)) || vorhKarte;
+              const m = ergaenzeEnFelder(frisch, s, [...EN_FELDER_KARTE, 'raten']);
+              if (m) await dbPut('studenten', m);
+            }
+            continue;
+          }
+          await dbPut('studenten', { ...s, gruppeId: targetId, ...importFotosFelder(s) });
+          hinzugefuegt++;
+        }
+      }
+    }
+    const vorher = studenten.length;
+    await ladeAlles();
+    renderVerwaltung();
+    renderLernAuswahl();
+    document.getElementById('import-modal').classList.add('hidden');
+    importDatenBuffer = null;
+    const neu = studenten.length - vorher;
+    const toastText = modus === 'ersetzen'
+      ? tf('toast_import_ok', studenten.length)
+      : neu > 0 ? tf('toast_import_neu', neu) : t('toast_import_nichts');
+    toast(toastText);
+  } catch (err) {
+    toast(tf('toast_import_fehler', err.message));
+  }
+});
+
+// ============================================================
+// SERVICE WORKER
+// ============================================================
+
+if ('serviceWorker' in navigator) {
+  const hatteController = !!navigator.serviceWorker.controller;      // false beim allerersten Besuch (kein Hinweis nötig)
+  navigator.serviceWorker.register('./sw.js').then(reg => {
+    // Beim Zurückkehren in die App aktiv nach einer neuen Version suchen (iPhone-Apps bleiben sonst lange im Hintergrund)
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => {}); });
+  }).catch(() => {});
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hatteController) zeigeUpdateHinweis(); });
+}
 function zeigeUpdateHinweis() {
   if (document.getElementById('update-hinweis')) return;
+  const en = istEn();
   const el = document.createElement('div');
   el.id = 'update-hinweis'; el.className = 'update-hinweis'; el.setAttribute('role', 'status');
-  el.innerHTML = `<span>Neue Version verfügbar</span>
-    <button type="button" data-u="neu">Neu laden</button>
-    <button type="button" data-u="zu" aria-label="Später">✕</button>`;
+  el.innerHTML = `<span>${en ? 'New version available' : 'Neue Version verfügbar'}</span>
+    <button type="button" data-u="neu">${en ? 'Reload' : 'Neu laden'}</button>
+    <button type="button" data-u="zu" aria-label="${en ? 'Later' : 'Später'}">✕</button>`;
   el.addEventListener('click', e => {
     const a = e.target.closest('[data-u]')?.dataset.u;
-    if (a === 'neu') location.reload(); else if (a === 'zu') el.remove();
+    if (a === 'neu') location.reload();
+    else if (a === 'zu') el.remove();
   });
   document.body.appendChild(el);
 }
 
-(async function start() {
-  const gespeichert = await laden();
-  if (gespeichert && gespeichert.version === 1) { S = zustandAus(gespeichert); speichern(); }
-  if (!S.seit) { S.seit = tagKey(einstiegTag()); speichern(); }   // erste Nutzung merken: ab hier gibt es Wochen
-  gruppenAktualisieren();
-  verbinden();
-  zeige('heute');
-  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-    const hatteController = !!navigator.serviceWorker.controller;   // beim allerersten Besuch kein Hinweis
-    navigator.serviceWorker.register('sw.js').then(reg => {
-      // Beim Zurückkehren in die App nach einer neuen Version suchen (iPhone-Apps bleiben lange im Hintergrund)
-      document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => {}); });
-    }).catch(() => {});
-    navigator.serviceWorker.addEventListener('controllerchange', () => { if (hatteController) zeigeUpdateHinweis(); });
+// Build-Version automatisch aus SW-Cache-Key lesen und im Hilfe-Modal anzeigen
+if ('caches' in window) {
+  caches.keys().then(keys => {
+    const memoKeys = keys.filter(k => k.startsWith('memofix-'));
+    if (!memoKeys.length) return;
+    // Höchste Versionsnummer wählen (für den Fall dass alter + neuer Cache gleichzeitig existieren)
+    memoKeys.sort((a, b) => {
+      const na = parseInt(a.replace('memofix-v', '')) || 0;
+      const nb = parseInt(b.replace('memofix-v', '')) || 0;
+      return nb - na;
+    });
+    const ver = memoKeys[0].replace('memofix-', '');
+    const el  = document.getElementById('build-version');
+    if (el) el.textContent = `(Build ${ver})`;
+  }).catch(() => {});
+}
+
+// ============================================================
+// TUTORIAL GRUPPE
+// ============================================================
+
+// Zweisprachige Begriff-Karten (zeigen zugleich das Kartenformat: Begriff vorn, Info + Merke hinten)
+// Gruppe 1 „Schnelleinstieg“: das, was in der einfachen Ansicht sichtbar ist. Gruppe 2 „Erweitert“: nur im Modus Erweitert.
+const TUTORIAL_VIDEO = { id: 'LMcXbAEjww0', titel: 'MemoFix – Einführung', titel_en: 'MemoFix – Introduction', format: 'hochkant' };   // Einführungsvideo auf jeder Tutorial-Karte
+const TUTORIAL_START = [
+  { de: ['Willkommen bei MemoFix',
+         'MemoFix trainiert aktives Erinnern: erst überlegen, dann aufdecken.\n\n- **Karte antippen** → sie dreht sich um\n- **✓ oder ✗** wertet, ob du es wusstest\n- **Wischen oder Pfeile** → vor und zurück\n- Nach der Runde: **Nachgeschaute üben**',
+         'Erst überlegen, dann aufdecken – so bleibt Wissen hängen.'],
+    en: ['Welcome to MemoFix',
+         'MemoFix trains active recall: think first, then reveal.\n\n- **Tap the card** → it flips\n- **✓ or ✗** rates whether you knew it\n- **Swipe or arrows** → forward and back\n- After a round: **Practise missed cards**',
+         'Think first, then reveal – that is how knowledge sticks.'] },
+  { de: ['Kurssets laden',
+         'Fertige Kartensets deines Kurses findest du unter **KURSSETS**.\n\n- ● **rot**: noch nicht geladen\n- ✓ **grün**: aktuell\n- ↻ **orange**: Update verfügbar\n- Ordner (z. B. Innenarchitektur) antippen zum Aufklappen\n\nInternet nötig – große Sets besser im WLAN laden.',
+         'Updates behalten deinen Lernstand und deine Favoriten.'],
+    en: ['Load course sets',
+         'You find ready-made card sets for your course under **COURSE SETS**.\n\n- ● **red**: not loaded yet\n- ✓ **green**: up to date\n- ↻ **orange**: update available\n- Tap a folder (e.g. Interior Architecture) to expand it\n\nInternet required – load large sets on Wi-Fi.',
+         'Updates keep your progress and your favorites.'] },
+  { de: ['Lernen starten',
+         'Unter **LERNEN** wählst du Gruppen – auch einzelne Untergruppen eines Sets – und den Modus:\n\n- **Normal**: Begriff oder Bild zuerst · **Umgekehrt**: Info zuerst\n- **⭐** markiert Favoriten, **Schwächste** übt, was du oft nachgeschaut hast\n- **Mit Claude besprechen** öffnet ein Gespräch zur aktuellen Karte',
+         'Kurze Runden, oft wiederholt, bringen mehr als eine lange Sitzung.'],
+    en: ['Start learning',
+         'Under **LEARN** you choose groups – also single subgroups of a set – and the mode:\n\n- **Normal**: term or image first · **Reversed**: info first\n- **⭐** marks favorites, **Weakest** practises what you often looked up\n- **Discuss with Claude** opens a conversation about the current card',
+         'Short rounds, repeated often, beat one long session.'] },
+  { de: ['MemoDive: gemeinsam lernen',
+         'Der grüne Knopf **🤿 MemoDive** unter „Lernen starten“ macht aus dem Set ein Gruppenspiel.\n\n- Die Gruppe deckt eine Karte auf, du tippst **Wer hat\'s gewusst?**\n- **🎲** würfelt, wer dran ist\n- **🎯** schaltet Rate-Fragen mit vier Antworten dazu (aus · nur diese Karte · immer)\n- Gemerkt wird nur der Fortschritt auf diesem Gerät, keine Namen oder Punkte',
+         'Kein Quiz-Duell, sondern ein Gesprächsspiel.'],
+    en: ['MemoDive: learning together',
+         'The green **🤿 MemoDive** button under “Start learning” turns the set into a group game.\n\n- The group reveals a card, you tap **Who knew it?**\n- **🎲** rolls who is up\n- **🎯** adds guessing questions with four answers (off · this card only · always)\n- Only the progress is remembered on this device, no names or points',
+         'Not a quiz duel, but a conversation game.'] },
+  { de: ['Statistik',
+         'Unter **STATISTIK** siehst du, wie oft du Karten nachgeschaut hast.\n\n- **Schwierigste Karten** zuerst, mit „zuletzt“-Datum\n- **30 Tage** oder **Alle**\n- **Schwächste Karten jetzt üben** startet eine Runde',
+         'Was du oft nachschaust, gehört in die nächste Runde.'],
+    en: ['Statistics',
+         'Under **STATISTICS** you see how often you looked cards up.\n\n- **Hardest cards** first, with “last” date\n- **30 days** or **All**\n- **Practise weakest cards now** starts a round',
+         'What you often look up belongs in the next round.'] },
+  { de: ['Installieren und Sprache',
+         '- **iPhone/iPad**: Safari → Teilen → „Zum Home-Bildschirm“\n- **Android** (Chrome): ⋮ oben rechts → ganz unten „Installieren und Verknüpfung erstellen“ · bei der Warnung „Unsichere App blockiert“: „Trotzdem installieren“\n- Danach funktioniert die App auch offline\n- **?** oben: ausführliche Hilfe · **DE/EN**: Sprache wechseln (auch der Karteninhalt, wenn zweisprachig)',
+         'Ohne Installation kann der Browser deine Daten nach etwa 7 Tagen löschen.'],
+    en: ['Install and language',
+         '- **iPhone/iPad**: Safari → Share → “Add to Home Screen”\n- **Android** (Chrome): ⋮ at the top right → at the bottom “Install and create shortcut” · if you see “Unsafe app blocked”: “Install anyway”\n- After that the app also works offline\n- **?** at the top: detailed help · **DE/EN**: switch language (also card content when bilingual)',
+         'Without installing, the browser may delete your data after about 7 days.'] },
+  { de: ['Das kann MemoFix noch',
+         'Oben steht **Einfach**. Ein Tipp darauf schaltet auf **Erweitert**, und es kommt dazu:\n\n- **Eigene Karten** anlegen und bearbeiten (Verwaltung)\n- **KI-Briefings**: Kartensets und Rate-Fragen von einer KI erstellen lassen\n- **Export und Import** als Datei, **Fotos komprimieren**\n- **Timer** und **Wiederholen** beim Lernen\n- **Fullscreen 16:9** für Beamer und Prüfungsgespräche\n\nDein Tipp wird gemerkt; erneut tippen führt zurück.',
+         'Einfach reicht zum Lernen. Erweitert ist für alle, die selbst Karten bauen oder präsentieren.'],
+    en: ['What else MemoFix can do',
+         'At the top it says **Simple**. A tap switches to **Advanced**, which adds:\n\n- **Your own cards** – create and edit (Manage)\n- **AI briefings**: have an AI create card sets and guessing questions\n- **Export and import** as a file, **compress photos**\n- **Timer** and **repeat** while learning\n- **Fullscreen 16:9** for projectors and oral exams\n\nYour choice is remembered; tap again to go back.',
+         'Simple is enough for learning. Advanced is for everyone who builds cards or presents.'] },
+];
+const TUTORIAL_ERWEITERT = [
+  { de: ['Eigene Karten',
+         'In **VERWALTUNG** legst du mit **＋** neue Karten an.\n\n- **Bild vorn**: erst das Bild, dann der Begriff\n- **Begriff vorn, Bild hinten**: erst der Begriff, dann Text, Notiz und Bilder\n- **Merke** = Kernaussage als farbiger Kasten\n- Mehrere Fotos pro Karte möglich',
+         'Verrät das Bild die Antwort, wähle „Begriff vorn, Bild hinten“.'],
+    en: ['Your own cards',
+         'In **MANAGE** you create new cards with **＋**.\n\n- **Image on front**: image first, then the term\n- **Term on front, image on back**: term first, then text, note and images\n- **Memo** = key point as a colored box\n- Several photos per card possible',
+         'If the image gives the answer away, choose “Term on front, image on back”.'] },
+  { de: ['Mit KI arbeiten',
+         'Neue Kartensets erstellst du mit dem **KI-Briefing** (SICHERUNG → KI-Briefing für neue Karten): in ChatGPT, Gemini oder Claude einfügen und dein Thema nennen.\n\nFür **Rate-Fragen** zu deinen Karten gibt es ein eigenes Briefing (SICHERUNG → KI-Briefing für Rate-Fragen): Export ohne Bilder → KI → Import „Hinzufügen“.',
+         'Die KI liefert eine JSON-Datei, die du über SICHERUNG → Aus Datei importieren lädst.'],
+    en: ['Working with AI',
+         'Create new card sets with the **AI briefing** (BACKUP → AI briefing for new cards): paste it into ChatGPT, Gemini or Claude and name your topic.\n\nFor **guessing questions** on your cards there is a separate briefing (BACKUP → AI briefing for guessing questions): export without images → AI → import “Add”.',
+         'The AI returns a JSON file that you load via BACKUP → Import from file.'] },
+  { de: ['Timer und Wiederholen',
+         'Auf der Seite **LERNEN** blättert der **Timer** (1 · 3 · 5 · 10 s) die Karten automatisch um, **🔁** wiederholt die Runde.\n\nMit **⇄ Gemischt** wechselst du zwischen zufälliger und fester Reihenfolge.',
+         'Der Timer zählt nicht als Wertung – er ist zum Mitlesen gedacht.'],
+    en: ['Timer and repeat',
+         'On the **LEARN** page the **timer** (1 · 3 · 5 · 10 s) flips cards automatically, **🔁** repeats the round.\n\n**⇄ Shuffled** switches between random and fixed order.',
+         'The timer does not count as rating – it is meant for reading along.'] },
+  { de: ['Beamer-Modus',
+         'Mit **Fullscreen 16:9** (auf der Seite LERNEN) füllt die Karte den ganzen Bildschirm – ideal für Beamer und Prüfungsgespräche.\n\n- **Leertaste** deckt auf, **Pfeiltasten** blättern\n- **✕** oben rechts oder **Esc** beendet\n- Lange Texte passen sich automatisch an',
+         'Kein Scrollen: Die Schrift wird so gewählt, dass alles auf den Bildschirm passt.'],
+    en: ['Presentation mode',
+         'With **Fullscreen 16:9** (on the LEARN page) the card fills the whole screen – ideal for projectors and oral exams.\n\n- **Space** reveals, **arrow keys** flip through\n- **✕** top right or **Esc** exits\n- Long texts adapt automatically',
+         'No scrolling: the font size is chosen so everything fits on screen.'] },
+  { de: ['Sichern und teilen',
+         'Unter **SICHERUNG → Exportieren** sicherst du deine Karten als Datei (bei vielen Bildern in mehreren Teilen). **Aus Datei importieren** lädt sie wieder, auch auf einem anderen Gerät.\n\nDieses Tutorial kannst du in **VERWALTUNG** löschen und unter **SICHERUNG → Tutorial wiederherstellen** zurückholen.',
+         'Deine Karten liegen nur auf diesem Gerät – sichere sie regelmäßig.'],
+    en: ['Back up and share',
+         'Under **BACKUP → Export** you save your cards as a file (in several parts when there are many images). **Import from file** loads them again, also on another device.\n\nYou can delete this tutorial in **MANAGE** and bring it back under **BACKUP → Restore tutorial**.',
+         'Your cards live only on this device – back them up regularly.'] },
+];
+
+// Legt das Tutorial an bzw. ersetzt es (feste IDs → kein Duplikat). Ältere Tutorial-Fassungen werden entfernt.
+async function erstelleTutorial() {
+  // alte Fassung(en) entfernen: Gruppen 'tutorial-…', Sammlungen 'sammlung-tutorial…', Karten 'tut-…'
+  const alleG = await dbGetAll('gruppen');
+  const alleS = await dbGetAll('studenten');
+  const alleSam = await dbGetAll('sammlungen');
+  const tutG = new Set(alleG.filter(g => g.id.startsWith('tutorial-')).map(g => g.id));
+  for (const k of alleS) if (tutG.has(k.gruppeId) || /^tut-/.test(k.id)) { await dbDelete('studenten', k.id); revokeUrl(k.id); }
+  for (const id of tutG) await dbDelete('gruppen', id);
+  for (const sm of alleSam) if (sm.id.startsWith('sammlung-tutorial')) await dbDelete('sammlungen', sm.id);
+
+  const now = new Date().toISOString();
+  const samId = 'sammlung-tutorial';
+  await dbPut('sammlungen', { id: samId, name: '🎓 Tutorial', name_en: '🎓 Tutorial', erstellt: now });
+  const gruppenDef = [
+    { id: 'tutorial-start', name: '🚀 Schnelleinstieg', name_en: '🚀 Quick start', karten: TUTORIAL_START },
+    { id: 'tutorial-weiter', name: '🔧 Erweitert', name_en: '🔧 Advanced', karten: TUTORIAL_ERWEITERT },
+  ];
+  for (const gd of gruppenDef) {
+    await dbPut('gruppen', { id: gd.id, name: gd.name, name_en: gd.name_en, sammlungId: samId, erstellt: now });
+    for (let i = 0; i < gd.karten.length; i++) {
+      const { de, en } = gd.karten[i], video = TUTORIAL_VIDEO;
+      await dbPut('studenten', {
+        id: `${gd.id}-${String(i + 1).padStart(2, '0')}`, gruppeId: gd.id, modus: 'text',
+        name: de[0], vorderseite: de[0], notiz: de[1], merke: de[2],
+        name_en: en[0], vorderseite_en: en[0], notiz_en: en[1], merke_en: en[2],
+        links: [], videoId: video?.id || null, videoTitel: video?.titel || null,
+        ...(video?.format ? { videoFormat: video.format } : {}),
+        foto: null, fotos: [], erstellt: now
+      });
+    }
   }
+  localStorage.setItem('memofix-tutorial-created', '1');
+  localStorage.setItem('memofix-tutorial-v2', '1');
+  localStorage.setItem('memofix-tutorial-v4', '1');
+}
+
+async function erstelleTutorialGruppeWennNeu() {
+  // Neue Struktur (v3): vorhandenes Tutorial einmalig ersetzen; wer es gelöscht hat, bekommt es nicht zurück
+  if (localStorage.getItem('memofix-tutorial-created') && !localStorage.getItem('memofix-tutorial-v4')) {
+    const g = await dbGetAll('gruppen');
+    if (g.some(x => x.id === 'tutorial-start')) { await erstelleTutorial(); return; }
+    localStorage.setItem('memofix-tutorial-v4', '1');
+    return;
+  }
+  if (localStorage.getItem('memofix-tutorial-created') || localStorage.getItem('memopix-tutorial-created') || localStorage.getItem('snapmatch-tutorial-created')) return;
+  await erstelleTutorial();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+
+(async () => {
+  await dbInit();
+  await erstelleTutorialGruppeWennNeu();
+  await ladeAlles();
+  await repairOrphanGruppen();
+  // Reihenfolge und Open-States laden
+  ladeGruppenReihenfolge();
+  ladeSammlungenReihenfolge();
+  ladeOpenSammlungen();
+  ladeOpenGruppen();
+  ladeOpenLernSammlungen();
+  appModus = modusErmitteln();
+  document.body.classList.toggle('modus-einfach', appModus === 'einfach');
+  document.body.classList.toggle('modus-erweitert', appModus === 'erweitert');
+  applyTranslations(); // setzt Sprache + rendert Verwaltung + LernAuswahl
+  // Letzten Tab wiederherstellen; Einfach: ohne geladenes Kursset zuerst Kurssets
+  const lastView = localStorage.getItem('memoLastView');
+  if (appModus === 'einfach' && !hatKursset() && !hatEigeneKarten()) showView('sicherung');
+  else if (lastView && !(lastView === 'verwaltung' && appModus === 'einfach')) { if (lastView !== 'verwaltung') showView(lastView); }
+  else if (appModus === 'einfach') showView('lernen');
+  aktualisiereWillkommen();
+  // Timer-Buttons, Autorepeat & Label-Opacity initialisieren
+  document.querySelectorAll('.timer-btn').forEach(b =>
+    b.classList.toggle('active', +b.dataset.sek === timerSekunden)
+  );
+  document.querySelectorAll('.timer-btn-repeat').forEach(b =>
+    b.classList.toggle('active', autoRepeat)
+  );
+  updateTimerLabelOpacity();
 })();
+
+// ============================================================
+// FARB-PICKER FÜR SAMMLUNGEN
+// ============================================================
+
+const farbPicker = document.createElement('div');
+farbPicker.id = 'farb-picker';
+farbPicker.className = 'farb-picker hidden';
+farbPicker.innerHTML = FARB_PALETTE.map(f =>
+  `<button class="farb-swatch" data-farbe="${f}" style="background:${f}" title="${f}"></button>`
+).join('');
+document.body.appendChild(farbPicker);
+
+let farbPickerSid = null;
+
+function zeigeFarbPicker(sid, anchorEl) {
+  farbPickerSid = sid;
+  const rect = anchorEl.getBoundingClientRect();
+  const pickerW = 200;
+  const left = Math.min(rect.left, window.innerWidth - pickerW - 8);
+  farbPicker.style.top  = (rect.bottom + 6) + 'px';
+  farbPicker.style.left = Math.max(8, left) + 'px';
+  // Aktive Farbe markieren
+  const sam = sammlungen.find(x => x.id === sid);
+  const aktiv = sam?.farbe;
+  farbPicker.querySelectorAll('.farb-swatch').forEach(sw => {
+    sw.classList.toggle('aktiv', sw.dataset.farbe === aktiv);
+  });
+  farbPicker.classList.toggle('hidden');
+}
+
+farbPicker.addEventListener('click', async e => {
+  const swatch = e.target.closest('.farb-swatch');
+  if (!swatch) return;
+  const newFarbe = swatch.dataset.farbe;
+  const sam = sammlungen.find(x => x.id === farbPickerSid);
+  if (sam) {
+    sam.farbe = newFarbe;
+    await dbPut('sammlungen', sam);
+    renderVerwaltung();
+    renderLernAuswahl();
+  }
+  farbPicker.classList.add('hidden');
+});
+
+document.addEventListener('click', e => {
+  if (!farbPicker.classList.contains('hidden') &&
+      !e.target.closest('#farb-picker') &&
+      !e.target.closest('.btn-sammlung-farbe')) {
+    farbPicker.classList.add('hidden');
+  }
+});
+
+// ── Safari: Timer bei Tab-Wechsel sauber pausieren/neustarten ──
+document.addEventListener('visibilitychange', async () => {
+  if (!document.hidden) {
+    // iOS kann Blob-Objekte und Blob-URLs nach App-Suspend freigeben.
+    // Alle Daten frisch aus IndexedDB laden → garantiert valide Blobs.
+    urlCache.forEach(url => URL.revokeObjectURL(url));
+    urlCache.clear();
+    await ladeAlles();
+    renderVerwaltung();
+  }
+
+  // Timer: pausieren beim Wegswipen, neustarten beim Zurückkommen
+  const sessionAktiv = !document.getElementById('lernen-flashcard').classList.contains('hidden');
+  if (!sessionAktiv || !timerSekunden) return;
+  if (document.hidden) {
+    stoppeAutoTimer();
+    // Wake Lock wird vom Browser automatisch freigegeben bei Hintergrund
+  } else {
+    if (!nameVisible) starteAutoTimer();
+    erwerbeWakeLock(); // Wake Lock nach Rückkehr wieder anfordern
+  }
+});
+
+// ── Pinch-Zoom auf Lernkarte-Foto ──────────────────────────────
+(function() {
+  const img     = document.getElementById('lern-foto');
+  const wrapper = document.getElementById('lernkarte-foto-wrapper');
+  if (!img || !wrapper) return;
+
+  let scale = 1, baseScale = 1;
+  let tx = 0, ty = 0, baseTx = 0, baseTy = 0;
+  let startDist = 0, startMidX = 0, startMidY = 0;
+  let lastTap = 0;
+
+  function setTransform(s, x, y, animate) {
+    scale = s; tx = x; ty = y;
+    img.style.transition = animate ? 'transform 0.2s ease' : '';
+    img.style.transform  = `translate(${tx}px,${ty}px) scale(${scale})`;
+    wrapper.classList.toggle('zoomed', scale > 1.01);
+  }
+
+  function resetZoom() {
+    scale = 1; tx = 0; ty = 0; baseScale = 1; baseTx = 0; baseTy = 0;
+    img.style.transition = 'transform 0.2s ease';
+    img.style.transform  = '';
+    wrapper.classList.remove('zoomed');
+  }
+
+  function touchDist(t) {
+    return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  }
+
+  img.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      startDist = touchDist(e.touches);
+      startMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      startMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      baseScale = scale; baseTx = tx; baseTy = ty;
+      img.style.transition = '';
+    } else if (e.touches.length === 1) {
+      const now = Date.now();
+      if (now - lastTap < 300 && scale > 1) { resetZoom(); e.preventDefault(); }
+      lastTap = now;
+    }
+  }, { passive: false });
+
+  img.addEventListener('touchmove', e => {
+    if (e.touches.length !== 2) return;
+    e.preventDefault();
+    const newDist = touchDist(e.touches);
+    const newMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    const newMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    const s = Math.min(Math.max(baseScale * (newDist / startDist), 1), 5);
+    setTransform(s, baseTx + (newMidX - startMidX), baseTy + (newMidY - startMidY), false);
+  }, { passive: false });
+
+  img.addEventListener('touchend', () => {
+    if (scale < 1.05) resetZoom();
+    else { baseScale = scale; baseTx = tx; baseTy = ty; }
+  });
+
+  // Zoom zurücksetzen wenn eine neue Karte geladen wird (src-Wechsel)
+  new MutationObserver(() => resetZoom())
+    .observe(img, { attributes: true, attributeFilter: ['src'] });
+})();
+
+// ── Pinch-Zoom auf Rückseiten-Fotos von Begriff-Karten (Lernmodus + Detail) ──
+['lern-text-fotos', 'karte-detail-text-fotos'].forEach(prefix => {
+  const wrap   = document.getElementById(prefix);
+  const slides = document.getElementById(prefix + '-slides');
+  if (!wrap || !slides) return;
+
+  let scale = 1, baseScale = 1;
+  let tx = 0, ty = 0, baseTx = 0, baseTy = 0;
+  let startDist = 0, startMidX = 0, startMidY = 0;
+  let lastTap = 0;
+
+  function setTransform(s, x, y, animate) {
+    scale = s; tx = x; ty = y;
+    slides.style.transition = animate ? 'transform 0.2s ease' : '';
+    slides.style.transform  = `translate(${tx}px,${ty}px) scale(${scale})`;
+    wrap.classList.toggle('zoomed', scale > 1.01);
+  }
+
+  function resetZoom() {
+    scale = 1; tx = 0; ty = 0; baseScale = 1; baseTx = 0; baseTy = 0;
+    slides.style.transition = 'transform 0.2s ease';
+    slides.style.transform  = '';
+    wrap.classList.remove('zoomed');
+  }
+
+  function touchDist(t) {
+    return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  }
+
+  slides.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      startDist = touchDist(e.touches);
+      startMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      startMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      baseScale = scale; baseTx = tx; baseTy = ty;
+      slides.style.transition = '';
+    } else if (e.touches.length === 1) {
+      const now = Date.now();
+      if (now - lastTap < 300 && scale > 1) { resetZoom(); e.preventDefault(); }
+      lastTap = now;
+    }
+  }, { passive: false });
+
+  slides.addEventListener('touchmove', e => {
+    if (e.touches.length !== 2) return;
+    e.preventDefault();
+    const newDist = touchDist(e.touches);
+    const newMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    const newMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    const s = Math.min(Math.max(baseScale * (newDist / startDist), 1), 5);
+    setTransform(s, baseTx + (newMidX - startMidX), baseTy + (newMidY - startMidY), false);
+  }, { passive: false });
+
+  slides.addEventListener('touchend', () => {
+    if (scale < 1.05) resetZoom();
+    else { baseScale = scale; baseTx = tx; baseTy = ty; }
+  });
+
+  // Zoom zurücksetzen, sobald die Galerie neu befüllt wird (Kartenwechsel)
+  new MutationObserver(() => resetZoom()).observe(slides, { childList: true });
+});
+
+// ── TEST-FEATURE "Mit Claude besprechen" — bei Bedarf komplett entfernbar ──
+(function() {
+  const btn = document.getElementById('btn-claude-besprechen');
+  if (!btn) return;
+
+  function baueClaudePrompt(s) {
+    s = kAnzeige(s);
+    const gruppe = gruppen.find(g => g.id === s.gruppeId);
+    const zeilen = [`Ich lerne gerade mit Karteikarten zum Thema "${gruppe ? gruppeName(gruppe) : ''}".`, `Karte: ${s.name}`];
+    if (s.modus === 'text' && s.vorderseite) zeilen.push(`Inhalt: ${s.vorderseite}`);
+    if (s.notiz) zeilen.push(`Notiz: ${s.notiz}`);
+    zeilen.push('Kannst du mir das genauer erklären, mir dazu ein paar Verständnisfragen stellen und mich auch auf verwandte Themen hinweisen?');
+    return zeilen.join('\n');
+  }
+
+  btn.addEventListener('click', async () => {
+    const s = lernKarten[lernIndex];
+    if (!s) return;
+    const prompt = baueClaudePrompt(s);
+    try { await navigator.clipboard.writeText(prompt); } catch (err) { console.warn('Clipboard-Fehler:', err); }
+    window.open('https://claude.ai/new?q=' + encodeURIComponent(prompt), '_blank');
+    toast(currentLang === 'en'
+      ? 'Copied to clipboard – opening Claude…'
+      : 'In Zwischenablage kopiert – Claude öffnet sich…');
+  });
+})();
+
+// ── TEST-FEATURE "Auswahl mit Claude besprechen" — bei Bedarf komplett entfernbar ──
+(function() {
+  const btn2      = document.getElementById('btn-claude-auswahl-besprechen');
+  const btnStart  = document.getElementById('btn-lernen-start');
+  if (!btn2 || !btnStart) return;
+
+  // Deaktiviert-Status spiegelt "Lernen starten" — keine Änderung an updateLernStartBtn() nötig
+  const syncDisabled = () => { btn2.disabled = btnStart.disabled; };
+  syncDisabled();
+  new MutationObserver(syncDisabled).observe(btnStart, { attributes: true, attributeFilter: ['disabled'] });
+
+  const MAX_URL_TEXT = 1500; // Sicherheitsgrenze für Deep-Link-Länge
+
+  function baueClaudeAuswahlPrompt(gids) {
+    const seen   = new Set();
+    const karten = [];
+    gids.forEach(gid => getKartenFuerGid(gid).forEach(k => {
+      if (!seen.has(k.id)) { seen.add(k.id); karten.push(k); }
+    }));
+    const themen = gids
+      .filter(g => !g.startsWith('__favoriten__'))
+      .map(gid => { const g = gruppen.find(x => x.id === gid); return g ? gruppeName(g) : null; })
+      .filter(Boolean);
+    const zeilen = [
+      `Ich lerne gerade mit Karteikarten${themen.length ? ' zum Thema "' + themen.join(', ') + '"' : ''} (${karten.length} Karten).`,
+      'Begriffe/Karten: ' + karten.map(k => kName(k)).join(', '),
+      'Kannst du mir helfen, die Zusammenhänge zwischen diesen Themen zu verstehen, mir ein paar Verständnisfragen dazu zu stellen und mich auf Wissenslücken hinzuweisen?'
+    ];
+    return zeilen.join('\n');
+  }
+
+  btn2.addEventListener('click', async () => {
+    const gids = getSelectedGids();
+    if (!gids.length) return;
+    const prompt = baueClaudeAuswahlPrompt(gids);
+    try { await navigator.clipboard.writeText(prompt); } catch (err) { console.warn('Clipboard-Fehler:', err); }
+    if (prompt.length <= MAX_URL_TEXT) {
+      window.open('https://claude.ai/new?q=' + encodeURIComponent(prompt), '_blank');
+      toast(currentLang === 'en'
+        ? 'Copied to clipboard – opening Claude…'
+        : 'In Zwischenablage kopiert – Claude öffnet sich…');
+    } else {
+      toast(currentLang === 'en'
+        ? 'Selection too large for a direct link — copied to clipboard, please paste manually.'
+        : 'Auswahl zu groß für Direkt-Link — in Zwischenablage kopiert, bitte manuell bei Claude einfügen.');
+    }
+  });
+})();
+
+// ── KI-Briefing: im Dialog anzeigen, kopieren, herunterladen (kein Verlassen der App) ──
+async function zeigeKiBriefing(datei, titel, hinweis, downloadName) {
+  let md = '';
+  try {
+    const r = await fetch(datei);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    md = await r.text();
+  } catch (err) { toast(tf('toast_fehler', err.message)); return; }
+  // nur der Prompt zwischen "PROMPT START" und "PROMPT ENDE" (der Rest ist Erklärung)
+  const a = md.search(/^##\s*PROMPT START.*$/m), b = md.search(/^##\s*PROMPT ENDE/m);
+  let prompt = md;
+  if (a >= 0 && b > a) prompt = md.slice(md.indexOf('\n', a) + 1, b).trim();
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `<div class="modal"><div class="modal-header"><h2>${esc(titel)}</h2>
+      <button class="btn-modal-close" data-a="zu">✕</button></div>
+    <div class="modal-body">
+      <p class="modal-hint">${esc(hinweis)}</p>
+      <textarea readonly style="width:100%;height:42vh;font-size:0.75rem;line-height:1.45;font-family:ui-monospace,Menlo,monospace"></textarea>
+      <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
+        <button class="btn-primary" data-a="kopieren" style="flex:1;margin:0">${esc(t('ki_kopieren'))}</button>
+        <button class="btn-secondary" data-a="download" style="flex:1;margin:0">⬇ ${esc(t('herunterladen'))}</button>
+      </div>
+      <button class="btn-secondary" data-a="zu" style="width:100%;margin-top:0.5rem">${esc(t('ki_schliessen'))}</button>
+    </div></div>`;
+  document.body.appendChild(modal);
+  const ta = modal.querySelector('textarea');
+  ta.value = prompt;
+  modal.addEventListener('click', async ev => {
+    const act = ev.target.closest('[data-a]')?.dataset.a;
+    if (ev.target === modal || act === 'zu') { modal.remove(); return; }
+    if (act === 'kopieren') {
+      let ok = false;
+      try { await navigator.clipboard.writeText(prompt); ok = true; } catch (_) {}
+      if (!ok) { ta.focus(); ta.select(); ta.setSelectionRange(0, prompt.length); try { ok = document.execCommand('copy'); } catch (_) {} }
+      const btn = ev.target.closest('[data-a]');
+      btn.textContent = ok ? t('ki_kopiert') : t('ki_kopieren');
+      if (!ok) toast(hinweis);
+    } else if (act === 'download') {
+      const url = URL.createObjectURL(new Blob([md], { type: 'text/markdown' }));
+      Object.assign(document.createElement('a'), { href: url, download: downloadName }).click();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+  });
+}
+document.getElementById('btn-ki-briefing')?.addEventListener('click', e => {
+  e.preventDefault();
+  zeigeKiBriefing('ki-briefing.md', t('ki_briefing'), t('ki_hinweis'), 'MemoFix_KI-Briefing.md');
+});
+document.getElementById('btn-ki-raten')?.addEventListener('click', e => {
+  e.preventDefault();
+  zeigeKiBriefing('ki-briefing-raten.md', t('ki_raten'), t('ki_raten_hinweis'), 'MemoFix_KI-Briefing_Raten.md');
+});
+
+// ── Speicher aufräumen: Vorschlagsliste (nichts wird automatisch gelöscht) ──
+document.getElementById('btn-kursset-aufraeumen')?.addEventListener('click', () => {
+  const en = istEn();
+  const sets = (document.getElementById('kursset-liste')._sets || []).filter(kurssetIstGeladen);
+  if (!sets.length) return;
+  const jetzt = Date.now();
+  const L = en ? {
+    titel: 'Free up storage', ein: `Large sets (over ${GR_ORANGE_MB} MB) that you have not used for ${AUFRAEUMEN_TAGE} days are preselected. Nothing is deleted without your confirmation.`,
+    kein: `No suggestion: no large set has been unused for ${AUFRAEUMEN_TAGE} days. You can still remove sets manually.`,
+    heute: 'used today', vor: n => `last used ${n} days ago`, unbekannt: 'last use unknown',
+    frei: mb => `Frees approx. ${mb} MB`, los: 'Remove selected', zu: 'Close',
+    confirm: (n, mb) => `Remove ${n} course set(s) (approx. ${mb} MB) from this device?\n\nLearning statistics stay, favorites are restored on reload. You need internet to load them again.`
+  } : {
+    titel: 'Speicher aufräumen', ein: `Große Sets (über ${GR_ORANGE_MB} MB), die du seit ${AUFRAEUMEN_TAGE} Tagen nicht genutzt hast, sind vorausgewählt. Ohne deine Bestätigung wird nichts gelöscht.`,
+    kein: `Kein Vorschlag: Kein großes Set liegt seit ${AUFRAEUMEN_TAGE} Tagen brach. Du kannst Sets trotzdem von Hand entfernen.`,
+    heute: 'heute genutzt', vor: n => `zuletzt vor ${n} Tagen genutzt`, unbekannt: 'letzte Nutzung unbekannt',
+    frei: mb => `Gibt ca. ${mb} MB frei`, los: 'Ausgewählte entfernen', zu: 'Schließen',
+    confirm: (n, mb) => `${n} Kursset(s) (ca. ${mb} MB) vom Gerät entfernen?\n\nDeine Lernstatistik bleibt erhalten, Favoriten werden beim erneuten Laden wiederhergestellt. Zum erneuten Laden brauchst du Internet.`
+  };
+  const zeilen = sets.map(set => {
+    const last = kurssetLetzteNutzung(set.id);
+    const tage = last == null ? null : Math.floor((jetzt - last) / 86400000);
+    const lokal = kurssetLokalMB(set.id);
+    const vorschlag = (set.mb || 0) >= GR_ORANGE_MB && tage != null && tage >= AUFRAEUMEN_TAGE;
+    return { set, tage, lokal, vorschlag, name: (en && set.name_en) ? set.name_en : (set.name || set.id) };
+  }).sort((a, b) => b.lokal - a.lokal);
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `<div class="modal"><div class="modal-header"><h2>${esc(L.titel)}</h2>
+      <button class="btn-modal-close" data-a="zu">✕</button></div>
+    <div class="modal-body">
+      <p class="modal-hint">${esc(zeilen.some(z => z.vorschlag) ? L.ein : L.kein)}</p>
+      <div class="aufraeumen-liste">${zeilen.map((z, i) => `
+        <label class="aufraeumen-zeile">
+          <input type="checkbox" data-i="${i}"${z.vorschlag ? ' checked' : ''}>
+          <span class="aufraeumen-info"><strong>${esc(z.name)}</strong>
+            <span>${z.lokal} MB · ${esc(z.tage == null ? L.unbekannt : z.tage === 0 ? L.heute : L.vor(z.tage))}</span></span>
+        </label>`).join('')}</div>
+      <p class="modal-hint" id="aufraeumen-summe"></p>
+      <button class="btn-primary" data-a="los">${esc(L.los)}</button>
+      <button class="btn-secondary" data-a="zu" style="width:100%;margin-top:0.5rem">${esc(L.zu)}</button>
+    </div></div>`;
+  document.body.appendChild(modal);
+  const gewaehlt = () => zeilen.filter((_, i) => modal.querySelector(`input[data-i="${i}"]`).checked);
+  const summe = () => {
+    const mb = Math.round(gewaehlt().reduce((a, z) => a + z.lokal, 0) * 10) / 10;
+    modal.querySelector('#aufraeumen-summe').textContent = mb ? L.frei(mb) : '';
+    modal.querySelector('[data-a="los"]').disabled = !gewaehlt().length;
+  };
+  summe();
+  modal.addEventListener('change', summe);
+  modal.addEventListener('click', async ev => {
+    const a = ev.target.closest('[data-a]')?.dataset.a;
+    if (ev.target === modal || a === 'zu') { modal.remove(); return; }
+    if (a === 'los') {
+      const auswahl = gewaehlt();
+      if (!auswahl.length) return;
+      const mb = Math.round(auswahl.reduce((x, z) => x + z.lokal, 0) * 10) / 10;
+      if (!confirm(L.confirm(auswahl.length, mb))) return;
+      let n = 0;
+      for (const z of auswahl) n += await entferneKurssetDaten(z.set);
+      modal.remove();
+      await ladeAlles(); renderVerwaltung(); renderLernAuswahl(); await ladeKurssetListe();
+      toast(en ? `${auswahl.length} set(s) removed (${n} cards)` : `${auswahl.length} Kursset(s) entfernt (${n} Karten)`);
+    }
+  });
+});
+
+// Hilfe: Video-Link öffnet den App-eigenen Player (kein Verlassen der App)
+document.addEventListener('click', e => {
+  const a = e.target.closest?.('[data-video-open]');
+  if (!a) return;
+  e.preventDefault();
+  oeffneVideoOverlay(a.dataset.videoOpen, a.dataset.videotitel || '', a.dataset.videoformat || '');
+});
+
+
+// ============================================================
+// SPIEL (Homo Ludens): Präsentationsmodus + Punktespalte, nichts wird gespeichert
+// ============================================================
+
+
+function spT() {
+  return istEn() ? {
+    zweiGleiche: (n, liste) => `Two ${n}s! From now on: ${liste.join(' and ')}`,
+    schliessen: 'Close', naechster: '＋ Next',
+    weiterBtn: 'Next ▶', minusTitel: 'Subtract a point (only once)',
+    umbenennen: '✎ Rename', entfernen: '🗑 Remove', abbr: 'Cancel', punkteUebertragen: n => `${n} point${n !== 1 ? 's' : ''} – give to:`, verwerfen: 'Discard points', entfernenFrage: n => `Remove “${n}”?`,
+    dasBistDu: 'That is you!', anderes: '↻ Another', weiterGehts: 'On we go', eureTiere: 'Your animals', beendenFrage: 'End the game? The points will be lost.',
+    unsere: 'Our', neuName2: '＋ Name', emojiSp: '＋ 🙂', einfuegen: '📋 Paste list', fuenf: '＋5 🙂', punkteK: 'Class',
+    tasteOk: 'OK', tasteAbbr: 'Cancel', tasteTitel: 'Name', leerzeichen: 'Space', einfuegenFehl: 'Pasting is not allowed here – paste into the field below.',
+    leer: 'No names yet – tap 👥, or type a name when someone scores.',
+    btnText: 'Learn together, playfully.',
+    praeambel: 'Learn together, playfully. In Dice-Mode the dice roll you through the set. Not a quiz duel, but a conversation game: whoever can explain it moves the group forward.',
+    titel: SPIEL_NAME, hilfe: 'Rules', namen: 'Names', wuerfel: '🎲 Dice-Mode', zeit: 'Countdown', zeitUp: '⏰ Time!', klasse: 'Class', undo: '↶ Point back', auswertung: '🏁 Results',
+    wer: "Who knew it?", wuerfelFrage: n => `🎲 ${n} – knew it?`, gewusst: n => `✓ ${n}`, hilfeVon: '🤝 with help from…',
+    gruppe: '👥 Everyone', niemand: '✗ Nobody', neuName: '＋ Name', neuPh: 'Name', ok: 'OK', passen: '↻ Pass',
+    plusBei: n => `+1 ${n}`, plusKlasse: '+1 Class', keinPunkt: 'No point – on to the next card',
+    namenTitel: 'Names', namenHinweis: 'One name per line. Nicknames are fine. Tap a name to mark it as absent. If a name already exists, another person is added with an emoji (e.g. Anna 🦊). Nothing is saved.',
+    namenPh: 'Anna\nBen\nCem', hinzu: 'Add', fertig: 'Done', zuWenig: 'The dice need at least two names present.',
+    anwesend: 'present', podest: 'MemoDiver', weiterspielen: '▶ Keep playing', platz: ['🥇', '🥈', '🥉'], keinePunkte: 'Nobody scored – the class did it together!',
+    belohnung: '🎁 Reward for everyone', wirMachenWeiter: 'We carry on.',
+    belohnungen: [
+      'The winners suggest a video (5 min max).',
+      '3 minutes of break – you choose the song.',
+      'Everyone applauds themselves.',
+      'You wish for a new card set.',
+      'You decide the topic of the next round.',
+      'A quick stretch – if everyone feels like it.',
+      'You suggest a new reward – done right away.',
+      'New extra rule for “knew it” – you invent it.',
+      'New extra rule for “did not know” – you invent it.',
+      'Joker: in the next round one card may be skipped.'
+    ],
+    stichwort: 'Keyword', video: '🎬 YouTube', neueRunde: 'New round', beenden: 'Finish',
+    klassenpunkte: n => `Class: ${n} point${n !== 1 ? 's' : ''}`, danke: 'Thanks for playing!',
+    hilfeTitel: `🤿 ${SPIEL_NAME} – the rules in short`,
+    hilfeText: [
+      'A card appears: <strong>think first, then answer.</strong> Nobody has to be fast.',
+      'Reveal the back (tap or space). The group looks at it together.',
+      'Is the answer right? Tap the <strong>names</strong> of those who knew it – each gets +1 (tap again to take it back, several people are fine). Then <strong>Next ▶</strong> or tap the card.',
+      '<strong>＋1 / −1:</strong> Someone volunteers but does not know it? Switch to −1 on purpose and tap their name (never below 0). It switches back to ＋1 by itself.',
+      '<strong>👥 Everyone</strong> = the whole group knew it → class point.',
+      '<strong>🎲 Dice-Mode</strong> calls someone at random (only those marked present). Off: everyone thinks along. <strong>Passing is allowed</strong>, asking for help too – both get the point.',
+      '<strong>⏱ Countdown</strong> (30 / 20 / 10 / 5 s) is optional. Off: everyone has time. On: whoever answers within the time can get the point. With Dice-Mode it starts after the roll. A tap on the time ends it right away. At zero the card wiggles – no penalty.',
+      '<strong>Whoever holds the device decides:</strong> whether an answer counts and whether there is still a point after “Time!”.',
+      '<strong>Names:</strong> type them with the on-screen keyboard, add an <strong>emoji player</strong> with one tap (no typing), or paste a list. <strong>Press a name for a moment</strong> to rename or remove it – its points can be passed on.',
+      '<strong>↶ Point back</strong> takes back the last point (active on the back of a card). <strong>Nothing is saved</strong> – closing the game deletes it all.'
+    ],
+    losgehts: "Let's go"
+  } : {
+    zweiGleiche: (n, liste) => `Zweimal ${n}! Ab jetzt: ${liste.join(' und ')}`,
+    schliessen: 'Schließen', naechster: '＋ Nächster',
+    weiterBtn: 'Weiter ▶', minusTitel: 'Punkt abziehen (nur einmal)',
+    umbenennen: '✎ Umbenennen', entfernen: '🗑 Entfernen', abbr: 'Abbrechen', punkteUebertragen: n => `${n} Punkt${n !== 1 ? 'e' : ''} – übertragen an:`, verwerfen: 'Punkte verwerfen', entfernenFrage: n => `„${n}“ entfernen?`,
+    dasBistDu: 'Das bist du!', anderes: '↻ Anderes', weiterGehts: 'Weiter geht\'s', eureTiere: 'Eure Tiere', beendenFrage: 'Spiel beenden? Die Punkte gehen verloren.',
+    unsere: 'Unsere', neuName2: '＋ Name', emojiSp: '＋ 🙂', einfuegen: '📋 Liste einfügen', fuenf: '＋5 🙂', punkteK: 'Klasse',
+    tasteOk: 'OK', tasteAbbr: 'Abbrechen', tasteTitel: 'Name', leerzeichen: 'Leerzeichen', einfuegenFehl: 'Einfügen ist hier nicht erlaubt – bitte ins Feld darunter einfügen.',
+    leer: 'Noch keine Namen – tippe auf 👥 oder trage beim ersten Punkt einen Namen ein.',
+    btnText: 'Lernt gemeinsam spielerisch.',
+    praeambel: 'Lernt gemeinsam spielerisch. Im Dice-Mode würfelt ihr euch durchs Set. Kein Quiz-Duell, sondern ein Gesprächsspiel: Wer es erklären kann, bringt die Gruppe weiter.',
+    titel: SPIEL_NAME, hilfe: 'Regeln', namen: 'Namen', wuerfel: '🎲 Dice-Mode', zeit: 'Countdown', zeitUp: '⏰ Zeit!', klasse: 'Klasse', undo: '↶ Punkt zurück', auswertung: '🏁 Auswertung',
+    wer: "Wer hat's gewusst?", wuerfelFrage: n => `🎲 ${n} – gewusst?`, gewusst: n => `✓ ${n}`, hilfeVon: '🤝 mit Hilfe von…',
+    gruppe: '👥 Alle', niemand: '✗ Niemand', neuName: '＋ Name', neuPh: 'Name', ok: 'OK', passen: '↻ Passen',
+    plusBei: n => `+1 ${n}`, plusKlasse: '+1 Klasse', keinPunkt: 'Kein Punkt – weiter zur nächsten Karte',
+    namenTitel: 'Namen', namenHinweis: 'Ein Name pro Zeile, Spitznamen sind okay. Antippen markiert jemanden als abwesend. Gibt es einen Namen schon, wird eine weitere Person mit Emoji angelegt (z. B. Anna 🦊). Nichts wird gespeichert.',
+    namenPh: 'Anna\nBen\nCem', hinzu: 'Hinzufügen', fertig: 'Fertig', zuWenig: 'Für den Würfel müssen mindestens zwei Namen anwesend sein.',
+    anwesend: 'da', podest: 'MemoDiver', weiterspielen: '▶ Weiterspielen', platz: ['🥇', '🥈', '🥉'], keinePunkte: 'Niemand hat gepunktet – die Klasse hat es gemeinsam geschafft!',
+    belohnung: '🎁 Belohnung für alle', wirMachenWeiter: 'Wir machen weiter.',
+    belohnungen: [
+      'Die Gewinner schlagen ein Video vor (max. 5 Min.).',
+      '3 Minuten Pause – ihr wählt den Song.',
+      'Alle klatschen sich selbst Applaus.',
+      'Ihr wünscht euch ein neues Kartenset.',
+      'Ihr bestimmt das Thema der nächsten Runde.',
+      'Kurz strecken – wenn alle Lust haben.',
+      'Ihr schlagt eine neue Belohnung vor – sofort umgesetzt.',
+      'Neue Zusatzregel für „gewusst“ – ihr erfindet sie.',
+      'Neue Zusatzregel für „nicht gewusst“ – ihr erfindet sie.',
+      'Joker: In der nächsten Runde darf eine Karte übersprungen werden.'
+    ],
+    stichwort: 'Stichwort', video: '🎬 YouTube', neueRunde: 'Neue Runde', beenden: 'Beenden',
+    klassenpunkte: n => `Klasse: ${n} Punkt${n !== 1 ? 'e' : ''}`, danke: 'Danke fürs Mitspielen!',
+    hilfeTitel: `🤿 ${SPIEL_NAME} – die Regeln kurz erklärt`,
+    hilfeText: [
+      'Eine Karte erscheint: <strong>erst überlegen, dann antworten.</strong> Niemand muss schnell sein.',
+      'Rückseite aufdecken (Tippen oder Leertaste). Die Gruppe schaut sie gemeinsam an.',
+      'Stimmt die Antwort? Tippe die <strong>Namen</strong> an, die es gewusst haben – jede Person bekommt +1 (nochmal tippen nimmt es zurück, auch mehrere sind möglich). Dann <strong>Weiter ▶</strong> oder die Karte antippen.',
+      '<strong>＋1 / −1:</strong> Jemand meldet sich, weiß es aber nicht? Bewusst auf −1 umschalten und den Namen antippen (nie unter 0). Danach springt es von selbst auf ＋1 zurück.',
+      '<strong>👥 Alle</strong> = die ganze Gruppe wusste es → Klassenpunkt.',
+      '<strong>🎲 Dice-Mode</strong> ruft zufällig jemanden auf (nur wer als anwesend markiert ist). Aus: alle denken mit. <strong>Passen ist erlaubt</strong>, Hilfe holen auch – beide bekommen den Punkt.',
+      '<strong>⏱ Countdown</strong> (30 / 20 / 10 / 5 s) ist freiwillig. Aus: alle haben Zeit. An: Wer in der Zeit antwortet, kann den Punkt bekommen. Mit Dice-Mode startet er nach dem Wurf. Ein Tipp auf die Zeit beendet ihn sofort. Bei null wackelt die Karte – keine Strafe.',
+      '<strong>Wer das Gerät in der Hand hat, entscheidet:</strong> ob eine Antwort zählt und ob es nach „Zeit!“ noch einen Punkt gibt.',
+      '<strong>Namen:</strong> mit der Bildschirm-Tastatur tippen, mit einem Tipp eine <strong>Emoji-Person</strong> anlegen (ohne Tippen) oder eine Liste einfügen. <strong>Einen Namen kurz gedrückt halten</strong> zum Umbenennen oder Entfernen – die Punkte lassen sich übertragen.',
+      '<strong>↶ Punkt zurück</strong> nimmt den letzten Punkt zurück (aktiv auf der Rückseite einer Karte). <strong>Nichts wird gespeichert</strong> – beim Schließen ist alles weg.'
+    ],
+    losgehts: 'Los geht\'s'
+  };
+}
+
+function spielNameNorm(n) { return String(n || '').replace(/\s+/g, ' ').trim().slice(0, 24); }
+function spielFinde(n) { const k = spielNameNorm(n).toLowerCase(); return spiel.namen.find(x => x.name.toLowerCase() === k); }
+function spielNamenDa() { return spiel.namen.filter(x => x.da).sort((a, b) => a.name.localeCompare(b.name, istEn() ? 'en' : 'de')); }
+const SPIEL_EMOJIS = ['🦊','🐼','🐸','🦄','🐙','🦁','🐧','🦉','🐝','🦋','🐢','🐳','🦒','🐨','🐯','🐰','🦔','🦩','🐌','🍀','🌵','🍉','🚀','🎈','⭐','🍕','🎸','🌈'];
+const SPIEL_AVATARE = ['🦊','🐼','🐸','🦄','🐙','🦁','🐧','🦉','🐝','🦋','🐢','🐳','🦒','🐨','🐯','🐰','🦔','🦩','🐌','🦖','🦈','🐺','🦜','🐞','🦚','🐿️','🦥','🦦','🐘','🦓'];
+
+// Emoji-Person: der Name ist nur ein Emoji (ohne Tippen)
+function spielFreiesEmoji(ausser) {
+  const belegt = new Set(spiel.namen.map(e => e.name));
+  const frei = SPIEL_AVATARE.filter(em => !belegt.has(em) && em !== ausser);
+  return frei.length ? frei[Math.floor(Math.random() * frei.length)] : '🙂' + (spiel.namen.length + 1);
+}
+function spielEmojiPersonMit(em) {
+  const e = { name: em, basis: em, punkte: 0, da: true, gewuerfelt: false };
+  spiel.namen.push(e);
+  return e;
+}
+function spielEmojiPerson() { return spielEmojiPersonMit(spielFreiesEmoji()); }
+// Zeigt das gezogene Emoji groß; „Anderes“ zieht neu, „Weiter geht's“ übernimmt
+function spielEmojiZeigen(onOk, mehrere) {
+  const T = spT();
+  document.getElementById('spiel-emoji')?.remove();
+  let em = mehrere ? mehrere : spielFreiesEmoji();
+  const m = document.createElement('div');
+  m.id = 'spiel-emoji'; m.className = 'spiel-modal sp-emoji-modal';
+  document.body.appendChild(m);
+  const zeichne = () => {
+    m.innerHTML = `<div class="spiel-modal-box sp-emoji-box">
+      <button class="sp-emoji-zu" data-x="zu" aria-label="${esc(T.schliessen)}">✕</button>
+      <div class="sp-emoji-titel">${esc(mehrere ? T.eureTiere : T.dasBistDu)}</div>
+      <div class="sp-emoji-gross">${mehrere ? em.join(' ') : em}</div>
+      <div class="sp-modal-btns">${mehrere ? '' : `<button class="btn-secondary" data-x="anderes">${esc(T.anderes)}</button>`}
+        <button class="btn-primary" data-x="ok">${esc(T.weiterGehts)}</button></div></div>`;
+  };
+  zeichne();
+  const esc_ = ev => { if (ev.key === 'Escape') { ev.stopPropagation(); schliesse(); } };
+  const schliesse = () => { document.removeEventListener('keydown', esc_, true); m.remove(); };
+  document.addEventListener('keydown', esc_, true);
+  m.addEventListener('click', ev => {
+    const x = ev.target.closest('[data-x]')?.dataset.x;
+    if (ev.target === m || x === 'zu') { schliesse(); return; }          // abbrechen: keine Person, kein Punkt
+    if (x === 'anderes') { em = spielFreiesEmoji(em); zeichne(); }
+    else if (x === 'ok') { schliesse(); onOk(em); }
+  });
+}
+
+// Neue Person: gibt es den Namen schon, bekommen ALLE mit diesem Namen ein Emoji (auch die bisherige Person)
+function spielUmbenennen(e, neu) {
+  const alt = e.name;
+  e.name = neu;
+  spiel.verlauf.forEach(v => { v.namen = v.namen.map(x => x === alt ? neu : x); if (v.wirksam) v.wirksam = v.wirksam.map(x => x === alt ? neu : x); });
+  if (spiel.aktuell === alt) spiel.aktuell = neu;
+}
+function spielNeuePerson(n) {
+  const basis = spielNameNorm(n); if (!basis) return null;
+  const gleiche = spiel.namen.filter(x => (x.basis || x.name).toLowerCase() === basis.toLowerCase());
+  const belegt = new Set(spiel.namen.map(x => x.name.toLowerCase()));
+  const emoji = () => {
+    const frei = SPIEL_EMOJIS.filter(em => !belegt.has(`${basis.slice(0, 20)} ${em}`.toLowerCase()));
+    const em = frei.length ? frei[Math.floor(Math.random() * frei.length)] : String(spiel.namen.length + 1);
+    belegt.add(`${basis.slice(0, 20)} ${em}`.toLowerCase());
+    return `${basis.slice(0, 20)} ${em}`;
+  };
+  if (!gleiche.length) {
+    const e = { name: basis, basis, punkte: 0, da: true, gewuerfelt: false };
+    spiel.namen.push(e);
+    return e;
+  }
+  let umbenannt = false;
+  gleiche.forEach(g => {
+    if (g.name === (g.basis || g.name)) { spielUmbenennen(g, emoji()); umbenannt = true; }
+  });
+  const e = { name: emoji(), basis, punkte: 0, da: true, gewuerfelt: false };
+  spiel.namen.push(e);
+  if (umbenannt) toast(spT().zweiGleiche(basis, gleiche.map(x => x.name).concat(e.name)));
+  return e;
+}
+function spielAddName(n) {
+  const name = spielNameNorm(n); if (!name) return null;
+  let e = spielFinde(name);
+  if (!e) { e = { name, basis: name, punkte: 0, da: true, gewuerfelt: false }; spiel.namen.push(e); }
+  return e;
+}
+
+function spielKarteId() { return lernKarten[lernIndex]?.id || ''; }
+// +1 / −1 (nie unter 0); merkt sich, was wirklich geändert wurde, damit Zurücknehmen stimmt
+function spielPunkt(namen, klasse, delta = 1) {
+  const eintrag = { namen: [], klasse: 0, delta, karte: spielKarteId(), wirksam: [] };
+  namen.forEach(n => {
+    const e = spielAddName(n); if (!e) return;
+    eintrag.namen.push(e.name);
+    if (delta > 0) { e.punkte++; eintrag.wirksam.push(e.name); }
+    else if (e.punkte > 0) { e.punkte--; eintrag.wirksam.push(e.name); }
+  });
+  if (klasse && delta > 0) { spiel.klasse++; eintrag.klasse = 1; }
+  spiel.verlauf.push(eintrag);
+  spielRender();
+}
+function spielEintragZurueck(v, nurName) {
+  const namen = nurName ? [nurName] : (v.wirksam || []);
+  namen.forEach(n => {
+    const e = spielFinde(n); if (!e) return;
+    if (v.delta > 0) { if (e.punkte > 0) e.punkte--; } else e.punkte++;
+  });
+  if (!nurName && v.klasse && spiel.klasse > 0) spiel.klasse--;
+}
+function spielUndo() {
+  const l = spiel.verlauf.pop(); if (!l) return;
+  spielEintragZurueck(l);
+  spielRender();
+}
+// Punkte der aktuellen Karte: je Person die Summe, dazu Klassenpunkt
+function spielKarteAwards() {
+  const personen = new Map(); let klasse = 0;
+  const id = spielKarteId();
+  spiel.verlauf.forEach(v => {
+    if (v.karte !== id) return;
+    (v.wirksam || []).forEach(n => personen.set(n, (personen.get(n) || 0) + v.delta));
+    klasse += v.klasse || 0;
+  });
+  return { personen, klasse };
+}
+// Antippen eines Namens: +1 · nochmal tippen: zurück · im −1-Modus: einmal abziehen
+function spielToggle(name) {
+  const id = spielKarteId();
+  if (spiel.minus) {
+    spiel.minus = false;
+    spielPunkt([name], false, -1);
+    spielChipEffekt([name], '−1', true);
+    return;
+  }
+  const hat = spielKarteAwards().personen.get(name) || 0;
+  if (hat !== 0) {
+    for (let i = spiel.verlauf.length - 1; i >= 0; i--) {
+      const v = spiel.verlauf[i];
+      if (v.karte === id && (v.wirksam || []).includes(name)) {
+        spielEintragZurueck(v, name);
+        v.wirksam = v.wirksam.filter(n => n !== name); v.namen = v.namen.filter(n => n !== name);
+        if (!v.namen.length && !v.klasse) spiel.verlauf.splice(i, 1);
+        break;
+      }
+    }
+    spielRender();
+  } else {
+    spielPunkt([name], false, 1);
+    spielChipEffekt([name], '+1', false);
+  }
+}
+function spielToggleKlasse() {
+  const id = spielKarteId();
+  if (spielKarteAwards().klasse > 0) {
+    for (let i = spiel.verlauf.length - 1; i >= 0; i--) {
+      const v = spiel.verlauf[i];
+      if (v.karte === id && v.klasse) {
+        v.klasse = 0; if (spiel.klasse > 0) spiel.klasse--;
+        if (!v.namen.length) spiel.verlauf.splice(i, 1);
+        break;
+      }
+    }
+    spielRender();
+  } else {
+    spielPunkt([], true, 1);
+    const alle = document.querySelector('#spiel-wer [data-sp="alle"]');
+    if (alle) spielEffektAn(alle, '+1', false);
+  }
+}
+function spielEffektAn(chip, text, minus) {
+  chip.classList.add('sp-pop');
+  const sp = document.createElement('span');
+  sp.className = 'sp-plus' + (minus ? ' sp-plus-minus' : ''); sp.textContent = text;
+  chip.appendChild(sp);
+  setTimeout(() => { chip.classList.remove('sp-pop'); sp.remove(); }, 1350);
+}
+function spielChipEffekt(namen, text, minus) {
+  const p = document.getElementById('spiel-wer'); if (!p) return;
+  namen.forEach(n => {
+    const c = [...p.querySelectorAll('.sp-chip[data-name]')].find(x => x.dataset.name === n);
+    if (c) spielEffektAn(c, text, minus);
+  });
+}
+
+// ── Aufbau / Abbau ───────────────────────────────────────────
+function spielStarten() {
+  if (spielAktiv) return;
+  spielAktiv = true;
+  spiel.namen = []; spiel.klasse = 0; spiel.wuerfel = false; spiel.aktuell = null; spiel.helfer = false;
+  spiel.vergeben = new Set(); spiel.verlauf = []; spiel.zeit = 0;
+  // MemoDive startet immer mit Standardeinstellungen; die Einstellungen der Kartei kommen beim Beenden zurück
+  spiel.standKey = spielStandKontext?.key || null; spiel.standId = spielStandKontext?.id || null; spielStandKontext = null;
+  spiel.gemerkt = { modus: lernModus, timer: timerSekunden, repeat: autoRepeat, lang: currentLang };
+  if (timerSekunden) setTimerSekunden(0);
+  if (autoRepeat) setAutoRepeat(false);
+  if (lernModus !== 'foto') { setLernModus('foto'); zeigeKarte(); }
+  document.body.classList.add('spiel');
+
+  const flash = document.getElementById('lernen-flashcard');
+  const area = flash.querySelector('.lern-karte-area') || flash;
+  const mk = (id, cls, parent, before) => {
+    const el = document.createElement('div');
+    el.id = id; el.className = cls;
+    if (before) parent.insertBefore(el, parent.firstChild); else parent.appendChild(el);
+    return el;
+  };
+  const hud = mk('spiel-hud', 'spiel-hud', flash, true);
+  const panel = mk('spiel-wer', 'spiel-wer hidden', flash);
+  mk('spiel-banner', 'spiel-banner hidden', area);
+  mk('spiel-tron', 'spiel-tron hidden', area);
+  mk('spiel-raten', 'spiel-raten hidden', area);
+  [hud, panel, document.getElementById('spiel-banner'), document.getElementById('spiel-raten')].forEach(el => el.addEventListener('click', spielKlick));
+  spiel.raten = 0; spiel.ratenId = null; spiel.ratenGew = null;
+  ratenLaden();
+  spielRender();
+  praesiAutofitPlanen();
+  let gesehen = false;
+  try { gesehen = !!localStorage.getItem('spielHilfeGesehen'); } catch (_) {}
+  if (!gesehen) { spielHilfe(); try { localStorage.setItem('spielHilfeGesehen', '1'); } catch (_) {} }
+  spielKarteAngezeigt();
+}
+
+function spielAufraeumen() {
+  if (!spielAktiv) return;
+  spielAktiv = false;
+  clearInterval(spiel.rollTimer);
+  clearTimeout(spiel.warteTimer); spiel.warteSkip = null;
+  spielZeitStop();
+  spiel.zeit = 0;
+  document.body.classList.remove('spiel');
+  ['spiel-hud', 'spiel-wer', 'spiel-banner', 'spiel-raten', 'spiel-zeitbalken', 'spiel-tron', 'spiel-podium', 'spiel-modal', 'spiel-kb', 'spiel-emoji', 'spiel-menue'].forEach(id => document.getElementById(id)?.remove());
+  spiel.namen = []; spiel.verlauf = []; spiel.vergeben = new Set(); spiel.klasse = 0; spiel.aktuell = null;
+  spiel.raten = 0; spiel.ratenId = null; spiel.ratenGew = null;
+  spiel.standKey = null; spiel.standId = null;
+  if (spiel.gemerkt) {
+    const g = spiel.gemerkt; spiel.gemerkt = null;
+    setLernModus(g.modus);
+    if (g.timer) setTimerSekunden(g.timer);
+    if (g.repeat) setAutoRepeat(true);
+    if (g.lang && g.lang !== currentLang) { currentLang = g.lang; applyTranslations(); }
+  }
+}
+
+// ── Anzeige ──────────────────────────────────────────────────
+function spielZeitText(sek) {
+  const s = Math.max(0, Math.ceil(sek));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+function spielRender() {
+  const T = spT();
+  const hud = document.getElementById('spiel-hud');
+  if (hud) {
+    hud.innerHTML = `
+      <div class="sp-hud-l">
+        <span class="sp-logo" title="${esc(T.titel)}"><span class="title-memo">Memo</span><span class="title-pix">Dive</span></span>
+        <button data-sp="zeit" class="sp-led-btn${spiel.zeit ? ' aktiv' : ''}" title="${esc(T.zeit)}" aria-label="${esc(T.zeit)}">
+          <span class="sp-led-label">Timer</span><span id="sp-led" class="sp-led">${spiel.zeit ? spielZeitText(spiel.zeit) : (istEn() ? 'off' : 'aus')}</span></button>
+        <label class="sp-wuerfel-btn${spiel.wuerfel ? ' aktiv' : ''}" title="${esc(T.wuerfel)}"><input type="checkbox" data-sp="wuerfel"${spiel.wuerfel ? ' checked' : ''}><span>🎲</span></label>
+        ${spielRatenVerfuegbar() ? `<button data-sp="raten" class="sp-wuerfel-btn sp-raten-pille${spiel.raten ? ' aktiv' : ''}${spiel.raten === 2 ? ' immer' : ''}" title="${esc(spRatenT().modi[spiel.raten || 0])}" aria-label="${esc(spRatenT().modi[spiel.raten || 0])}"><span>🎯</span><span class="sp-rt-z">${spiel.raten === 2 ? '∞' : spiel.raten === 1 ? '1' : '–'}</span></button>` : ''}
+      </div>
+      <div class="sp-hud-r">
+        ${spiel.verlauf.length ? `<button data-sp="undo" class="sp-hud-btn sp-rund${nameVisible ? '' : ' sp-grau'}" ${nameVisible ? '' : 'disabled'} title="${esc(T.undo)}" aria-label="${esc(T.undo)}">↶</button>` : ''}
+        <button data-sp="auswertung" class="sp-hud-btn">${esc(T.auswertung)}</button>
+        <button data-sp="hilfe" class="sp-hud-btn sp-rund" title="${esc(T.hilfe)}" aria-label="${esc(T.hilfe)}">?</button>
+        <button data-sp="lang" class="sp-hud-btn sp-rund sp-lang" title="${istEn() ? 'Deutsch' : 'English'}" aria-label="${istEn() ? 'Deutsch' : 'English'}">${istEn() ? 'DE' : 'EN'}</button>
+        <button data-sp="namen" class="sp-hud-btn sp-rund" title="${esc(T.namen)}" aria-label="${esc(T.namen)}">👥</button>
+        <button data-sp="beenden" class="sp-hud-btn sp-rund" title="${esc(T.beenden)}" aria-label="${esc(T.beenden)}">✕</button>
+      </div>`;
+  }
+  spielRenderPanel();
+  spielRenderBanner();
+  spielRatenRender();
+  spielZeitAnzeige();
+}
+
+function spielRenderBanner() {
+  const T = spT();
+  const b = document.getElementById('spiel-banner'); if (!b) return;
+  const dice = spiel.wuerfel && spiel.aktuell;
+  const zeigen = dice && !nameVisible;
+  b.classList.toggle('hidden', !zeigen);
+  if (zeigen) b.innerHTML = `<span class="sp-banner-name">🎲 ${esc(spiel.aktuell)}</span><button data-sp="passen">${esc(T.passen)}</button>`;
+}
+
+// ── Countdown: Balken, Farbrand, digitale Anzeige (kein Ton) ──
+function spielZeitStop() {
+  clearInterval(spiel.zeitTimer);
+  spiel.zeitLaeuft = false; spiel.zeitAbgelaufen = false;
+  const k = document.getElementById('lernkarte');
+  k?.classList.remove('sp-wackeln', 'sp-blink');
+  const t = document.getElementById('spiel-tron'); if (t) { t.classList.add('hidden'); t.classList.remove('sp-ende'); t.textContent = ''; }
+  const led = document.getElementById('sp-led');
+  if (led) { led.textContent = spiel.zeit ? spielZeitText(spiel.zeit) : (istEn() ? 'off' : 'aus'); led.style.color = ''; }
+}
+function spielZeitStart() {
+  spielZeitStop();
+  if (!spielAktiv || !spiel.zeit || nameVisible) { spielRenderBanner(); return; }
+  spiel.zeitEnde = Date.now() + spiel.zeit * 1000;
+  spiel.zeitLaeuft = true;
+  spielRenderBanner();
+  spielZeitAnzeige();
+  spiel.zeitTimer = setInterval(spielZeitTick, 100);
+}
+function spielZeitAnzeige() {
+  const led = document.getElementById('sp-led');
+  const tron = document.getElementById('spiel-tron');
+  if (!spiel.zeitLaeuft && !spiel.zeitAbgelaufen) return;
+  const mmss = s_ => `${String(Math.floor(s_ / 60)).padStart(2, '0')}:${String(s_ % 60).padStart(2, '0')}`;
+  if (spiel.zeitAbgelaufen) {
+    if (led) led.textContent = '0:00';
+    if (tron) { tron.textContent = '00:00'; tron.classList.remove('hidden'); tron.classList.add('sp-ende'); }
+    return;
+  }
+  const rest = Math.max(0, spiel.zeitEnde - Date.now());
+  const sek = Math.ceil(rest / 1000);
+  if (led) led.textContent = spielZeitText(sek);
+  if (tron) {
+    const zeigen = sek <= 3;                 // große Anzeige nur in den letzten 3 Sekunden
+    tron.classList.toggle('hidden', !zeigen);
+    if (zeigen) tron.textContent = mmss(sek);
+  }
+}
+function spielZeitAbgelaufen() {
+  clearInterval(spiel.zeitTimer);
+  spiel.zeitLaeuft = false; spiel.zeitAbgelaufen = true;
+  const k = document.getElementById('lernkarte');
+  const ruhig = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  k?.classList.add(ruhig ? 'sp-blink' : 'sp-wackeln');
+  setTimeout(() => k?.classList.remove('sp-wackeln', 'sp-blink'), 650);
+  spielRenderBanner();
+  spielZeitAnzeige();
+}
+function spielZeitTick() {
+  if (!spielAktiv || nameVisible) { spielZeitStop(); spielRenderBanner(); return; }
+  if (Date.now() >= spiel.zeitEnde) { spielZeitAbgelaufen(); return; }
+  spielZeitAnzeige();
+}
+
+// ── „Wer hat's gewusst?“ ─────────────────────────────────────
+function spielRenderPanel() {
+  const T = spT();
+  const p = document.getElementById('spiel-wer'); if (!p) return;
+  const s_ = lernKarten[lernIndex];
+  const sichtbar = nameVisible && s_ && !spiel.vergeben.has(s_.id);
+  p.classList.toggle('hidden', !sichtbar);
+  if (!sichtbar) return;
+  const da = spielNamenDa();
+  const dran = spiel.wuerfel && spiel.aktuell;
+  const aw = spielKarteAwards();
+  const zustand = n => { const v = aw.personen.get(n) || 0; return v > 0 ? ' sp-gewaehlt' : v < 0 ? ' sp-minus-chip' : ''; };
+  const haken = n => { const v = aw.personen.get(n) || 0; return v > 0 ? '<span class="sp-haken">✓</span>' : v < 0 ? '<span class="sp-haken">−</span>' : ''; };
+  const chip = (e, extra = '') => `<button class="sp-chip${zustand(e.name)}${extra}" data-sp="wahl" data-name="${esc(e.name)}">${haken(e.name)}${esc(e.name)}${e.punkte ? `<span class="sp-chip-pkt">${e.punkte}</span>` : ''}</button>`;
+  const minusBtn = `<button class="sp-minus-btn${spiel.minus ? ' an' : ''}" data-sp="minus" title="${esc(T.minusTitel)}" aria-label="${esc(T.minusTitel)}">${spiel.minus ? '−1' : '＋1'}</button>`;
+  const alleChip = `<button class="sp-chip${aw.klasse > 0 ? ' sp-gewaehlt' : ''}" data-sp="alle">${aw.klasse > 0 ? '<span class="sp-haken">✓</span>' : ''}${esc(T.gruppe)}</button>`;
+  const weiter = `<button class="sp-chip sp-chip-weiter" data-sp="weiter">${esc(T.weiterBtn)}</button>`;
+  let html;
+  if (dran) {
+    html = `<div class="sp-frage-reihe"><span class="sp-frage">${esc(T.wuerfelFrage(spiel.aktuell))}</span></div><div class="sp-chips">${minusBtn}
+      <button class="sp-chip sp-chip-gross${zustand(spiel.aktuell)}" data-sp="wahl" data-name="${esc(spiel.aktuell)}">${esc(T.gewusst(spiel.aktuell))}</button>
+      <button class="sp-chip${spiel.helfer ? ' aktiv' : ''}" data-sp="helfer">${esc(T.hilfeVon)}</button>
+      ${alleChip}${weiter}</div>
+      ${spiel.helfer ? `<div class="sp-chips sp-chips-zwei">${da.filter(e => e.name !== spiel.aktuell).map(e => chip(e)).join('')}
+        <button class="sp-chip sp-chip-neu" data-sp="neu">${esc(T.neuName2)}</button>
+        <button class="sp-chip sp-chip-neu" data-sp="emoji">${esc(T.emojiSp)}</button></div>` : ''}`;
+  } else {
+    html = `<div class="sp-frage-reihe"><span class="sp-frage">${esc(T.wer)}</span></div><div class="sp-chips">${minusBtn}
+      ${da.map(e => chip(e)).join('')}
+      <button class="sp-chip sp-chip-neu" data-sp="neu">${esc(T.neuName2)}</button>
+      <button class="sp-chip sp-chip-neu" data-sp="emoji">${esc(T.emojiSp)}</button>
+      ${alleChip}${weiter}</div>`;
+  }
+  p.classList.toggle('sp-kompakt', da.length > 12);
+  p.innerHTML = spielRatenZeile() + html;
+  praesiAutofitPlanen();
+}
+
+// ── Würfel ───────────────────────────────────────────────────
+function spielWuerfeln(ausser) {
+  clearInterval(spiel.rollTimer);
+  spielZeitStop();
+  if (!spiel.wuerfel) { spiel.aktuell = null; spielRenderBanner(); return; }
+  let pool = spielNamenDa().filter(e => !e.gewuerfelt && e.name !== ausser);
+  if (!pool.length) {
+    spiel.namen.forEach(e => { e.gewuerfelt = false; });
+    pool = spielNamenDa().filter(e => e.name !== ausser);
+  }
+  if (!pool.length) pool = spielNamenDa();
+  if (!pool.length) { spiel.aktuell = null; spielRender(); return; }
+  const ziel = pool[Math.floor(Math.random() * pool.length)];
+  const alle = spielNamenDa();
+  let n = 0;
+  const b = document.getElementById('spiel-banner');
+  b?.classList.remove('hidden');
+  spiel.rollTimer = setInterval(() => {
+    n++;
+    const zeige = n >= 14 ? ziel : alle[Math.floor(Math.random() * alle.length)];
+    spiel.aktuell = zeige.name;
+    if (b) b.innerHTML = `<span class="sp-banner-name sp-rollt">🎲 ${esc(zeige.name)}</span>`;
+    if (n >= 14) {
+      clearInterval(spiel.rollTimer);
+      ziel.gewuerfelt = true;
+      spielRender();
+      if (spiel.zeit) spielZeitStart();
+    }
+  }, 85);
+}
+
+// Sprache mitten im Spiel wechseln (z. B. für Erasmus-Studierende): gleiche Karte, gleicher Zustand, neue Sprache
+function spielSpracheWechseln() {
+  if (!spielAktiv || !lernKarten[lernIndex]) return;
+  if (spiel.sprache) return;
+  if (spiel.gemerkt && spiel.gemerkt.lang == null) spiel.gemerkt.lang = currentLang;   // beim Beenden zurücksetzen
+  currentLang = istEn() ? 'de' : 'en';                                                  // nicht dauerhaft gespeichert
+  applyTranslations();
+  const sichtbar = nameVisible, wertung = aktuelleWertung, animiert = isAnimating;
+  spiel.sprache = true;
+  try {
+    zeigeKarte();
+    if (sichtbar) { zeigeName(wertung || 'gewusst'); }
+  } finally { spiel.sprache = false; }
+  isAnimating = animiert;
+  spielRender();
+  praesiAutofitPlanen();
+}
+
+function spielKarteAngezeigt() {
+  if (!spielAktiv) return;
+  mdSpeichern();
+  spielZeitStop();
+  spiel.helfer = false;
+  spiel.aktuell = null;
+  spiel.ratenGew = null;
+  if (spiel.raten === 1) {                              // Joker gilt nur für eine Karte
+    const kid = lernKarten[lernIndex]?.id;
+    if (spiel.ratenJoker === 'naechste') spiel.ratenJoker = kid;
+    else if (spiel.ratenJoker !== kid) { spiel.raten = 0; spiel.ratenJoker = null; }
+  }
+  spielRender();
+  if (spiel.wuerfel) spielWuerfeln();
+  else if (spiel.zeit) spielZeitStart();
+  praesiAutofitPlanen();
+}
+function spielAufgedeckt() {
+  if (!spielAktiv) return;
+  spiel.aufgedecktZeit = Date.now();
+  clearInterval(spiel.rollTimer);
+  spielZeitStop();
+  spielRender();
+  praesiAutofitPlanen();
+}
+
+
+// ── Raten-Modus (optional): Mehrfachauswahl, Gruppe stimmt per Handzeichen ab ──────────
+function spRatenT() {
+  return istEn()
+    ? { titel: '🎯 Guessing mode', modi: ['🎯 Guessing: off (tap: once)', '🎯 Guessing: this card only (tap: always)', '🎯 Guessing: always (tap: off)'], hinweis: 'Count hands, tap the majority answer', richtig: 'Correct!', falsch: 'Not quite.', antwort: 'Answer', gewaehlt: 'Chosen', offen: 'Correct answer',
+        hilfe: '🎯 <b>Guessing mode</b> (optional): the group sees four answers per card and votes by show of hands. Tap the majority answer – the card turns and the points are given as usual. The icon cycles: off, <b>1</b> = joker for this card only, <b>∞</b> = always. Questions for your own cards: Backup → "AI briefing for guessing questions".' }
+    : { titel: '🎯 Raten-Modus', modi: ['🎯 Raten: aus (Tipp: nur einmal)', '🎯 Raten: nur diese Karte (Tipp: immer)', '🎯 Raten: immer (Tipp: aus)'], hinweis: 'Handzeichen zählen, Mehrheit antippen', richtig: 'Richtig!', falsch: 'Leider nicht.', antwort: 'Antwort', gewaehlt: 'Gewählt', offen: 'Richtige Antwort',
+        hilfe: '🎯 <b>Raten-Modus</b> (optional): Die Gruppe sieht pro Karte vier Antworten und stimmt per Handzeichen ab. Die Mehrheits-Antwort antippen – die Karte dreht sich, Punkte werden wie gewohnt vergeben. Das Symbol schaltet durch: aus, <b>1</b> = Joker nur für diese Karte, <b>∞</b> = immer. Eigene Fragen zu deinen Karten: Sicherung → „KI-Briefing für Rate-Fragen“.' };
+}
+function ratenLaden() {
+  try {
+    const l = JSON.parse(localStorage.getItem('ratenDaten') || 'null');
+    if (l?.fragen) ratenDaten = l.fragen;
+  } catch (_) {}
+  fetch('raten.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => {
+    if (!j?.fragen) return;
+    ratenDaten = j.fragen;
+    try { localStorage.setItem('ratenDaten', JSON.stringify(j)); } catch (_) {}
+    if (spielAktiv) spielRender();
+  }).catch(() => {});
+  if (ratenDaten && spielAktiv) spielRender();
+}
+function ratenQuelle(k) {                             // eigene Frage an der Karte hat Vorrang vor raten.json
+  return (k && k.raten && Array.isArray(k.raten.o) && k.raten.o.length >= 2 && k.raten.f) ? k.raten : (k && ratenDaten && ratenDaten[k.id]) || null;
+}
+function spielRatenVerfuegbar() {
+  return lernKarten.some(k => ratenQuelle(k));
+}
+function spielRatenFrage() {
+  if (!spiel.raten) return null;
+  const s = lernKarten[lernIndex];
+  const q = ratenQuelle(s);
+  if (!q || !Array.isArray(q.o) || q.o.length < 2) return null;
+  const lq = istEn() && q.fe && Array.isArray(q.oe) && q.oe.length === q.o.length ? { f: q.fe, o: q.oe } : q;   // englische Fassung, sonst Deutsch
+  if (spiel.ratenId !== s.id) {                       // neue Karte: Antworten neu mischen
+    spiel.ratenId = s.id;
+    const o = q.o.map((_, i) => i);
+    for (let i = o.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [o[i], o[j]] = [o[j], o[i]]; }
+    spiel.ratenOrder = o;
+  }
+  return lq;
+}
+function spielRatenZeile() {
+  const q = spiel.raten && nameVisible ? spielRatenFrage() : null;
+  if (!q) return '';
+  const T = spRatenT(), gew = spiel.ratenGew;
+  if (gew == null) return `<div class="sp-rt-zeile sp-rt-offen"><b>${esc(T.offen)}:</b> ${esc(q.o[0])}</div>`;
+  if (gew === 0) return `<div class="sp-rt-zeile sp-rt-ok"><b>✓ ${esc(T.richtig)}</b> ${esc(q.o[0])}</div>`;
+  return `<div class="sp-rt-zeile sp-rt-nein"><b>✗ ${esc(T.falsch)}</b> ${esc(T.antwort)}: ${esc(q.o[0])} <span class="sp-rt-gew">(${esc(T.gewaehlt)}: ${esc(q.o[gew])})</span></div>`;
+}
+function spielRatenRender() {
+  const el = document.getElementById('spiel-raten'); if (!el) return;
+  const q = spielRatenFrage();
+  const T = spRatenT();
+  if (!q) { el.className = 'spiel-raten hidden'; el.innerHTML = ''; return; }
+  if (!nameVisible) {
+    const sk = lernKarten[lernIndex];
+    const voll = (sk.modus || 'foto') === 'text';          // Begriffskarte: deckend, Begriff als Überschrift; Fotokarte: Bild bleibt sichtbar
+    el.className = 'spiel-raten sp-rt-frage' + (voll ? ' sp-rt-voll' : '');
+    el.innerHTML = `${voll ? `<div class="sp-rt-begriff">${esc(sk.name || '')}</div>` : ''}<div class="sp-rt-q">${esc(q.f)}</div>
+      <div class="sp-rt-unten"><div class="sp-rt-opts">${spiel.ratenOrder.map((orig, pos) =>
+        `<button data-sp="rate" data-i="${orig}"><span class="sp-rt-l">${'ABCD'[pos]}</span><span class="sp-rt-t">${esc(q.o[orig])}</span></button>`).join('')}</div>
+      <div class="sp-rt-hint">${esc(T.hinweis)}</div></div>`;
+  } else {                                            // aufgedeckt: Ergebnis steht in der Leiste unter der Karte (spielRatenZeile)
+    el.className = 'spiel-raten hidden'; el.innerHTML = '';
+  }
+}
+
+// ── Aktionen ─────────────────────────────────────────────────
+function spielWeiter(gewusst) {
+  const s = lernKarten[lernIndex];
+  if (s) spiel.vergeben.add(s.id);
+  const soll = gewusst ? 'gewusst' : 'nicht';
+  if (aktuelleWertung && aktuelleWertung !== soll) document.getElementById('lern-feedback').click();
+  document.getElementById('spiel-wer')?.classList.add('hidden');
+  const los = (versuche = 0) => {
+    if (isAnimating && versuche < 10) { setTimeout(() => los(versuche + 1), 150); return; }
+    naechsteKarteOderEnde();
+  };
+  setTimeout(los, 380);
+}
+
+// Neue Person (Tastatur/Emoji) bekommt +1; die Karte bleibt stehen, bis „Weiter ▶“ oder ein Tipp auf die Karte kommt
+function spielVergeben(namen, klasse) {
+  spielPunkt(namen, klasse, 1);
+  spielChipEffekt(namen, '+1', false);
+}
+function spielWeiterKarte() {
+  const aw = spielKarteAwards();
+  const gewusst = aw.klasse > 0 || [...aw.personen.values()].some(v => v > 0);
+  spiel.minus = false;
+  spielWeiter(gewusst);
+}
+function spielChipBlinken(name) {
+  setTimeout(() => {
+    const c = [...document.querySelectorAll('#spiel-wer .sp-chip[data-name]')].find(x => x.dataset.name === name);
+    if (c) { c.classList.add('sp-chip-blink'); setTimeout(() => c.classList.remove('sp-chip-blink'), 1200); }
+  }, 60);
+}
+function spielKlick(e) {
+  const el = e.target.closest('[data-sp]'); if (!el) return;
+  const a = el.dataset.sp, T = spT();
+  if (a === 'wuerfel') {
+    const an = el.checked;
+    if (an && spielNamenDa().length < 2) { el.checked = false; spielNamen(T.zuWenig, true); return; }
+    spiel.wuerfel = an;
+    spiel.aktuell = null;
+    if (an && !nameVisible) spielWuerfeln(); else spielRender();
+  } else if (a === 'zeit') {
+    const i = SPIEL_ZEITEN.indexOf(spiel.zeit);
+    spiel.zeit = SPIEL_ZEITEN[(i + 1) % SPIEL_ZEITEN.length];
+    spielRender();
+    if (!spiel.zeit) { spielZeitStop(); spielRenderBanner(); }
+    else if (!nameVisible && !(spiel.wuerfel && !spiel.aktuell)) spielZeitStart();
+  } else if (a === 'raten') {
+    spiel.raten = ((spiel.raten || 0) + 1) % 3;          // 0 aus → 1 nur diese Karte (Joker) → 2 immer
+    spiel.ratenJoker = spiel.raten === 1 ? (nameVisible ? 'naechste' : lernKarten[lernIndex]?.id) : null;
+    spiel.ratenId = null;
+    spielRender();
+    praesiAutofitPlanen();
+  } else if (a === 'rate') {
+    if (nameVisible || isAnimating) return;
+    const i = Number(el.dataset.i);
+    spiel.ratenGew = i;
+    spielZeitStop();
+    triggerFlip(i === 0 ? 'gewusst' : 'nicht-gewusst');
+  } else if (a === 'lang') spielSpracheWechseln();
+  else if (a === 'hilfe') spielHilfe();
+  else if (a === 'namen') spielNamen();
+  else if (a === 'undo') spielUndo();
+  else if (a === 'beenden') {
+    const hatPunkte = spiel.klasse > 0 || spiel.namen.some(n => n.punkte > 0);
+    if (!hatPunkte || confirm(T.beendenFrage)) document.getElementById('btn-beenden').click();
+  }
+  else if (a === 'auswertung') spielPodium();
+  else if (a === 'passen') { const alt = spiel.aktuell; const e0 = spielFinde(alt); if (e0) e0.gewuerfelt = false; spielWuerfeln(alt); }
+  else if (a === 'helfer') { spiel.helfer = !spiel.helfer; spielRenderPanel(); }
+  else if (a === 'wahl') {
+    spielToggle(el.dataset.name);
+  } else if (a === 'minus') { spiel.minus = !spiel.minus; spielRenderPanel();
+  } else if (a === 'weiter') { spielWeiterKarte();
+  } else if (a === 'neu') {
+    spielTastatur(T.tasteTitel, '', text => {
+      const person = spielNeuePerson(text); if (!person) return;
+      spielVergeben([person.name], false);
+    });
+  } else if (a === 'emoji') {
+    spielEmojiZeigen(em => {
+      const person = spielEmojiPersonMit(em);
+      spielVergeben([person.name], false);
+    });
+  } else if (a === 'hneu') {
+    spielTastatur(T.tasteTitel, '', text => {
+      const person = spielNeuePerson(text); if (!person) return;
+      spielVergeben([person.name], false);
+    });
+  } else if (a === 'hemoji') {
+    spielEmojiZeigen(em => {
+      const person = spielEmojiPersonMit(em);
+      spielVergeben([person.name], false);
+    });
+  } else if (a === 'alle') { spielToggleKlasse(); }
+  else if (a === 'niemand') { toast(T.keinPunkt); spielWeiter(false); }
+}
+
+// ── Bildschirm-Tastatur (sichtbar auch auf Monitor/Beamer; Hardware-Tastatur geht ebenfalls) ──
+function spielTastatur(titel, start, onOk, opt = {}) {
+  const T = spT();
+  document.getElementById('spiel-kb')?.remove();
+  let text = spielNameNorm(start || '');
+  const reihen = ['QWERTZUIOPÜ', 'ASDFGHJKLÖÄ', 'YXCVBNMß-'];
+  const kb = document.createElement('div');
+  kb.id = 'spiel-kb'; kb.className = 'spiel-kb';
+  const taste = z => `<button type="button" class="sp-taste" data-z="${z}">${z}</button>`;
+  kb.innerHTML = `<div class="sp-kb-kopf"><span class="sp-kb-titel">${esc(titel)}</span>
+      <span class="sp-kb-anzeige"><span id="sp-kb-text"></span><span class="sp-kb-cursor"></span></span></div>
+    <div class="sp-kb-reihe">${[...reihen[0]].map(taste).join('')}</div>
+    <div class="sp-kb-reihe">${[...reihen[1]].map(taste).join('')}</div>
+    <div class="sp-kb-reihe">${[...reihen[2]].map(taste).join('')}<button type="button" class="sp-taste sp-taste-breit" data-z="⌫">⌫</button></div>
+    <div class="sp-kb-reihe sp-kb-unten">
+      <button type="button" class="sp-taste sp-taste-breit sp-aus" data-z="x">${esc(opt.mehrfach ? T.schliessen : T.tasteAbbr)}</button>
+      <button type="button" class="sp-taste sp-taste-leer" data-z=" ">${esc(T.leerzeichen)}</button>
+      ${opt.mehrfach ? `<button type="button" class="sp-taste sp-taste-breit" data-z="next">${esc(T.naechster)}</button>` : ''}
+      <button type="button" class="sp-taste sp-taste-breit sp-ok" data-z="ok">${esc(T.tasteOk)}</button>
+    </div>`;
+  document.body.appendChild(kb);
+  const anz = kb.querySelector('#sp-kb-text');
+  const zeige = () => { anz.textContent = text; };
+  const schliesse = () => { document.removeEventListener('keydown', taste_, true); kb.remove(); };
+  const fertig = () => {                      // OK: übernehmen und schließen (leer: nur schließen)
+    const t = spielNameNorm(text);
+    schliesse(); if (t) onOk(t);
+  };
+  const naechster = () => {                   // ＋ Nächster: übernehmen, Tastatur bleibt offen
+    const t = spielNameNorm(text);
+    if (t) { onOk(t); text = ''; zeige(); }
+  };
+  const tippe = z => {
+    if (z === '⌫') text = text.slice(0, -1);
+    else if (z === 'x') { schliesse(); return; }
+    else if (z === 'ok') { fertig(); return; }
+    else if (z === 'next') { naechster(); return; }
+    else if (text.length < 24) {
+      const gross = !text || text.endsWith(' ') || text.endsWith('-');
+      text += (z === ' ') ? ' ' : (gross ? z.toUpperCase() : z.toLowerCase());
+    }
+    zeige();
+  };
+  function taste_(ev) {            // Hardware-Tastatur
+    ev.stopPropagation();
+    if (ev.key === 'Enter') { ev.preventDefault(); fertig(); }
+    else if (ev.key === 'Escape') { ev.preventDefault(); schliesse(); }
+    else if (ev.key === 'Backspace') { ev.preventDefault(); tippe('⌫'); }
+    else if (ev.key.length === 1 && !ev.metaKey && !ev.ctrlKey) { ev.preventDefault(); tippe(ev.key); }
+  }
+  document.addEventListener('keydown', taste_, true);
+  kb.addEventListener('click', ev => {
+    const z = ev.target.closest('[data-z]')?.dataset.z;
+    if (z !== undefined) tippe(z);
+  });
+  zeige();
+}
+
+// ── Dialoge ──────────────────────────────────────────────────
+function spielModal(inhalt) {
+  document.getElementById('spiel-modal')?.remove();
+  const m = document.createElement('div');
+  m.id = 'spiel-modal'; m.className = 'spiel-modal';
+  m.innerHTML = `<div class="spiel-modal-box">${inhalt}</div>`;
+  document.body.appendChild(m);
+  return m;
+}
+function spielHilfe() {
+  const T = spT();
+  const m = spielModal(`<h3>${esc(T.hilfeTitel)}</h3><p class="sp-praeambel">${esc(T.praeambel)}</p><ol class="sp-regeln">${T.hilfeText.map(x => `<li>${x}</li>`).join('')}${spielRatenVerfuegbar() ? `<li>${spRatenT().hilfe}</li>` : ''}</ol>
+    <button class="btn-primary" data-x="zu">${esc(T.losgehts)}</button>`);
+  m.addEventListener('click', e => { if (e.target === m || e.target.closest('[data-x="zu"]')) m.remove(); });
+}
+function spielNamen(hinweis, wuerfelStarten) {
+  const T = spT();
+  const m = spielModal(`<h3>${esc(T.namenTitel)}</h3>
+    ${hinweis ? `<p class="sp-warn">${esc(hinweis)}</p>` : ''}
+    <p class="sp-hinweis">${esc(T.namenHinweis)}</p>
+    <div id="sp-namen-liste" class="sp-namen-liste"></div>
+    <div class="sp-modal-btns sp-add-btns">
+      <button class="btn-secondary" data-x="tippen">${esc(T.neuName2)}</button>
+      <button class="btn-secondary" data-x="emoji">${esc(T.emojiSp)}</button>
+      <button class="btn-secondary" data-x="fuenf">${esc(T.fuenf)}</button>
+      <button class="btn-secondary" data-x="paste">${esc(T.einfuegen)}</button>
+    </div>
+    <div class="sp-modal-btns"><button class="btn-primary" data-x="fertig">${esc(T.fertig)}</button></div>`);
+  const liste = m.querySelector('#sp-namen-liste');
+  const zeichne = () => {
+    liste.innerHTML = [...spiel.namen].sort((a, b) => a.name.localeCompare(b.name)).map(e =>
+      `<button class="sp-chip${e.da ? '' : ' sp-aus'}" data-name="${esc(e.name)}">${esc(e.name)}${e.punkte ? `<span class="sp-chip-pkt">${e.punkte}</span>` : ''}${e.da ? '' : ' · ✗'}</button>`).join('');
+  };
+  const tippen = () => spielTastatur(T.tasteTitel, '', t => { spielNeuePerson(t); zeichne(); }, { mehrfach: true });
+  m.addEventListener('sp-neu', zeichne);
+  zeichne();
+  m.addEventListener('click', async ev => {
+    const chip = ev.target.closest('#sp-namen-liste [data-name]');
+    if (chip) { const e = spielFinde(chip.dataset.name); if (e) { e.da = !e.da; zeichne(); } return; }   // (langes Drücken: Menü)
+    const x = ev.target.closest('[data-x]')?.dataset.x;
+    if (x === 'tippen') tippen();
+    else if (x === 'emoji') spielEmojiZeigen(em => { spielEmojiPersonMit(em); zeichne(); });
+    else if (x === 'fuenf') {
+      const neu = [];
+      for (let i = 0; i < 5; i++) { const em = spielFreiesEmoji(); spielEmojiPersonMit(em); neu.push(em); }
+      zeichne();
+      spielEmojiZeigen(() => {}, neu);
+    }
+    else if (x === 'paste') {
+      try {
+        const t = await navigator.clipboard.readText();
+        t.split(/\n|,|;/).forEach(n => spielNeuePerson(n));
+        zeichne();
+      } catch (_) { toast(T.einfuegenFehl); tippen(); }
+    } else if (x === 'fertig' || ev.target === m) {
+      if (wuerfelStarten && spielNamenDa().length >= 2) spiel.wuerfel = true;
+      m.remove();
+      spielRender();
+      if (spiel.wuerfel && !nameVisible) spielWuerfeln();
+    }
+  });
+}
+
+// ── Auswertung „Unsere MemoDiver“ ────────────────────────────
+function spielPodium(amEnde) {
+  const T = spT();
+  const mitteImSpiel = !amEnde;
+  clearInterval(spiel.rollTimer);
+  spielZeitStop();
+  const mitPunkten = spiel.namen.filter(e => e.punkte > 0);
+  const stufen = [...new Set(mitPunkten.map(e => e.punkte))].sort((a, b) => b - a).slice(0, 3);
+  const html = stufen.length ? `<div class="sp-podest">${stufen.map((p, i) => {
+      const namen = mitPunkten.filter(e => e.punkte === p).map(e => e.name).sort();
+      return `<div class="sp-platz sp-platz-${i + 1}"><div class="sp-medaille">${T.platz[i]}</div>
+        <div class="sp-platz-namen">${namen.map(esc).join('<br>')}</div><div class="sp-platz-pkt">${p}</div></div>`;
+    }).join('')}</div>` : `<p class="sp-keine">${esc(T.keinePunkte)}</p>`;
+  document.getElementById('spiel-podium')?.remove();
+  const el = document.createElement('div');
+  el.id = 'spiel-podium'; el.className = 'spiel-podium';
+  el.innerHTML = `<div class="spiel-podium-box">
+      <div class="sp-pod-links">
+        <h2><span class="title-pix">${esc(T.unsere)}</span> <span class="title-memo">Memo</span><span class="title-pix">Diver</span></h2>
+        <p class="sp-klasse-gross">${esc(T.klassenpunkte(spiel.klasse))}</p>
+        ${html}
+      </div>
+      <div class="sp-pod-rechts">
+        <div id="sp-belohnung" class="sp-belohnung"><button class="btn-secondary sp-belohnung-btn" data-x="belohnung">${esc(T.belohnung)}</button></div>
+        <div class="sp-modal-btns">${mitteImSpiel ? `<button class="btn-secondary" data-x="weiter">${esc(T.weiterspielen)}</button>` : ''}
+          <button class="btn-secondary" data-x="neu">${esc(T.neueRunde)}</button>
+          <button class="btn-primary" data-x="ende">${esc(T.beenden)}</button></div>
+      </div></div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click', e => {
+    const x = e.target.closest('[data-x]')?.dataset.x;
+    if (x === 'belohnung') {
+      if (!el._bel) el._bel = { pool: [...T.belohnungen].sort(() => Math.random() - 0.5).slice(0, 2), i: 0 };
+      const st = el._bel;
+      const box = el.querySelector('#sp-belohnung');
+      const btn = box.querySelector('[data-x="belohnung"]');
+      const anzeige = box.querySelector('.sp-idee') || box.insertAdjacentElement('afterbegin', Object.assign(document.createElement('div'), { className: 'sp-idee' }));
+      if (st.i < 2) {
+        const text = st.pool[st.i];
+        const hatVideo = text === T.belohnungen[0];
+        anzeige.innerHTML = `<div class="sp-idee-nr">${st.i + 1}/3</div><div class="sp-idee-text">${esc(text)}</div>
+          ${hatVideo ? `<div class="sp-video"><button class="btn-secondary" data-x="video">${esc(T.video)}</button></div>` : ''}`;
+        el.querySelector('.spiel-podium-box')?.classList.add('sp-belohnt');
+      } else {
+        anzeige.innerHTML = `<div class="sp-idee-nr">3/3</div><div class="sp-idee-text sp-weiter">${esc(T.wirMachenWeiter)}</div>`;
+        el.querySelector('.spiel-podium-box')?.classList.add('sp-belohnt');
+        btn.remove();
+      }
+      st.i++;
+    } else if (x === 'video') {
+      window.open('https://www.youtube.com/', '_blank', 'noopener');
+    } else if (x === 'weiter') {
+      el.remove();
+      if (nameVisible) {                       // Auswertung kam von einer Rückseite -> nächste Vorderseite
+        const s_ = lernKarten[lernIndex];
+        if (s_) spiel.vergeben.add(s_.id);
+        if (aktuelleWertung === 'gewusst') document.getElementById('lern-feedback').click();
+        if (lernIndex < lernKarten.length - 1) { stoppeAutoTimer(); lernIndex++; zeigeKarte(); }
+        else naechsteKarteOderEnde();
+      } else spielRender();
+    } else if (x === 'neu') {
+      spiel.namen.forEach(n => { n.punkte = 0; n.gewuerfelt = false; });
+      spiel.klasse = 0; spiel.verlauf = []; spiel.vergeben = new Set(); spiel.aktuell = null;
+      el.remove();
+      starteSession(lernKartenOriginal.length ? lernKartenOriginal : lernKarten, true);
+      spielRender();
+    } else if (x === 'ende') {
+      el.remove();
+      document.getElementById('btn-beenden').click();
+    }
+  });
+}
+document.addEventListener('keydown', e => {
+  if (spielAktiv && e.target?.id === 'sp-stichwort') e.stopPropagation();
+}, true);
+
+// ── Lang drücken auf einen Namen: umbenennen oder entfernen (Punkte können übertragen werden) ──
+function spielPersonMenue(name) {
+  const T = spT();
+  const e = spielFinde(name); if (!e) return;
+  document.getElementById('spiel-menue')?.remove();
+  const m = document.createElement('div');
+  m.id = 'spiel-menue'; m.className = 'spiel-modal sp-emoji-modal';
+  m.innerHTML = `<div class="spiel-modal-box sp-emoji-box">
+    <div class="sp-emoji-titel">${esc(e.name)}${e.punkte ? ` · ${e.punkte}` : ''}</div>
+    <div class="sp-modal-btns sp-menue-btns">
+      <button class="btn-secondary" data-x="umb">${esc(T.umbenennen)}</button>
+      <button class="btn-secondary" data-x="weg">${esc(T.entfernen)}</button>
+      <button class="btn-secondary" data-x="zu">${esc(T.abbr)}</button></div></div>`;
+  document.body.appendChild(m);
+  const schliesse = () => m.remove();
+  const nachAenderung = () => { spielRender(); if (document.getElementById('spiel-modal')) { /* Namensdialog neu zeichnen */ document.getElementById('spiel-modal').dispatchEvent(new Event('sp-neu')); } };
+  m.addEventListener('click', ev => {
+    const x = ev.target.closest('[data-x]')?.dataset.x;
+    if (ev.target === m || x === 'zu') { schliesse(); return; }
+    if (x === 'umb') {
+      schliesse();
+      spielTastatur(T.tasteTitel, e.name, neu => {
+        const ziel = spielFinde(neu);
+        if (ziel && ziel !== e) {                 // gibt es schon: Personen zusammenführen
+          ziel.punkte += e.punkte;
+          spiel.verlauf.forEach(v => { v.namen = v.namen.map(n => n === e.name ? ziel.name : n); if (v.wirksam) v.wirksam = v.wirksam.map(n => n === e.name ? ziel.name : n); });
+          spiel.namen = spiel.namen.filter(n => n !== e);
+        } else spielUmbenennen(e, neu);
+        nachAenderung();
+        spielChipBlinken((ziel && ziel !== e) ? ziel.name : neu);
+      });
+    } else if (x === 'weg') {
+      const andere = spielNamenDa().filter(n => n !== e);
+      if (!e.punkte || !andere.length && !e.punkte) { entfernePerson(e, null); schliesse(); nachAenderung(); return; }
+      // Punkte übertragen: an vorhandene Person, neuen Namen oder verwerfen
+      m.querySelector('.spiel-modal-box').innerHTML = `<div class="sp-emoji-titel">${esc(T.punkteUebertragen(e.punkte))}</div>
+        <div class="sp-chips sp-chips-zwei">${andere.map(n => `<button class="sp-chip" data-x="an" data-name="${esc(n.name)}">${esc(n.name)}</button>`).join('')}
+          <button class="sp-chip sp-chip-neu" data-x="neuer">${esc(T.neuName2)}</button>
+          <button class="sp-chip sp-chip-nein" data-x="verwerfen">${esc(T.verwerfen)}</button>
+          <button class="sp-chip" data-x="zu">${esc(T.abbr)}</button></div>`;
+    } else if (x === 'an') {
+      entfernePerson(e, ev.target.closest('[data-name]').dataset.name); schliesse(); nachAenderung();
+    } else if (x === 'verwerfen') {
+      entfernePerson(e, null); schliesse(); nachAenderung();
+    } else if (x === 'neuer') {
+      schliesse();
+      spielTastatur(T.tasteTitel, '', t => { const p = spielNeuePerson(t); if (p) entfernePerson(e, p.name); nachAenderung(); });
+    }
+  });
+}
+function entfernePerson(e, zielName) {
+  const ziel = zielName ? spielFinde(zielName) : null;
+  if (ziel) { ziel.punkte += e.punkte; }
+  spiel.verlauf.forEach(v => {
+    const f = arr => ziel ? arr.map(n => n === e.name ? ziel.name : n) : arr.filter(n => n !== e.name);
+    v.namen = f(v.namen); if (v.wirksam) v.wirksam = f(v.wirksam);
+  });
+  if (spiel.aktuell === e.name) spiel.aktuell = null;
+  spiel.namen = spiel.namen.filter(n => n !== e);
+}
+// Lang drücken (≈ 0,55 s) auf einen Namens-Chip
+(function () {
+  let timer = 0, startX = 0, startY = 0, unterdrueckeKlick = false;
+  const abbrechen = () => { clearTimeout(timer); timer = 0; };
+  document.addEventListener('pointerdown', ev => {
+    if (!spielAktiv) return;
+    unterdrueckeKlick = false;
+    const chip = ev.target.closest?.('.sp-chip[data-name]');
+    if (!chip) return;
+    startX = ev.clientX; startY = ev.clientY;
+    abbrechen();
+    timer = setTimeout(() => {
+      timer = 0; unterdrueckeKlick = true;
+      setTimeout(() => { unterdrueckeKlick = false; }, 1200);
+      if (navigator.vibrate) { try { navigator.vibrate(15); } catch (_) {} }
+      spielPersonMenue(chip.dataset.name);
+    }, 550);
+  }, true);
+  document.addEventListener('pointermove', ev => {
+    if (timer && (Math.abs(ev.clientX - startX) > 10 || Math.abs(ev.clientY - startY) > 10)) abbrechen();
+  }, true);
+  ['pointerup', 'pointercancel'].forEach(t => document.addEventListener(t, abbrechen, true));
+  document.addEventListener('click', ev => {         // der Klick nach einem langen Druck zählt nicht als Punkt
+    if (unterdrueckeKlick) { unterdrueckeKlick = false; ev.stopPropagation(); ev.preventDefault(); }
+  }, true);
+  document.addEventListener('contextmenu', ev => { if (spielAktiv) ev.preventDefault(); });
+})();
+
+// Statistik: Zeitraum 30 Tage / Alle
+document.getElementById('stat-zeitraum')?.addEventListener('click', e => {
+  const b = e.target.closest('button[data-tage]'); if (!b) return;
+  try { localStorage.setItem('statistikTage', String(parseInt(b.dataset.tage, 10) || 0)); } catch (_) {}
+  renderStatistik();
+});
